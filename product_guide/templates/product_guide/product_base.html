@@ -1,0 +1,76 @@
+{% extends "product_guide\base.html" %}
+{% block main %}
+    <aside>
+        <div class="search_string">
+            <form class="search_string" action="#" method="get">
+                <input type="text" placeholder="Поиск изделий" name="search_string">
+                <button type="submit"></button>
+            </form>
+        </div>
+        <div class="filters">
+            <h4>Фильтра</h4>
+            <select name="Изделие" id="test">
+                <option>Изделие</option>
+                <option value="value1">Кольца</option>
+                <option value="value2">Серьги</option>
+                <option value="value3">Браслеты</option>
+            </select>
+            <select name="metall">
+                <option>Металл</option>
+                <option>Золото 585</option>
+                <option>Серебро 925</option>
+            </select>
+            <select>
+                <option>Наличие</option>
+                <option>В наличии</option>
+                <option>Нет в наличии</option>
+
+            </select>
+            <select>
+                <option>Регистрация в ГИИС</option>
+                <option>Стоит на учете в ГИИС</option>
+                <option>Не стоит на учете в ГИИС</option>
+
+            </select>
+            <select>
+                <option>Статус ГИИС</option>
+                <option>Числится на хранении</option>
+                <option>Выбыл из ГИИС</option>
+
+            </select>
+        </div>
+    </aside>
+
+    <article>
+        <table class="table">
+            <tr class="table_header">
+                <th>Вид изделия</th>
+                <th>Металл</th>
+                <th>Вес</th>
+                <th>Артикул</th>
+                <th>Штрихкод</th>
+                <th>УИН</th>
+                <th>Статус наличия</th>
+                <th>Статус рег-ции в ГИИС</th>
+                <th>Статус ГИИС</th>
+            </tr>
+
+            {% for product in product_list %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.metal }}</td>
+                    <td>{{ product.weight }} гр</td>
+                    <td>{{ product.vendor_code }}</td>
+                    <td>{{ product.barcode }}</td>
+                    <td>{{ product.uin }}</td>
+                    <td>{{ product.availability_status }}</td>
+                    <td>{{ product.giis_reg_status }}</td>
+                    <td>{{ product.giis_status }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <script>
+        const prod_list = {{product_list}}
+        console.log(document.querySelector('#test').addE)</script>
+    </article>
+{% endblock %}

@@ -1,0 +1,7 @@
+asgiref==3.5.2
+css==0.1
+Django==4.0.6
+sqlparse==0.4.2
+style==1.1.0
+tzdata==2022.1
+update==0.0.1
