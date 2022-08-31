@@ -4,7 +4,7 @@
 }
 
 html, body, header, main, nav, article, aside,
-.filters {
+.filters, #fieldset, select {
     display: flex;
 }
 
@@ -55,8 +55,15 @@ main {
 
 aside {
     border-right: 2px gray solid;
-    padding: 5px;
+    padding: 15px 5px 5px 5px;
     flex-direction: column;
+}
+
+.search_form {
+    display: flex;
+}
+#search_string {
+    width: 140px;
 }
 
 .filters {
@@ -65,23 +72,25 @@ aside {
 }
 
 #fieldset {
-    display:flex;
+    flex-direction: column;
+    margin: 0;
     }
 
 select {
     margin: 3px;
-    display: inline-block
+}
+
+#filter_button {
+    margin-top: 20px;
 }
 
 article {
     flex-direction: column;
     height: 100%;
-    padding: 5px;
 
 }
 
 .table {
-    border: 1px grey solid;
     border-top: 0;
     margin: 0;
     padding: 0;
@@ -90,7 +99,7 @@ article {
 }
 
 .table  tr  td{
-    border: 1px grey solid;
+    border: 1px grey dotted;
     margin: 0;
     padding: 5px;
     border-spacing: 0;

@@ -2,10 +2,9 @@
 {% block main %}
 
     <aside>
-        <input type="hidden" id="prod_list" name="prod_list" value="{{ product_list }}">
-        <div class="search_string">
-            <form class="search_string" action="#" method="get">
-                <input type="text" placeholder="Поиск изделий" name="search_string">
+        <div class="search">
+            <form class="search_form" action="" method="get">
+                <input id="search_string" type="text" placeholder="Поиск изделий..." name="search_string" width="20px">
                 <button type="submit">Найти</button>
             </form>
         </div>
@@ -25,10 +24,14 @@
                     <option value="Золото 585">Золото 585</option>
                     <option value="Серебро 925">Серебро 925</option>
                 </select>
-            <button type="submit">Показать</button>
+                <select name="availability_status" id="availability_status">
+                    <option value="all">Наличие</option>
+                    <option value="в наличии">в наличии</option>
+                    <option value="продано">продано</option>
+                </select>
+            <button id="filter_button" type="submit">Показать</button>
                 </fieldset>
             </form>
-
         </div>
     </aside>
 

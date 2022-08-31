@@ -10,11 +10,15 @@ def index(request):
 def product_base(request):
     name = request.GET.get('name')
     metal = request.GET.get('metal')
+    search = request.GET.get('search_string')
+    availability_status = request.GET.get('availability_status')
     product_list = Jewelry.objects.all()
     if 'all' != name is not None:
         product_list = product_list.filter(name=name)
     if 'all' != metal is not None:
         product_list = product_list.filter(metal=metal)
+    if 'all' != availability_status is not None:
+        product_list = product_list.filter(availability_status=availability_status)
     context = {
         'product_list': product_list,
         'product_name_filter': name,
