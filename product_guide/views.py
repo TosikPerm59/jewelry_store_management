@@ -8,7 +8,18 @@ def index(request):
 
 
 def product_base(request):
-    product_list = Jewelry.objects.all
-    context = {'product_list': product_list}
+    name = request.GET.get('name')
+    metal = request.GET.get('metal')
+    if name == metal == 'all' or name == metal is None:
+        product_list = Jewelry.objects.all
+    else:
+        product_list = Jewelry.objects.filter(name=name, metal=metal)
+    context = {
+        'product_list': product_list,
+        'product_name_filter': name,
+        'product_metal_filter': metal
+    }
+    return render(request, 'product_guide\product_base_v2.html', context)
 
-    return render(request, 'product_guide\product_base.html', context)
+
+

@@ -45,8 +45,8 @@ class Jewelry(models.Model):
 
 
 
-# class Rings(Jewelry):
-#     pass
+class Rings(Jewelry):
+    pass
 #
 # class Wicker(Jewelry):
 #     weaving = models.CharField(max_length=20, verbose_name='Плетение', blank=True, null=True)

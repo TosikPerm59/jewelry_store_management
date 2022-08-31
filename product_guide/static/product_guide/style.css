@@ -64,8 +64,13 @@ aside {
     align-items: stretch;;
 }
 
+#fieldset {
+    display:flex;
+    }
+
 select {
     margin: 3px;
+    display: inline-block
 }
 
 article {
