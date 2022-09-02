@@ -4,7 +4,7 @@
 }
 
 html, body, header, main, nav, article, aside,
-.filters, #fieldset, select {
+.filters, #fieldset, select, .search, .search_form {
     display: flex;
 }
 
@@ -60,10 +60,10 @@ aside {
 }
 
 .search_form {
-    display: flex;
+
 }
 #search_string {
-    width: 140px;
+    width: 150px;
 }
 
 .filters {
