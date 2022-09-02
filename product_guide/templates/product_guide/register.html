@@ -1,0 +1,31 @@
+{% extends 'product_guide/base.html' %}
+
+{% block main %}
+    <div class="register_window">
+
+        <form class="register_form" method="post" action="" name="register">
+            {% csrf_token %}
+            <fieldset id="register_fieldset">
+                <legend>Форма регистрации</legend>
+                <div class="register_form_string">
+                    <label class="register_form_label" for="name">Имя</label>
+                    <input type="text" id="name" maxlength="25" name="name" required>
+                </div>
+                <div class="register_form_string">
+                    <label class="register_form_label" for="surname">Фамилия</label>
+                    <input type="text" id="surname" maxlength="25" name="surname" required>
+                </div>
+                <div class="register_form_string">
+                    <label class="register_form_label" for="password_1">Пароль</label>
+                    <input type="password" id="password_1" maxlength="25">
+                </div>
+                <div class="register_form_string">
+                    <label class="register_form_label" for="password_2">Пароль</label>
+                    <input type="password" id="password_2" maxlength="25">
+                </div>
+
+                <button id="register_button" type="submit">Зарегистрироваться</button>
+            </fieldset>
+        </form>
+    </div>
+{% endblock %}

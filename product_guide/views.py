@@ -1,12 +1,18 @@
-from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.template.context_processors import csrf
 from .models import Jewelry
 from .anover_functions import search_query_processing
 
 
 def register(request):
-    return HttpResponse('Вы находитесь на странице регистрации')
+    if request.method == 'POST':
+        user_name = request.POST.get('name')
+        user_surname = request.POST.get('surname')
+        user_password_1 = request.POST.get('password_1')
+        user_password_2 = request.POST.get('password_2')
+        print(user_name, user_surname)
+    return render(request, 'product_guide/register.html')
 
 
 def login(request):
@@ -36,10 +42,7 @@ def product_base(request):
         product_list = product_list.filter(uin=prod_uin)
     context = {
         'product_list': product_list,
-        'product_name_filter': prod_name,
-        'product_metal_filter': prod_metal
+        'current_name': prod_name,
+        'current_metal': prod_metal
     }
-    return render(request, 'product_guide\product_base_v2.html', context)
-
-
-
+    return render(request, 'product_guide\product_base_v2.html', context=context)

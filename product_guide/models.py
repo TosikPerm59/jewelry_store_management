@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class Jewelry(models.Model):
@@ -53,3 +54,4 @@ class Rings(Jewelry):
 #
 # class Necklace(Jewelry):
 #     pass
+
