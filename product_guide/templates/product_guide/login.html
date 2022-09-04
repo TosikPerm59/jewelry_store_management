@@ -1,0 +1,25 @@
+{% extends 'product_guide/base.html' %}
+{% block main%}
+<div class="login_window">
+  {% if request.user.is_authenticated %}
+    Вы уже вошли выполнили вход!
+  {% else %}
+  <form action="" method="post" class="login_form" name="login_form">
+    {% csrf_token %}
+    <fieldset>
+      <legend>Форма авторизации</legend>
+      <div class="login_form_string">
+        <label class="login_form_label" for="login_input">Логин</label>
+        <input type="text" id="login_input" name="login_input">
+      </div>
+      <div class="login_form_string">
+        <label class="login_form_label" for="password_input">Пароль</label>
+        <input type="password" id="password_input" name="password_input">
+      </div>
+      <button type="submit" id="login_button">Войти</button>
+    </fieldset>
+  </form>
+  {% endif %}
+</div>
+
+{% endblock %}

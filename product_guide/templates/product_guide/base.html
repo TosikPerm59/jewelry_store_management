@@ -17,7 +17,11 @@
         <a href="#">Контрагенты</a>
     </nav>
     <div class="authorization">
-        <a href="{% url 'register' %}">Регистрация </a> | <a href="{% url 'login'%}"> Войти</a>
+        {% if request.user.is_authenticated %}
+            <a href="{% url 'logout' %}">Выход</a>
+        {% else %}
+            <a href="{% url 'register' %}">Регистрация </a> | <a href="{% url 'login' %}"> Войти</a>
+        {% endif %}
     </div>
 </header>
 <main>
