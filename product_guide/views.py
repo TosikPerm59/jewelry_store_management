@@ -81,6 +81,8 @@ def index(request):
 
 @login_required()
 def product_base(request):
+    user = request.user
+    print(user)
     prod_name = prod_metal = prod_uin = prod_id = prod_art = prod_weight = None
     prod_name = request.GET.get('name')
     prod_metal = request.GET.get('metal')
@@ -103,3 +105,7 @@ def product_base(request):
         'current_metal': prod_metal
     }
     return render(request, 'product_guide\product_base_v2.html', context=context)
+
+
+def toolbar(request):
+    pass

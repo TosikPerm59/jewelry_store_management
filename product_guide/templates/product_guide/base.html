@@ -18,6 +18,8 @@
     </nav>
     <div class="authorization">
         {% if request.user.is_authenticated %}
+            {{ request.user }}  |
+        |
             <a href="{% url 'logout' %}">Выход</a>
         {% else %}
             <a href="{% url 'register' %}">Регистрация </a> | <a href="{% url 'login' %}"> Войти</a>
