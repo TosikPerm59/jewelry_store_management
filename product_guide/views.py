@@ -1,10 +1,8 @@
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from django.template.context_processors import csrf
 from .models import Jewelry
 from .models import User
-from .anover_functions import search_query_processing
+from product_guide.anover_functions import search_query_processing
 from django.contrib.auth.decorators import login_required
 
 
