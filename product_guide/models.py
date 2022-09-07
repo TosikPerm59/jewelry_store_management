@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import FileExtensionValidator
 
 
 
@@ -69,7 +70,9 @@ class Invoice(models.Model):
     provider = models.ForeignKey('Provider', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Поставщик')
     invoice_number = models.IntegerField(null=True, blank=True, verbose_name='Номер накладной')
     recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Получатель')
-    file = models.FileField(upload_to='product_guide/documents/', verbose_name='Файл')
+    file = models.FileField(upload_to='product_guide/documents/',
+                            validators=[FileExtensionValidator(['xls', 'xlsx', 'doc', 'docx'])],
+                            verbose_name='Файл')
 
     class Meta:
         abstract = True

@@ -1,3 +1,5 @@
+import os.path
+from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from .models import Jewelry
@@ -106,4 +108,6 @@ def product_base(request):
 
 
 def upload_file(request):
-    check_file_type = ''
+    file = request.POST.get('file_input_string')
+    print(file.name())
+    return HttpResponse('Произошла загрузка файла')
