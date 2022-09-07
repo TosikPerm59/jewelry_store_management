@@ -106,4 +106,4 @@ def product_base(request):
 
 
 def upload_file(request):
-    print('Загрузка файла')
+    check_file_type = ''
