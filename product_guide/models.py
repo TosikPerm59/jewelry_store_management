@@ -55,22 +55,23 @@ class Jewelry(models.Model):
 
 
 class Metal(models.Model):
-    name = models.CharField(max_length=15, verbose_name='Металл', on_delete=models.PROTECT)
+    name = models.CharField(max_length=15, verbose_name='Металл')
 
     class Meta:
         verbose_name = 'Металл'
+        verbose_name_plural = 'Металлы'
 
 
 class Invoice(models.Model):
     provider = models.ForeignKey('Provider', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Поставщик')
-    invoice_number = models.IntegerField(max_length=6, null=True, blank=True, verbose_name='Номер накладной')
-    recipient = models.ForeignKey('Provider', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Получатель')
+    invoice_number = models.IntegerField(null=True, blank=True, verbose_name='Номер накладной')
+    recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Получатель')
 
     class Meta:
         abstract = True
 
 
-class InputInvoice(models.Model, Invoice):
+class InputInvoice(Invoice, models.Model):
     arrival_date = models.DateField(null=True, blank=True, verbose_name='Дата прихода')
 
     class Meta:
@@ -78,7 +79,7 @@ class InputInvoice(models.Model, Invoice):
         verbose_name_plural = 'Входящие накладные'
 
 
-class OutgoingInvoice(models.Model, Invoice):
+class OutgoingInvoice(Invoice, models.Model):
     departure_date = models.DateField(null=True, blank=True, verbose_name='Дата отгрузки')
 
     class Meta:
@@ -91,15 +92,30 @@ class Provider(models.Model):
     first_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Имя')
     surname = models.CharField(max_length=30, blank=True, null=True, verbose_name='Фамилия')
     last_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Отчество')
-    short_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Инициалы')
-    inn = models.IntegerField(max_length=10, verbose_name='ИНН', blank=True, null=True)
+    short_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='ФИО')
+    inn = models.IntegerField(verbose_name='ИНН', blank=True, null=True)
     email = models.EmailField(verbose_name='Email', blank=True, null=True)
-    tel = models.IntegerField(max_length=11, blank=True, null=True, verbose_name='Телефон')
-    checking_account = models.IntegerField(max_length=20, blank=True, null=True, verbose_name='Рассчетный сет')
+    tel = models.IntegerField(blank=True, null=True, verbose_name='Телефон')
+    checking_account = models.IntegerField(blank=True, null=True, verbose_name='Рассчетный сет')
     bank = models.CharField(max_length=50, blank=True, null=True, verbose_name='Банк')
-    bik = models.IntegerField(max_length=9, blank=True, null=True, verbose_name='БИК')
+    bik = models.IntegerField(blank=True, null=True, verbose_name='БИК')
     address = models.CharField(max_length=100, blank=True, null=True, verbose_name='Адрес')
 
     class Meta:
         verbose_name = 'Поставщик'
         verbose_name_plural = 'Поставщики'
+
+
+class Recipient(models.Model):
+    first_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Имя')
+    surname = models.CharField(max_length=30, blank=True, null=True, verbose_name='Фамилия')
+    last_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Отчество')
+    short_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='ФИО')
+    inn = models.IntegerField(verbose_name='ИНН', blank=True, null=True)
+    email = models.EmailField(verbose_name='Email', blank=True, null=True)
+    tel = models.IntegerField(blank=True, null=True, verbose_name='Телефон')
+    address = models.CharField(max_length=100, blank=True, null=True, verbose_name='Адрес')
+
+    class Meta:
+        verbose_name = 'Грузополучатель'
+        verbose_name_plural = 'Грузополучатели'

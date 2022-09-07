@@ -1,12 +1,11 @@
 import os.path
-
 import xlrd
 import openpyxl
 
 
 def read_excel_file(path_to_excel_file):
 
-    path_to_excel_file = path_to_excel_file.replace('"', '')
+    path_to_excel_file = path_to_excel_file.replace('"', '') if '"' in path_to_excel_file else path_to_excel_file
     file_name = os.path.split(path_to_excel_file)[1]
     file_path = os.path.split(path_to_excel_file)[0]
 
