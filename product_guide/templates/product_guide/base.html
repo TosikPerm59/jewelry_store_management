@@ -16,6 +16,16 @@
         <a href="#">Клиенты</a>
         <a href="#">Контрагенты</a>
     </nav>
+    <div class="upload_files">
+        <form action="{% url 'upload_file' %}" method="post" enctype="multipart/form-data" name="upload_files_form" id="upload_files_form">
+            {% csrf_token %}
+            <fieldset>
+                <legend>Загрузить документ</legend>
+                <input type="file" id="file_input_string">
+                <button type="submit" id="upload_file_button">Загрузить файл</button>
+            </fieldset>
+        </form>
+    </div>
     <div class="authorization">
         {% if request.user.is_authenticated %}
             {{ request.user }}  |

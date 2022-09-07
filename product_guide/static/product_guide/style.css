@@ -5,7 +5,8 @@
 
 html, body, header, main, nav, article, aside,
 .filters, #filter_fieldset, select, .search, .search_form,
-.register_window, .register_form, .login_window, .login_form {
+.register_window, .register_form, .login_window, .login_form,
+.upload_files, #upload_files_form, #file_input_string {
     display: flex;
 }
 
@@ -20,7 +21,7 @@ body {
 
     width: 1400px;
     height: 100%;
-    margin: 0;
+    margin: 5px;
 }
 
 header {
@@ -29,14 +30,33 @@ header {
 }
 
 nav {
-    width: calc(100% - 500px);
-    align-items: center;
-    justify-content: space-around;
+    flex-direction: column;
+    justify-content: space-evenly;
+
+
 }
 
 .logo {
-    width: 250px;
+    width: 200px;
     margin: 5px ;
+}
+
+.upload_files {
+    align-items: center;
+    justify-content: center;
+}
+
+#upload_files_form {
+    height: fit-content;
+    flex-direction: column;
+}
+
+#file_input_string {
+    width: 265px;
+}
+
+#upload_file_button {
+    width: 100%;
 }
 
 .authorization {

@@ -105,5 +105,5 @@ def product_base(request):
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
 
-def toolbar(request):
-    pass
+def upload_file(request):
+    print('Загрузка файла')

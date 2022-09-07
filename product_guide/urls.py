@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import index, product_base, register, user_login, user_logout, toolbar
+from .views import index, product_base, register, user_login, user_logout, upload_file
 from django.contrib.auth.views import LoginView
 urlpatterns = [
     path('', index, name='index'),
@@ -7,5 +7,5 @@ urlpatterns = [
     path('register', register, name='register'),
     path('login', user_login, name='login'),
     path('logout', user_logout, name='logout'),
-    path('toolbar', toolbar, name='toolbar')
+    path('upload_file', upload_file, name='upload_file')
 ]
