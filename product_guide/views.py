@@ -1,11 +1,17 @@
 import os.path
+
+import xlrd
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
+from django.template.context_processors import media
+
 from .models import Jewelry
 from .models import User
+from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing
 from django.contrib.auth.decorators import login_required
+from product_guide.services.readers import read_excel_file
 
 
 def register(request):
@@ -76,7 +82,8 @@ def user_logout(request):
 
 
 def index(request):
-    return render(request, 'product_guide\index.html')
+    form = UploadFileForm
+    return render(request, 'product_guide\index.html', {'form': form})
 
 
 @login_required()
@@ -107,7 +114,22 @@ def product_base(request):
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
 
+def handle_uploaded_file(f):
+    with open('some/file/name.txt', 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+
 def upload_file(request):
-    file = request.POST.get('file_input_string')
-    print(file.name())
-    return HttpResponse('Произошла загрузка файла')
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        file_name = request.FILES['file'].name
+        file_type = 'excel' if file_name.enswith('.xls') or file_name.enswith('xlsx') else 'word'
+        if form.is_valid():
+            print('FORM VALID')
+            form.save()
+            file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
+            if file_type == 'excel':
+                rows_list, sheet, file_type, file_name, file_path = read_excel_file(file_path)
+            return redirect('product_base')
+    return render(request, 'product_guide/index.html')

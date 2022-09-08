@@ -66,13 +66,26 @@ class Metal(models.Model):
         verbose_name_plural = 'Металлы'
 
 
+class File(models.Model):
+
+    def __str__(self):
+        return self.title
+
+    # name = models.CharField(max_length=50, verbose_name='Имя файла')
+    title = models.CharField(max_length=50, blank=True, null=True, verbose_name='Имя файла')
+    file = models.FileField(upload_to='product_guide/documents/', verbose_name='Файл')
+    # date_time_of_upload = models.DateTimeField(auto_now=True)
+    # invoice = models.ForeignKey('Invoice', on_delete=models.PROTECT, verbose_name='Накладная')
+
+    class Meta:
+        verbose_name = 'Файл'
+        verbose_name_plural = 'Файлы'
+
+
 class Invoice(models.Model):
     provider = models.ForeignKey('Provider', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Поставщик')
     invoice_number = models.IntegerField(null=True, blank=True, verbose_name='Номер накладной')
     recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Получатель')
-    file = models.FileField(upload_to='product_guide/documents/',
-                            validators=[FileExtensionValidator(['xls', 'xlsx', 'doc', 'docx'])],
-                            verbose_name='Файл')
 
     class Meta:
         abstract = True

@@ -18,12 +18,13 @@
     </nav>
     {% if request.user.is_authenticated %}
         <div class="upload_files">
-            <form action="{% url 'upload_file' %}" method="post" enctype="multipart/form-data" name="upload_files_form" id="upload_files_form">
+            <form action="{% url 'upload_file' %}" method="POST" enctype="multipart/form-data" name="upload_files_form" id="upload_files_form">
                 {% csrf_token %}
-                <fieldset>
+                <fieldset class="upload_files_form">
                     <legend>Загрузить документ</legend>
-                    <input type="file" id="file_input_string" name="file_input_string">
-                    <button type="submit" id="upload_file_button">Загрузить файл</button>
+                    <input type="file" id="id_file" name="file">
+                    <input type="text" id="id_title" name="title">
+                    <button type="submit" id="upload_file_button" value="Upload">Загрузить файл</button>
                 </fieldset>
             </form>
         </div>

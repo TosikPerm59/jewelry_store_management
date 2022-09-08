@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Jewelry, Metal, InputInvoice, OutgoingInvoice, Provider, Recipient
+from .models import Jewelry, Metal, InputInvoice, OutgoingInvoice, Provider, Recipient, File
 
 
 class JewelryAdmin(admin.ModelAdmin):
@@ -12,3 +12,4 @@ admin.site.register(InputInvoice)
 admin.site.register(OutgoingInvoice)
 admin.site.register(Provider)
 admin.site.register(Recipient)
+admin.site.register(File)
