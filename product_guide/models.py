@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
 
 
-
 class Jewelry(models.Model):
 
     def __str__(self):
@@ -30,8 +29,9 @@ class Jewelry(models.Model):
     )
 
     name = models.CharField(max_length=20, verbose_name='Вид изделия')
-    metal = models.ForeignKey('Metal', on_delete=models.PROTECT, verbose_name='Металл')
+    metal = models.CharField(max_length=15, verbose_name='Металл', blank=True, null=True)
     weight = models.FloatField(verbose_name='Вес')
+    size = models.FloatField(verbose_name='Размер', blank=True, null=True)
     vendor_code = models.CharField(max_length=15, verbose_name='Артикул', blank=True, null=True)
     barcode = models.IntegerField(verbose_name='Штрихкод', blank=True, null=True, unique=True)
     uin = models.IntegerField(verbose_name='УИН', blank=True, null=True, unique=True)
@@ -71,11 +71,8 @@ class File(models.Model):
     def __str__(self):
         return self.title
 
-    # name = models.CharField(max_length=50, verbose_name='Имя файла')
     title = models.CharField(max_length=50, blank=True, null=True, verbose_name='Имя файла')
     file = models.FileField(upload_to='product_guide/documents/', verbose_name='Файл')
-    # date_time_of_upload = models.DateTimeField(auto_now=True)
-    # invoice = models.ForeignKey('Invoice', on_delete=models.PROTECT, verbose_name='Накладная')
 
     class Meta:
         verbose_name = 'Файл'

@@ -1,21 +1,18 @@
-from openpyxl import Workbook
-from allFinders import *
-from servise_files import giisParser, excelReader
-from inputs import input_giis_file_path
+from product_guide.models import Jewelry, Metal
+from product_guide.services.finders import *
+from product_guide.services.readers import read_excel_file
 
 
 def invoice_parsing(path_to_excel_file):
-
-    full_rows_list, sheet, file_type, file_name, file_path = excelReader.read_excel_file(path_to_excel_file)
-    uin_ind = product_ind = weight_ind = price_ind = prod_uin = price_per_gram_ind = start = finish\
+    full_rows_list, sheet, file_type, file_name, file_path = read_excel_file(path_to_excel_file)
+    uin_ind = product_ind = weight_ind = price_ind = prod_uin = price_per_gram_ind = start = finish \
         = row_with_provider_index = provider = row_with_date_index = invoice_number = invoice_date = col_with_number \
-        = col_with_date = code_ind = prod_barcode_from_giis = None
-    new_excel_file = Workbook()
-    new_excel_sheet = new_excel_file.active
+        = col_with_date = code_ind = prod_barcode_from_giis = prod_weight = prod_name = prod_barcode = prod_art\
+        = prod_price = prod_metal = prod_size = None
+
     products_with_size = {'кольцо': 'кольца', 'цепь': 'цепи', 'браслет': 'браслета', 'колье': 'колье', 'конго': 'конго'}
-    giis_list = giisParser.giis_file_parsing(input_giis_file_path())
     counter = 0
-    product_list = []
+    product_list, product_objects_list = [], []
     provaiders = {'Степин': ['590500827512'],
                   'Белышева': ['590202863882'],
                   'Мидас': ['5904148360', '5902179700']}
@@ -114,7 +111,6 @@ def invoice_parsing(path_to_excel_file):
                 product_list.append(row)
 
     if file_type == '.xlsx':
-
         product_list = full_rows_list[start + 3: finish]
 
     for product in product_list:
@@ -139,7 +135,7 @@ def invoice_parsing(path_to_excel_file):
             prod_art = find_art(description_string, group='excel')
             prod_barcode = find_barcode(description_string)
             prod_price = product[price_ind]
-
+            prod_uin = find_uin_in_string(description_string)
             if prod_barcode is None:
                 if code_ind:
                     prod_barcode = find_barcode(product[code_ind])
@@ -152,38 +148,8 @@ def invoice_parsing(path_to_excel_file):
 
             if uin_ind:
                 prod_uin = find_uin_in_string(product[uin_ind])
-            elif prod_barcode:
-                prod_uin, string_number = find_uin_in_giis_list(_id=prod_barcode, _list=giis_list)
             if prod_uin is None:
                 prod_uin = find_uin_in_string(description_string)
-                if prod_uin is None:
-                    prod_list = find_uin_in_giis_list(name=prod_name, metal=prod_metal, weight=prod_weight,
-                                                      art=prod_art, _list=giis_list)
-                    if prod_list:
-                        if len(prod_list) == 1:
-                            for key, value in prod_list[0].items():
-                                prod_uin = key
-                                if 'ID' in value:
-                                    prod_barcode_from_giis = value['ID']
-
-                        else:
-                            print(f'\nВыполняется поиск УИН для изделия {prod_name, prod_metal, prod_art, prod_weight}.')
-                            print(f'Найдено {len(prod_list)} строк с похожим описанием изделия')
-                            count = 0
-                            for prod in prod_list:
-                                count += 1
-                                print(f'Строка {count}: {prod}')
-                            print('\nВыберите наиболее подходящую строку и введите ее номер.')
-                            number = input('Введите номер строки или ENTER, чтобы пропустить выбор: ')
-                            if number.isdigit():
-                                for key, value in prod_list[int(number) - 1].items():
-                                    prod_uin = key
-                                    if 'ID' in value:
-                                        prod_barcode_from_giis = value['ID']
-
-                        if prod_barcode and prod_barcode_from_giis:
-                            if prod_barcode_from_giis != prod_barcode:
-                                prod_barcode = prod_barcode_from_giis
 
             if not prod_metal:
                 if product[price_per_gram_ind] > 2500:
@@ -191,50 +157,27 @@ def invoice_parsing(path_to_excel_file):
                 else:
                     prod_metal = 'Серебро 925'
 
-            prod_description = f'{prod_name}, {prod_metal} ('
+        product_characteristics = [prod_name, prod_metal, prod_weight, prod_barcode, prod_art, prod_uin, prod_price,
+                                   prod_size]
 
-            if prod_art:
-                prod_description = f'{prod_description}арт. {prod_art}'
+        for character in product_characteristics:
+            if character is None:
+                character = 'Unknown'
 
-            if prod_uin:
-                prod_description = f'{prod_description}, уин {prod_uin}'
-            prod_description = f'{prod_description}, вес {float(prod_weight)} г.'
+        product = Jewelry(
+            name=prod_name,
+            metal=prod_metal,
+            barcode=prod_barcode,
+            uin=prod_uin,
+            weight=prod_weight,
+            vendor_code=prod_art,
+            size=prod_size,
+            price=prod_price
+        )
 
-            if prod_name is None:
-                print(f'Программе не удалось определить имя изделия в строчке {description_string}.')
-                prod_name = input('Введите название изделия: ')
-
-            if prod_name.lower() in products_with_size.keys():
-                if not prod_size:
-                    print(f'\nПрограмме не удалось определить размер для {products_with_size[prod_name.lower()]}'
-                          f' в строке {counter}.')
-                    print(f'Укажите размер для изделия: {prod_description}')
-                    prod_size = input('Введите размер в формате 00.0: ')
-            if prod_size:
-                prod_description = f'{prod_description}, р-р {prod_size}'
-            prod_description = f'{prod_description})'
-            print(prod_description, prod_barcode)
-
-            """Принты для теста функции"""
-            # print(prod_description, prod_barcode, prod_price, provider)
-
-            new_excel_sheet['A' + str(counter)] = prod_description
-            new_excel_sheet['B' + str(counter)] = str(prod_barcode)
-            new_excel_sheet['C' + str(counter)] = prod_art
-            new_excel_sheet['D' + str(counter)] = 'Товар'
-            new_excel_sheet['E' + str(counter)] = prod_price
-            new_excel_sheet['F' + str(counter)] = provider
-            new_excel_sheet['G' + str(counter)] = 'шт'
-            new_excel_sheet['H' + str(counter)] = '1'
-            new_excel_sheet['I' + str(counter)] = f'{invoice_date}'
-            new_excel_sheet['J' + str(counter)] = f'Накладная {invoice_number}, {prod_metal}'
+        product_objects_list.append(product)
 
         prod_name = prod_metal = prod_inserts = prod_weaving = prod_art = prod_uin = prod_barcode \
             = prod_barcode_from_giis = None
 
-    path_for_save = f'{file_path}\\Номенклатура для({file_name}).xlsx'
-    new_excel_file.save(path_for_save)
-
-# Test
-# invoice_parsing(
-#     'E:\Elena\Documents\Документы  Александрова Е.П\Накладные\Входящие накладные\Степин Евгений\\05.09.22\965.xls')
+    return product_objects_list

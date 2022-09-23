@@ -1,4 +1,4 @@
-from validity import *
+from product_guide.services.validity import *
 
 # Варианты возможных размеров изделий
 sizes = ['14.0', '14.5', '15.0', '15.5', '16.0', '16.5', '17.0', '17.5', '18.0', '18.5', '19.0', '19.5', '20.0',
@@ -79,7 +79,7 @@ def find_uin_in_giis_list(_id='', _list='', name='', metal='', weight='', art=''
 def find_uin_in_string(description):
     split_string = description.split(' ')
     for element in split_string:
-        if ',' in element:
+        if element.endswith(','):
             element = element.replace(',', '')
         if len(element) == 16 and isinteger(element):
             return element

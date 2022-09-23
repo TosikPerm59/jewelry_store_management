@@ -8,6 +8,7 @@ from django.template.context_processors import media
 
 from .models import Jewelry
 from .models import User
+from product_guide.services.invoice_parser import invoice_parsing
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing
 from django.contrib.auth.decorators import login_required
@@ -123,13 +124,14 @@ def handle_uploaded_file(f):
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
-        file_name = request.FILES['file'].name
-        file_type = 'excel' if file_name.enswith('.xls') or file_name.enswith('xlsx') else 'word'
+        file_name = request.FILES['file'].name.replace(' ', '_') if ' ' in request.FILES['file'].name else request.FILES['file'].name
+        file_type = 'excel' if file_name.endswith('.xls') or file_name.endswith('xlsx') else 'word'
         if form.is_valid():
+            product_objects_list = []
             print('FORM VALID')
             form.save()
             file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
             if file_type == 'excel':
-                rows_list, sheet, file_type, file_name, file_path = read_excel_file(file_path)
-            return redirect('product_base')
+                product_objects_list = invoice_parsing(file_path)
+            return render(request, 'product_guide\product_base_v2.html', {'product_list': product_objects_list})
     return render(request, 'product_guide/index.html')

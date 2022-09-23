@@ -69,7 +69,7 @@ nav {
 
 main {
     width: 100%;
-    height: 100%;
+    height: auto;
     border: 2px gray solid;
     border-radius: 5px;
 }
