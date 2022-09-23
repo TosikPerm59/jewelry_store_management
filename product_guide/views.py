@@ -6,8 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.template.context_processors import media
 
-from .models import Jewelry
-from .models import User
+from .models import Jewelry, User, File
 from product_guide.services.invoice_parser import invoice_parsing
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing
@@ -126,10 +125,19 @@ def upload_file(request):
         form = UploadFileForm(request.POST, request.FILES)
         file_name = request.FILES['file'].name.replace(' ', '_') if ' ' in request.FILES['file'].name else request.FILES['file'].name
         file_type = 'excel' if file_name.endswith('.xls') or file_name.endswith('xlsx') else 'word'
+        form.title = file_name
+
         if form.is_valid():
+            file_title_list = []
             product_objects_list = []
             print('FORM VALID')
-            form.save()
+            for file_object in File.objects.all():
+                file_title_list.append(file_object.title)
+            if file_name not in file_title_list:
+                form.save()
+                file_object = File.objects.latest('id')
+                file_object.title = file_name
+                file_object.save()
             file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
             if file_type == 'excel':
                 product_objects_list = invoice_parsing(file_path)
