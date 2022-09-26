@@ -1,4 +1,4 @@
-from product_guide.models import Jewelry, Metal
+from product_guide.models import Jewelry, Metal, File
 from product_guide.services.finders import *
 from product_guide.services.readers import read_excel_file
 
@@ -63,6 +63,7 @@ def invoice_parsing(path_to_excel_file):
     invoice_number = full_rows_list[row_with_date_index][col_with_number]
     invoice_date = full_rows_list[row_with_date_index][col_with_date]
     header = full_rows_list[start: start + 2]
+    input_invoice = File.objects.get(title=file_name)
 
     for row in header:
         for elem in row:
@@ -118,6 +119,8 @@ def invoice_parsing(path_to_excel_file):
             product[1] = '0'
 
         if file_type == '.xlsx' and int(product[1]) == counter + 1 or file_type == '.xls':
+            print('int(product[1]) = ', int(product[1]))
+            print('counter + 1 = ', counter + 1)
             counter += 1
             description_string = product[product_ind].lower()
             if '(' in description_string:
@@ -157,27 +160,23 @@ def invoice_parsing(path_to_excel_file):
                 else:
                     prod_metal = 'Серебро 925'
 
-        product_characteristics = [prod_name, prod_metal, prod_weight, prod_barcode, prod_art, prod_uin, prod_price,
-                                   prod_size]
+            product_characteristics = [prod_name, prod_metal, prod_weight, prod_barcode, prod_art, prod_uin, prod_price,
+                                       prod_size]
 
-        for character in product_characteristics:
-            if character is None:
-                character = 'Unknown'
+            product = Jewelry(
+                name=prod_name,
+                metal=prod_metal,
+                barcode=prod_barcode,
+                uin=prod_uin,
+                weight=prod_weight,
+                vendor_code=prod_art,
+                size=prod_size,
+                price=prod_price,
+            )
 
-        product = Jewelry(
-            name=prod_name,
-            metal=prod_metal,
-            barcode=prod_barcode,
-            uin=prod_uin,
-            weight=prod_weight,
-            vendor_code=prod_art,
-            size=prod_size,
-            price=prod_price
-        )
+            product_objects_list.append(product)
 
-        product_objects_list.append(product)
+            prod_name = prod_metal = prod_inserts = prod_weaving = prod_art = prod_uin = prod_barcode \
+                = prod_barcode_from_giis = None
 
-        prod_name = prod_metal = prod_inserts = prod_weaving = prod_art = prod_uin = prod_barcode \
-            = prod_barcode_from_giis = None
-
-    return product_objects_list
+    return product_objects_list, invoice_date, invoice_number, provider
