@@ -36,30 +36,40 @@
     </aside>
 
     <article>
+        {% for product in product_list.values %}
+            <form method="post" action="{% url 'change_attr' %}" id="change{{product.number}}">
+                {% csrf_token %}
+            </form>
+            <form method="post" action="{% url 'delete_line' %}" id="delete{{product.number}}">
+                {% csrf_token %}
+            </form>
+        {% endfor %}
         <table class="table">
             <tr class="table_header">
-                <th>Вид изделия</th>
+                <th>Изделие</th>
                 <th>Металл</th>
                 <th>Вес</th>
                 <th>Артикул</th>
                 <th>Штрихкод</th>
                 <th>УИН</th>
-                <th>Статус наличия</th>
-                <th>Статус рег-ции в ГИИС</th>
-                <th>Статус ГИИС</th>
             </tr>
 
-            {% for product in product_list %}
-                <tr>
-                    <td>{{ product.name }}</td>
-                    <td>{{ product.metal }}</td>
-                    <td>{{ product.weight }} гр</td>
-                    <td>{{ product.vendor_code }}</td>
-                    <td>{{ product.barcode }}</td>
-                    <td>{{ product.uin }}</td>
-                    <td>{{ product.availability_status }}</td>
-                    <td>{{ product.giis_reg_status }}</td>
-                    <td>{{ product.giis_status }}</td>
+            {% for product in product_list.values %}
+
+                <tr class="table_row">
+
+                    <td><input  type="text" value="{{ product.name }}" name="product.name" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.metal }}" name="product.metal" style="width: 11ch" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.weight }}" name="product.weight" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.art }}" name="product.art" style="width: 13ch" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.barcode }}" name="product.barcode" style="width: 13ch" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.uin }}" name="product.uin" style="width: 16ch" form="change{{product.number}}"> </td>
+                    <td style="border:hidden; padding:0"><input type="text" value="{{ product.number }}" name="product.number" form="change{{product.number}}" hidden></td>
+                    <td><button type="submit" form="change{{product.number}}">Применить новые значения</button> </td>
+                    <td style="border:hidden; padding:0"><input type="text" value="{{product.number}}" name="product.number" form="delete{{product.number}}" hidden></td>
+                    <td><button type="submit" form="delete{{product.number}}">Удалить строку</button></td>
+
+
                 </tr>
             {% endfor %}
         </table>

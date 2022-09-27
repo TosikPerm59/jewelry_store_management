@@ -1,17 +1,14 @@
 import os.path
-
 import xlrd
+import datetime
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from django.template.context_processors import media
-
-from .models import Jewelry, User, File
+from .models import Jewelry, User, File, InputInvoice
 from product_guide.services.invoice_parser import invoice_parsing
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing
 from django.contrib.auth.decorators import login_required
-from product_guide.services.readers import read_excel_file
 
 
 def register(request):
@@ -88,6 +85,7 @@ def index(request):
 
 @login_required()
 def product_base(request):
+
     user = request.user
     print(user)
     prod_name = prod_metal = prod_uin = prod_id = prod_art = prod_weight = None
@@ -115,12 +113,15 @@ def product_base(request):
 
 
 def handle_uploaded_file(f):
+
     with open('some/file/name.txt', 'wb+') as destination:
         for chunk in f.chunks():
             destination.write(chunk)
 
 
 def upload_file(request):
+
+    global provider, invoice_date, invoice_number
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         file_name = request.FILES['file'].name.replace(' ', '_') if ' ' in request.FILES['file'].name else request.FILES['file'].name
@@ -128,18 +129,68 @@ def upload_file(request):
         form.title = file_name
 
         if form.is_valid():
+
             file_title_list = []
             product_objects_list = []
             print('FORM VALID')
+
             for file_object in File.objects.all():
                 file_title_list.append(file_object.title)
+
             if file_name not in file_title_list:
                 form.save()
                 file_object = File.objects.latest('id')
                 file_object.title = file_name
                 file_object.save()
+
             file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
             if file_type == 'excel':
-                product_objects_list = invoice_parsing(file_path)
+                product_objects_list, invoice_date, invoice_number, provider = invoice_parsing(file_path)
+
+            invoice = {
+                'arrival_date': datetime.datetime.strptime(invoice_date, "%d.%m.%Y").strftime("%Y-%m-%d"),
+                'provider': provider,
+                'invoice_number': invoice_number,
+                'recipient': None,
+                'title': file_name
+            }
+
+            request.session['product_objects_list'] = product_objects_list
+            print(request.session.items())
+            request.session['invoice'] = invoice
             return render(request, 'product_guide\product_base_v2.html', {'product_list': product_objects_list})
     return render(request, 'product_guide/index.html')
+
+
+def change_product_attr(request):
+    product_number = request.POST.get('product.number')
+    product_objects_list = None
+
+    if request.method == 'POST':
+
+        product_objects_list = request.session['product_objects_list']
+        variable_product = product_objects_list[product_number]
+
+        variable_product['name'] = request.POST.get('product.name')
+        variable_product['metal'] = request.POST.get('product.metal')
+        variable_product['weight'] = request.POST.get('product.weight')
+        variable_product['art'] = request.POST.get('product.art')
+        variable_product['barcode'] = request.POST.get('product.barcode')
+        variable_product['uin'] = request.POST.get('product.uin')
+
+        product_objects_list[product_number] = variable_product
+        request.session['product_objects_list'] = product_objects_list
+
+    return render(request, 'product_guide\product_base_v2.html', {'product_list': product_objects_list})
+
+
+def delete_line(request):
+    product_number = request.POST.get('product.number')
+    product_objects_list = None
+    if request.method == 'POST':
+
+        product_objects_list = request.session['product_objects_list']
+        product_objects_list.pop(product_number)
+        request.session['product_objects_list'] = product_objects_list
+
+    return render(request, 'product_guide\product_base_v2.html', {'product_list': product_objects_list})

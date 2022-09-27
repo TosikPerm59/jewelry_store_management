@@ -185,6 +185,8 @@ def find_art(*args, group):
 def find_name(split_string):
     """ Метод поиска наименования изделия, сопоставляет содержимое строки со списком вариантов имен.
     Возвращает имя или None ."""
+
+
     for name in keywords_name:
 
         if name in split_string:

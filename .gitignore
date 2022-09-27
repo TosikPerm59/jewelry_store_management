@@ -39,3 +39,5 @@ env/
 !/static/.gitkeep
 # Secrets
 secrets.json
+# Mirgrations
+product_guide/migrations/

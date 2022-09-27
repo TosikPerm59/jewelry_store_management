@@ -12,7 +12,7 @@ def invoice_parsing(path_to_excel_file):
 
     products_with_size = {'кольцо': 'кольца', 'цепь': 'цепи', 'браслет': 'браслета', 'колье': 'колье', 'конго': 'конго'}
     counter = 0
-    product_list, product_objects_list = [], []
+    product_list, product_objects_list = [], {}
     provaiders = {'Степин': ['590500827512'],
                   'Белышева': ['590202863882'],
                   'Мидас': ['5904148360', '5902179700']}
@@ -115,12 +115,12 @@ def invoice_parsing(path_to_excel_file):
         product_list = full_rows_list[start + 3: finish]
 
     for product in product_list:
+
         if product[1] is None or not str(product[1]).isdigit():
             product[1] = '0'
 
         if file_type == '.xlsx' and int(product[1]) == counter + 1 or file_type == '.xls':
-            print('int(product[1]) = ', int(product[1]))
-            print('counter + 1 = ', counter + 1)
+
             counter += 1
             description_string = product[product_ind].lower()
             if '(' in description_string:
@@ -163,20 +163,20 @@ def invoice_parsing(path_to_excel_file):
             product_characteristics = [prod_name, prod_metal, prod_weight, prod_barcode, prod_art, prod_uin, prod_price,
                                        prod_size]
 
-            product = Jewelry(
-                name=prod_name,
-                metal=prod_metal,
-                barcode=prod_barcode,
-                uin=prod_uin,
-                weight=prod_weight,
-                vendor_code=prod_art,
-                size=prod_size,
-                price=prod_price,
-            )
+            product_dict = {'name': prod_name,
+                            'metal': prod_metal,
+                            'barcode': prod_barcode,
+                            'uin': prod_uin,
+                            'weight': prod_weight,
+                            'art': prod_art,
+                            'size': prod_size,
+                            'price': prod_price,
+                            'number': counter
+                            }
 
-            product_objects_list.append(product)
+            product_objects_list[counter] = product_dict
 
             prod_name = prod_metal = prod_inserts = prod_weaving = prod_art = prod_uin = prod_barcode \
                 = prod_barcode_from_giis = None
 
-    return product_objects_list, invoice_date, invoice_number, provider
+    return product_objects_list, invoice_date, invoice_number, provider,

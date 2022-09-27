@@ -69,7 +69,6 @@ nav {
 
 main {
     width: 100%;
-    height: auto;
     border: 2px gray solid;
     border-radius: 5px;
 }
@@ -120,9 +119,9 @@ article {
 }
 
 .table  tr  td{
-    border: 1px grey dotted;
+ /*   border: 1px grey dotted;*/
     margin: 0;
-    padding: 5px;
+    /*padding: 5px;*/
     border-spacing: 0;
     text-align: center;
 }
@@ -133,6 +132,10 @@ article {
     padding: 5px;
     border-spacing: 0;
     text-align: center;
+}
+
+.table_row td input{
+    width: 10ch;
 }
 
 .register_window {

@@ -80,6 +80,11 @@ class File(models.Model):
 
 
 class Invoice(models.Model):
+
+    def __str__(self):
+        return self.title
+
+    title = models.CharField(max_length=30, null=True, blank=True, verbose_name='Накладная')
     provider = models.ForeignKey('Provider', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Поставщик')
     invoice_number = models.IntegerField(null=True, blank=True, verbose_name='Номер накладной')
     recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Получатель')
