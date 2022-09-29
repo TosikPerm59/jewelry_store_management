@@ -1,9 +1,13 @@
 import os.path
+from decimal import Decimal
+from django.core.exceptions import ObjectDoesNotExist
 import xlrd
 import datetime
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
+from unicodedata import decimal
+
 from .models import Jewelry, User, File, InputInvoice
 from product_guide.services.invoice_parser import invoice_parsing
 from product_guide.forms.product_guide.forms import UploadFileForm
@@ -87,7 +91,6 @@ def index(request):
 def product_base(request):
 
     user = request.user
-    print(user)
     prod_name = prod_metal = prod_uin = prod_id = prod_art = prod_weight = None
     prod_name = request.GET.get('name')
     prod_metal = request.GET.get('metal')
@@ -112,16 +115,9 @@ def product_base(request):
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
 
-def handle_uploaded_file(f):
-
-    with open('some/file/name.txt', 'wb+') as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
-
-
 def upload_file(request):
 
-    global provider, invoice_date, invoice_number
+    provider, invoice_date, invoice_number = None, None, None
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         file_name = request.FILES['file'].name.replace(' ', '_') if ' ' in request.FILES['file'].name else request.FILES['file'].name
@@ -131,7 +127,7 @@ def upload_file(request):
         if form.is_valid():
 
             file_title_list = []
-            product_objects_list = []
+            product_dicts_dict = []
             print('FORM VALID')
 
             for file_object in File.objects.all():
@@ -145,7 +141,7 @@ def upload_file(request):
 
             file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
             if file_type == 'excel':
-                product_objects_list, invoice_date, invoice_number, provider = invoice_parsing(file_path)
+                product_dicts_dict, invoice_date, invoice_number, provider = invoice_parsing(file_path)
 
             invoice = {
                 'arrival_date': datetime.datetime.strptime(invoice_date, "%d.%m.%Y").strftime("%Y-%m-%d"),
@@ -155,10 +151,11 @@ def upload_file(request):
                 'title': file_name
             }
 
-            request.session['product_objects_list'] = product_objects_list
+            request.session['product_objects_list'] = product_dicts_dict
             print(request.session.items())
             request.session['invoice'] = invoice
-            return render(request, 'product_guide\product_base_v2.html', {'product_list': product_objects_list})
+            request.session['data_for_view'] = product_dicts_dict
+            return render(request, 'product_guide\product_base_v2.html', {'product_list': product_dicts_dict})
     return render(request, 'product_guide/index.html')
 
 
@@ -194,3 +191,60 @@ def delete_line(request):
         request.session['product_objects_list'] = product_objects_list
 
     return render(request, 'product_guide\product_base_v2.html', {'product_list': product_objects_list})
+
+
+def save_products(request):
+    invoice, input_invoice = None, None
+    product_objects_list = Jewelry.objects.all().values()
+    repeating_product = False
+    product_objects_dict = request.session['product_objects_list']
+
+    invoice_dict = request.session['invoice']
+
+    try:
+        invoice_object = InputInvoice.objects.get(title=invoice_dict['title'])
+    except ObjectDoesNotExist:
+        invoice_object = InputInvoice(
+            title=invoice_dict['title'],
+            provider=invoice_dict['provider'],
+            invoice_number=invoice_dict['invoice_number'],
+            recipient=invoice_dict['recipient'],
+            arrival_date=invoice_dict['arrival_date']
+        )
+        invoice_object.save()
+
+    for product in product_objects_dict.values():
+
+        item_object = Jewelry(
+            name=product['name'],
+            metal=product['metal'],
+            weight=product['weight'],
+            vendor_code=product['art'],
+            barcode=product['barcode'],
+            uin=product['uin'],
+            provider=invoice_dict['provider'],
+            arrival_date=invoice_dict['arrival_date'],
+            input_invoice=invoice_object
+        )
+        for product_from_base in product_objects_list:
+            print(product_from_base)
+            try:
+                input_invoice = InputInvoice.objects.get(id=product_from_base['id'])['title']
+            except ObjectDoesNotExist:
+                pass
+
+            if (item_object.barcode == product_from_base['barcode'] or
+                item_object.uin == product_from_base['uin'] or
+                (item_object.name == product_from_base['name'] and item_object.metal == product_from_base['metal'] and
+                    item_object.weight == float(product_from_base['weight']) and
+                    item_object.vendor_code == product_from_base['vendor_code'] and
+                    item_object.input_invoice == input_invoice)
+                    ):
+                repeating_product = True
+
+        if repeating_product is False:
+            item_object.save()
+        else:
+            repeating_product = False
+
+    return render(request, 'product_guide\product_base_v2.html', {'product_list': product_objects_dict})

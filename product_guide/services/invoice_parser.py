@@ -12,7 +12,7 @@ def invoice_parsing(path_to_excel_file):
 
     products_with_size = {'кольцо': 'кольца', 'цепь': 'цепи', 'браслет': 'браслета', 'колье': 'колье', 'конго': 'конго'}
     counter = 0
-    product_list, product_objects_list = [], {}
+    product_list, product_dicts_dict = [], {}
     provaiders = {'Степин': ['590500827512'],
                   'Белышева': ['590202863882'],
                   'Мидас': ['5904148360', '5902179700']}
@@ -174,9 +174,9 @@ def invoice_parsing(path_to_excel_file):
                             'number': counter
                             }
 
-            product_objects_list[counter] = product_dict
+            product_dicts_dict[counter] = product_dict
 
             prod_name = prod_metal = prod_inserts = prod_weaving = prod_art = prod_uin = prod_barcode \
                 = prod_barcode_from_giis = None
 
-    return product_objects_list, invoice_date, invoice_number, provider,
+    return product_dicts_dict, invoice_date, invoice_number, provider,

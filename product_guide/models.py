@@ -30,7 +30,7 @@ class Jewelry(models.Model):
 
     name = models.CharField(max_length=20, verbose_name='Вид изделия')
     metal = models.CharField(max_length=15, verbose_name='Металл', blank=True, null=True)
-    weight = models.FloatField(verbose_name='Вес')
+    weight = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='Вес')
     size = models.FloatField(verbose_name='Размер', blank=True, null=True)
     vendor_code = models.CharField(max_length=15, verbose_name='Артикул', blank=True, null=True)
     barcode = models.IntegerField(verbose_name='Штрихкод', blank=True, null=True, unique=True)

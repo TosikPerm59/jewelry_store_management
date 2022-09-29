@@ -73,12 +73,8 @@
                 </tr>
             {% endfor %}
         </table>
-        <script>
-<!--            const filters_list = document.querySelector('.filters'),-->
-<!--                prod_list = document.getElementById("prod_list").value;-->
-<!--                for (let prod of prod_list){console.log(prod)}-->
-
-
-        </script>
+        <form method="get" action="{% url 'save_products' %}">
+        <button type="submit">Сохранить изделия в базе данных</button>
+        </form>
     </article>
 {% endblock %}
