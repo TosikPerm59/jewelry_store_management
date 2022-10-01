@@ -34,7 +34,7 @@ def make_product_dict_from_dbqueryset(dbqueryset):
                                           'art': product_dict_from_dbqueryset['vendor_code'],
                                           'size': product_dict_from_dbqueryset['size'],
                                           'price': product_dict_from_dbqueryset['price'],
-                                          'number': counter
+                                          'product_number': counter
                                           }
         product_dicts_dict[counter] = product_dict_from_dbqueryset
 
@@ -51,3 +51,15 @@ def calculate_weight_number_price(product_list):
         total_weight += product['weight']
 
     return total_weight, counter
+
+
+def get_context_for_product_list(product_list):
+    total_weight, number_of_products = calculate_weight_number_price(product_list)
+    context = {
+        'product_list': product_list,
+        'list_length': len(product_list),
+        'total_weight': total_weight,
+        'len_products': number_of_products
+    }
+
+    return context

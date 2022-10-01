@@ -12,7 +12,7 @@ from .models import Jewelry, User, File, InputInvoice
 from product_guide.services.invoice_parser import invoice_parsing
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, make_dict_from_list, \
-    make_product_dict_from_dbqueryset, calculate_weight_number_price
+    make_product_dict_from_dbqueryset, calculate_weight_number_price, get_context_for_product_list
 from django.contrib.auth.decorators import login_required
 
 
@@ -130,15 +130,7 @@ def product_base(request):
     if 'all' != prod_uin is not None:
         product_list = product_list.filter(uin=prod_uin)
 
-    total_weight, number_of_products = calculate_weight_number_price(product_list)
-    context = {
-        'product_list': product_list,
-        'current_name': prod_name,
-        'current_metal': prod_metal,
-        'list_length': len(product_list),
-        'total_weight': total_weight,
-        'len_products': number_of_products
-    }
+    context = get_context_for_product_list(product_list)
 
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
@@ -182,8 +174,10 @@ def upload_file(request):
 
             request.session['product_objects_dict_for_view'] = product_dicts_dict
             request.session['invoice'] = invoice
+            product_list = product_dicts_dict.values()
+            context = get_context_for_product_list(product_list)
 
-            return render(request, 'product_guide\product_base_v2.html', {'product_list': product_dicts_dict.values()})
+            return render(request, 'product_guide\product_base_v2.html', context=context)
     return render(request, 'product_guide/index.html')
 
 
@@ -207,7 +201,9 @@ def change_product_attr(request):
         request.session['product_objects_dict_for_view'] = product_objects_dict
         product_list = product_objects_dict.values()
 
-    return render(request, 'product_guide\product_base_v2.html', {'product_list': product_list})
+    context = get_context_for_product_list(product_list)
+
+    return render(request, 'product_guide\product_base_v2.html', context=context)
 
 
 @login_required()
@@ -220,7 +216,9 @@ def delete_line(request):
         request.session['product_objects_dict_for_view'] = product_objects_dict
         product_list = product_objects_dict.values()
 
-    return render(request, 'product_guide\product_base_v2.html', {'product_list': product_list})
+    context = get_context_for_product_list(product_list)
+
+    return render(request, 'product_guide\product_base_v2.html', context=context)
 
 
 @login_required()
@@ -245,12 +243,12 @@ def save_products(request):
         invoice_object.save()
 
     for product in product_dicts_dict_from_session.values():
-
+        print(product)
         item_object = Jewelry(
             name=product['name'],
             metal=product['metal'],
             weight=product['weight'],
-            vendor_code=product['art'],
+            vendor_code=product['vendor_code'],
             barcode=product['barcode'],
             uin=product['uin'],
             provider=invoice_dict['provider'],
@@ -279,4 +277,7 @@ def save_products(request):
         else:
             repeating_product = False
 
-    return render(request, 'product_guide\product_base_v2.html', {'product_list': product_dicts_dict_from_session.values()})
+    product_list = product_dicts_dict_from_session.values()
+    context = get_context_for_product_list(product_list)
+
+    return render(request, 'product_guide\product_base_v2.html', context=context)
