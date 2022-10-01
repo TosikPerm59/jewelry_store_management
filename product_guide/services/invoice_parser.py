@@ -176,6 +176,7 @@ def invoice_parsing(path_to_excel_file):
 
             product_dicts_dict[counter] = product_dict
 
+
             prod_name = prod_metal = prod_inserts = prod_weaving = prod_art = prod_uin = prod_barcode \
                 = prod_barcode_from_giis = None
 
