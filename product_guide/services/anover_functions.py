@@ -12,6 +12,10 @@ def search_query_processing(search_string):
 
 
 def make_dict_from_list(product_list):
+
+    """ Функцция, изменения списка на словарь. Принимает список словарей изделий.
+        Возвращает словарь словарей изделий"""
+
     product_dict = {}
     counter = 0
     for product in product_list:
@@ -22,6 +26,10 @@ def make_dict_from_list(product_list):
 
 
 def make_product_dict_from_dbqueryset(dbqueryset):
+
+    """ Функция создания словаря, для отображения в представлениях.
+        Принимает QuerySet из базы данных и возвращает словарь словарей изделий с органиченным набором ключей."""
+
     product_dict_for_view, product_dicts_dict = {}, {}
     counter = 0
     for product_dict_from_dbqueryset in dbqueryset.values():
@@ -34,7 +42,7 @@ def make_product_dict_from_dbqueryset(dbqueryset):
                                           'vendor_code': product_dict_from_dbqueryset['vendor_code'],
                                           'size': product_dict_from_dbqueryset['size'],
                                           'price': product_dict_from_dbqueryset['price'],
-                                          'product_number': counter
+                                          'number': counter
                                           }
         product_dicts_dict[counter] = product_dict_from_dbqueryset
 
@@ -46,7 +54,6 @@ def calculate_weight_number_price(product_list):
     total_weight = 0
     total_price = 0
     for product in product_list:
-        print(product)
         counter += 1
         if type(product['weight']) is float:
             total_weight += product['weight']
@@ -54,7 +61,15 @@ def calculate_weight_number_price(product_list):
 
 
 def get_context_for_product_list(product_list):
+    counter = 0
     total_weight, number_of_products = calculate_weight_number_price(product_list)
+
+    for product in product_list:
+        counter += 1
+        product['number'] = counter
+
+    print(product_list)
+
     context = {
         'product_list': product_list,
         'list_length': len(product_list),

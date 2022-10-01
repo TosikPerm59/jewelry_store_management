@@ -90,15 +90,16 @@ def index(request):
 
 @login_required()
 def product_base(request):
+
     product_dicts_dict, counter, product_list = {}, 0, []
-    if request.method == 'POST':
-        print(request.POST)
-        product_dicts_dict = request.session['product_objects_dict_for_view']
     user = request.user
     prod_name = prod_metal = prod_uin = prod_id = prod_art = prod_weight = None
     prod_name = request.POST.get('name')
     prod_metal = request.POST.get('metal')
     search_string = request.POST.get('search_string')
+
+    if request.method == 'POST':
+        product_dicts_dict = request.session['product_objects_dict_for_view']
 
     if search_string:
         prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight = search_query_processing(search_string)
@@ -184,6 +185,7 @@ def upload_file(request):
 @login_required()
 def change_product_attr(request):
     product_number = request.POST.get('product.number')
+    print('product_number = ', product_number)
     product_objects_dict, product_list = None, None
 
     if request.method == 'POST':
@@ -208,11 +210,20 @@ def change_product_attr(request):
 
 @login_required()
 def delete_line(request):
-    product_number = request.POST.get('product.number')
+    product_number = int(request.POST.get('product.number'))
+    print('delete product_number = ', product_number)
     product_objects_dict, product_list = None, None
+
     if request.method == 'POST':
         product_objects_dict = request.session['product_objects_dict_for_view']
-        product_objects_dict.pop(product_number)
+
+        for product_key, product_value in product_objects_dict.items():
+
+            if product_value['number'] == product_number:
+                print(True)
+                product_objects_dict.pop(product_key)
+                break
+
         request.session['product_objects_dict_for_view'] = product_objects_dict
         product_list = product_objects_dict.values()
 
@@ -243,7 +254,7 @@ def save_products(request):
         invoice_object.save()
 
     for product in product_dicts_dict_from_session.values():
-        print(product)
+
         item_object = Jewelry(
             name=product['name'],
             metal=product['metal'],
