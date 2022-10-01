@@ -31,7 +31,7 @@ def make_product_dict_from_dbqueryset(dbqueryset):
                                           'barcode': product_dict_from_dbqueryset['barcode'],
                                           'uin': product_dict_from_dbqueryset['uin'],
                                           'weight': product_dict_from_dbqueryset['weight'],
-                                          'art': product_dict_from_dbqueryset['vendor_code'],
+                                          'vendor_code': product_dict_from_dbqueryset['vendor_code'],
                                           'size': product_dict_from_dbqueryset['size'],
                                           'price': product_dict_from_dbqueryset['price'],
                                           'product_number': counter
@@ -48,8 +48,8 @@ def calculate_weight_number_price(product_list):
     for product in product_list:
         print(product)
         counter += 1
-        total_weight += product['weight']
-
+        if type(product['weight']) is float:
+            total_weight += product['weight']
     return total_weight, counter
 
 

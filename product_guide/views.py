@@ -257,20 +257,19 @@ def save_products(request):
         )
 
         for product_from_dbqueryset in products_dbqueryset:
-            print(item_object.barcode, product_from_dbqueryset['barcode'])
+
             invoice_id = product_from_dbqueryset['input_invoice_id']
+
             if (item_object.barcode == product_from_dbqueryset['barcode'] and item_object.barcode is not None or
                     item_object.uin == product_from_dbqueryset['uin'] and item_object.uin is not None or
-                    (item_object.name == product_from_dbqueryset['name'] and item_object.metal == product_from_dbqueryset[
-                        'metal'] and
+                    (item_object.name == product_from_dbqueryset['name'] and item_object.metal ==
+                     product_from_dbqueryset[
+                         'metal'] and
                      item_object.weight == float(product_from_dbqueryset['weight']) and
                      item_object.vendor_code == product_from_dbqueryset['vendor_code'] and
                      item_object.input_invoice == InputInvoice.objects.get(id=invoice_id))
-            ):
+                ):
                 repeating_product = True
-                print('repeating_product = True')
-            else:
-                print('repeating_product = False')
 
         if repeating_product is False:
             item_object.save()

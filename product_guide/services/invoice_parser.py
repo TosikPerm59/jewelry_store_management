@@ -168,7 +168,7 @@ def invoice_parsing(path_to_excel_file):
                             'barcode': prod_barcode,
                             'uin': prod_uin,
                             'weight': prod_weight,
-                            'art': prod_art,
+                            'vendor_code': prod_art,
                             'size': prod_size,
                             'price': prod_price,
                             'number': counter
