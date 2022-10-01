@@ -30,7 +30,7 @@ class Jewelry(models.Model):
 
     name = models.CharField(max_length=20, verbose_name='Вид изделия')
     metal = models.CharField(max_length=15, verbose_name='Металл', blank=True, null=True)
-    weight = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='Вес')
+    weight = models.FloatField(verbose_name='Вес')
     size = models.FloatField(verbose_name='Размер', blank=True, null=True)
     vendor_code = models.CharField(max_length=15, verbose_name='Артикул', blank=True, null=True)
     barcode = models.IntegerField(verbose_name='Штрихкод', blank=True, null=True, unique=True)
@@ -40,10 +40,10 @@ class Jewelry(models.Model):
     availability_status = models.CharField(max_length=50, verbose_name='Статус наличия')
     giis_reg_status = models.CharField(max_length=50, verbose_name='Статус регистрации в ГИИС', choices=giis_reg_statuses)
     giis_status = models.CharField(max_length=20, null=True, blank=True, verbose_name='Статус ГИИС', choices=giis_statuses)
-    price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name='Цена')
-    price_per_gram = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name='Цена за грамм')
+    price = models.FloatField(null=True, blank=True, verbose_name='Цена')
+    price_per_gram = models.FloatField(null=True, blank=True, verbose_name='Цена за грамм')
     provider = models.ForeignKey('Provider', null=True, blank=True, verbose_name='Поставщик', on_delete=models.PROTECT)
-    arrival_date = models.DateField(null=True, blank=True, verbose_name='Дата прихода')
+    arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
     input_invoice = models.ForeignKey('InputInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Входящая накладная')
     outgoing_invoice = models.ForeignKey('OutgoingInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Исходящая накладная')
     manufacturer = models.CharField(max_length=100, verbose_name='Производитель', blank=True, null=True)
@@ -94,7 +94,7 @@ class Invoice(models.Model):
 
 
 class InputInvoice(Invoice, models.Model):
-    arrival_date = models.DateField(null=True, blank=True, verbose_name='Дата прихода')
+    arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
 
     class Meta:
         verbose_name = 'Входящая накладная'
@@ -102,7 +102,7 @@ class InputInvoice(Invoice, models.Model):
 
 
 class OutgoingInvoice(Invoice, models.Model):
-    departure_date = models.DateField(null=True, blank=True, verbose_name='Дата отгрузки')
+    departure_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата отгрузки')
 
     class Meta:
         verbose_name = 'Исходящая накладная'

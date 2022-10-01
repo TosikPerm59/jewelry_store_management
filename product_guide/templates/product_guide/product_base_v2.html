@@ -9,34 +9,35 @@
             </form>
         </div>
         <div class="filters">
-            <form action="" method="get">
-            <fieldset id="filter_fieldset">
-                <legend><h4>Фильтра</h4></legend>
-                <select name="name" id="name" >
-                    <option value="all">Изделие</option>
-                    <option value="Кольцо">Кольца</option>
-                    <option value="Серьги">Серьги</option>
-                    <option value="Цепь">Цепи</option>
-                    <option value="Браслет">Браслеты</option>
-                </select>
-                <select name="metal" id="metal">
-                    <option value="all">Металл</option>
-                    <option value="Золото 585">Золото 585</option>
-                    <option value="Серебро 925">Серебро 925</option>
-                </select>
-                <select name="availability_status" id="availability_status">
-                    <option value="all">Наличие</option>
-                    <option value="в наличии">в наличии</option>
-                    <option value="продано">продано</option>
-                </select>
-            <button id="filter_button" type="submit">Показать</button>
+            <form action="{% url 'product_base' %}" method="post">
+                {% csrf_token %}
+                <fieldset id="filter_fieldset">
+                    <legend><h4>Фильтра</h4></legend>
+                    <select name="name" id="name" >
+                        <option value="all">Изделие</option>
+                        <option value="Кольцо">Кольца</option>
+                        <option value="Серьги">Серьги</option>
+                        <option value="Цепь">Цепи</option>
+                        <option value="Браслет">Браслеты</option>
+                    </select>
+                    <select name="metal" id="metal">
+                        <option value="all">Металл</option>
+                        <option value="Золото 585">Золото 585</option>
+                        <option value="Серебро 925">Серебро 925</option>
+                    </select>
+                    <select name="availability_status" id="availability_status">
+                        <option value="all">Наличие</option>
+                        <option value="в наличии">в наличии</option>
+                        <option value="продано">продано</option>
+                    </select>
+                    <button id="filter_button" type="submit">Показать</button>
                 </fieldset>
             </form>
         </div>
     </aside>
 
     <article>
-        {% for product in product_list.values %}
+        {% for product in product_list %}
             <form method="post" action="{% url 'change_attr' %}" id="change{{product.number}}">
                 {% csrf_token %}
             </form>
@@ -54,7 +55,7 @@
                 <th>УИН</th>
             </tr>
 
-            {% for product in product_list.values %}
+            {% for product in product_list %}
 
                 <tr class="table_row">
 
@@ -74,6 +75,8 @@
             {% endfor %}
         </table>
         <form method="get" action="{% url 'save_products' %}">
+            <p> Всего {{len_products}} изделий общим весом {{total_weight}} грамм</p>
+            <p>На сумму {{total_price}} rub</p>
         <button type="submit">Сохранить изделия в базе данных</button>
         </form>
     </article>
