@@ -62,11 +62,11 @@
                     <td><input  type="text" value="{{ product.name }}" name="product.name" form="change{{product.number}}"> </td>
                     <td><input type="text" value="{{ product.metal }}" name="product.metal" style="width: 11ch" form="change{{product.number}}"> </td>
                     <td><input type="text" value="{{ product.weight }}" name="product.weight" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.art }}" name="product.art" style="width: 13ch" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.barcode }}" name="product.barcode" style="width: 13ch" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.uin }}" name="product.uin" style="width: 16ch" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.vendor_code }}" name="product.vendor_code" style="width: 20ch" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.barcode }}" name="product.barcode" style="width: 14ch" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.uin }}" name="product.uin" style="width: 17ch" form="change{{product.number}}"> </td>
                     <td style="border:hidden; padding:0"><input type="text" value="{{ product.number }}" name="product.number" form="change{{product.number}}" hidden></td>
-                    <td><button type="submit" form="change{{product.number}}">Применить новые значения</button> </td>
+                    <td><button type="submit" form="change{{product.number}}">Сохранить</button> </td>
                     <td style="border:hidden; padding:0"><input type="text" value="{{product.number}}" name="product.number" form="delete{{product.number}}" hidden></td>
                     <td><button type="submit" form="delete{{product.number}}">Удалить строку</button></td>
 

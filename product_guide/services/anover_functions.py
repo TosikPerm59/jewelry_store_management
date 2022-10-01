@@ -73,7 +73,7 @@ def get_context_for_product_list(product_list):
     context = {
         'product_list': product_list,
         'list_length': len(product_list),
-        'total_weight': total_weight,
+        'total_weight': round(total_weight, ndigits=2),
         'len_products': number_of_products
     }
 

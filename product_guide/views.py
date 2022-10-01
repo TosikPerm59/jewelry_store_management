@@ -195,7 +195,7 @@ def change_product_attr(request):
         variable_product['name'] = request.POST.get('product.name')
         variable_product['metal'] = request.POST.get('product.metal')
         variable_product['weight'] = request.POST.get('product.weight')
-        variable_product['art'] = request.POST.get('product.art')
+        variable_product['vendor_code'] = request.POST.get('product.vendor_code')
         variable_product['barcode'] = request.POST.get('product.barcode')
         variable_product['uin'] = request.POST.get('product.uin')
 

@@ -7,7 +7,7 @@ def invoice_parsing(path_to_excel_file):
     full_rows_list, sheet, file_type, file_name, file_path = read_excel_file(path_to_excel_file)
     uin_ind = product_ind = weight_ind = price_ind = prod_uin = price_per_gram_ind = start = finish \
         = row_with_provider_index = provider = row_with_date_index = invoice_number = invoice_date = col_with_number \
-        = col_with_date = code_ind = prod_barcode_from_giis = prod_weight = prod_name = prod_barcode = prod_art\
+        = col_with_date = code_ind = prod_barcode_from_giis = prod_weight = prod_name = prod_barcode = prod_art \
         = prod_price = prod_metal = prod_size = None
 
     products_with_size = {'кольцо': 'кольца', 'цепь': 'цепи', 'браслет': 'браслета', 'колье': 'колье', 'конго': 'конго'}
@@ -167,17 +167,13 @@ def invoice_parsing(path_to_excel_file):
                             'metal': prod_metal,
                             'barcode': prod_barcode,
                             'uin': prod_uin,
-                            'weight': prod_weight,
+                            'weight': round(float(prod_weight), ndigits=2),
                             'vendor_code': prod_art,
-                            'size': prod_size,
-                            'price': prod_price,
+                            'size': round(float(prod_size), ndigits=2) if prod_size else None,
+                            'price': round(float(prod_price), ndigits=2),
                             'number': counter
                             }
 
             product_dicts_dict[counter] = product_dict
-
-
-            prod_name = prod_metal = prod_inserts = prod_weaving = prod_art = prod_uin = prod_barcode \
-                = prod_barcode_from_giis = None
 
     return product_dicts_dict, invoice_date, invoice_number, provider,
