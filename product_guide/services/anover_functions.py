@@ -10,3 +10,44 @@ def search_query_processing(search_string):
                 prod_uin = string_element
     return prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight
 
+
+def make_dict_from_list(product_list):
+    product_dict = {}
+    counter = 0
+    for product in product_list:
+        counter += 1
+        product_dict[counter] = product
+
+    return product_dict
+
+
+def make_product_dict_from_dbqueryset(dbqueryset):
+    product_dict_for_view, product_dicts_dict = {}, {}
+    counter = 0
+    for product_dict_from_dbqueryset in dbqueryset.values():
+        counter += 1
+        product_dict_for_view[counter] = {'name': product_dict_from_dbqueryset['name'],
+                                          'metal': product_dict_from_dbqueryset['metal'],
+                                          'barcode': product_dict_from_dbqueryset['barcode'],
+                                          'uin': product_dict_from_dbqueryset['uin'],
+                                          'weight': product_dict_from_dbqueryset['weight'],
+                                          'art': product_dict_from_dbqueryset['vendor_code'],
+                                          'size': product_dict_from_dbqueryset['size'],
+                                          'price': product_dict_from_dbqueryset['price'],
+                                          'number': counter
+                                          }
+        product_dicts_dict[counter] = product_dict_from_dbqueryset
+
+    return product_dicts_dict
+
+
+def calculate_weight_number_price(product_list):
+    counter = 0
+    total_weight = 0
+    total_price = 0
+    for product in product_list:
+        print(product)
+        counter += 1
+        total_weight += product['weight']
+
+    return total_weight, counter
