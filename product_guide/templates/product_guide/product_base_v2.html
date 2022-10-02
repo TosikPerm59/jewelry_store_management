@@ -37,6 +37,7 @@
     </aside>
 
     <article>
+        <h5> Всего {{len_products}} изделий общим весом {{total_weight}} грамм</h5>
         {% for product in product_list %}
             <form method="post" action="{% url 'change_attr' %}" id="change{{product.number}}">
                 {% csrf_token %}
@@ -75,8 +76,6 @@
             {% endfor %}
         </table>
         <form method="get" action="{% url 'save_products' %}">
-            <p> Всего {{len_products}} изделий общим весом {{total_weight}} грамм</p>
-            <p>На сумму {{total_price}} rub</p>
         <button type="submit">Сохранить изделия в базе данных</button>
         </form>
     </article>
