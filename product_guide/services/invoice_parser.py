@@ -95,7 +95,6 @@ def invoice_parsing(path_to_excel_file):
             row_start_index, row_finish_index = None, None
 
             if isinteger(row[1]) and int(row[1]) == index_number or isfloat(row[1]) and int(row[1]) == index_number:
-                print(row)
                 index_number += 1
                 row_start_index = full_rows_list.index(row)
                 for row_2 in full_rows_list[row_start_index + 1: finish]:
