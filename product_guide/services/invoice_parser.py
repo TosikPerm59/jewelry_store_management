@@ -89,16 +89,18 @@ def invoice_parsing(path_to_excel_file):
                         code_ind = row.index(origin_elem)
 
     if file_type == '.xls':
-
+        index_number = 1
         for row in full_rows_list[start + 3: finish]:
             descr = ''
             row_start_index, row_finish_index = None, None
-            if isinteger(row[1]) or isfloat(row[1]):
 
+            if isinteger(row[1]) and int(row[1]) == index_number or isfloat(row[1]) and int(row[1]) == index_number:
+                print(row)
+                index_number += 1
                 row_start_index = full_rows_list.index(row)
                 for row_2 in full_rows_list[row_start_index + 1: finish]:
                     if (isinteger(row_2[1]) and int(row_2[1]) == int(row[1]) + 1 or isfloat(row_2[1])
-                            and int(row_2[1]) == int(row[1]) + 1 or 'Итого' in row_2):
+                            and int(row_2[1]) == int(row[1]) + 1 or 'итого ' in row_2):
                         row_finish_index = full_rows_list.index(row_2)
                         break
 
@@ -115,6 +117,7 @@ def invoice_parsing(path_to_excel_file):
         product_list = full_rows_list[start + 3: finish]
 
     for product in product_list:
+
 
         if product[1] is None or not str(product[1]).isdigit():
             product[1] = '0'
@@ -169,7 +172,7 @@ def invoice_parsing(path_to_excel_file):
                             'uin': prod_uin,
                             'weight': round(float(prod_weight), ndigits=2),
                             'vendor_code': prod_art,
-                            'size': round(float(prod_size), ndigits=2) if prod_size else None,
+                            'size': round(float(prod_size), ndigits=2) if isfloat(prod_size) else None,
                             'price': round(float(prod_price), ndigits=2),
                             'number': counter
                             }
