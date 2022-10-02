@@ -68,8 +68,6 @@ def get_context_for_product_list(product_list):
         counter += 1
         product['number'] = counter
 
-    print(product_list)
-
     context = {
         'product_list': product_list,
         'list_length': len(product_list),

@@ -184,22 +184,21 @@ def upload_file(request):
 
 @login_required()
 def change_product_attr(request):
-    product_number = request.POST.get('product.number')
-    print('product_number = ', product_number)
+    product_number = int(request.POST.get('product.number'))
     product_objects_dict, product_list = None, None
 
     if request.method == 'POST':
         product_objects_dict = request.session['product_objects_dict_for_view']
-        variable_product = product_objects_dict[product_number]
+        for product_key, product_value in product_objects_dict.items():
+            if product_value['number'] == product_number:
+                product_value['name'] = request.POST.get('product.name')
+                product_value['metal'] = request.POST.get('product.metal')
+                product_value['weight'] = request.POST.get('product.weight')
+                product_value['vendor_code'] = request.POST.get('product.vendor_code')
+                product_value['barcode'] = request.POST.get('product.barcode')
+                product_value['uin'] = request.POST.get('product.uin')
+                break
 
-        variable_product['name'] = request.POST.get('product.name')
-        variable_product['metal'] = request.POST.get('product.metal')
-        variable_product['weight'] = request.POST.get('product.weight')
-        variable_product['vendor_code'] = request.POST.get('product.vendor_code')
-        variable_product['barcode'] = request.POST.get('product.barcode')
-        variable_product['uin'] = request.POST.get('product.uin')
-
-        product_objects_dict[product_number] = variable_product
         request.session['product_objects_dict_for_view'] = product_objects_dict
         product_list = product_objects_dict.values()
 
