@@ -1,18 +1,14 @@
 import os.path
-from decimal import Decimal
+
 from django.core.exceptions import ObjectDoesNotExist
-import xlrd
-import datetime
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from unicodedata import decimal
-
 from .models import Jewelry, User, File, InputInvoice
 from product_guide.services.invoice_parser import invoice_parsing
 from product_guide.forms.product_guide.forms import UploadFileForm
-from product_guide.services.anover_functions import search_query_processing, make_dict_from_list, \
-    make_product_dict_from_dbqueryset, calculate_weight_number_price, get_context_for_product_list
+from product_guide.services.anover_functions import search_query_processing, \
+    make_product_dict_from_dbqueryset, get_context_for_product_list, save_invoice
 from django.contrib.auth.decorators import login_required
 
 
@@ -114,16 +110,8 @@ def product_base(request):
     else:
         product_list = product_dicts_dict.values()
 
-    if 'all' != prod_name is not None:
-        p = None
-
-        def condition(pr):
-            return pr['name'] == prod_name
-
-        product_list = [p for p in product_list if condition(p)]
-
-    if 'all' != prod_metal is not None:
-        product_list = product_list.filter(metal=prod_metal)
+        product_list = [p for p in product_list if p['name'] == prod_name] if 'all' != prod_name else product_list
+        product_list = [p for p in product_list if p['metal'] == prod_metal] if 'all' != prod_metal else product_list
 
     if 'all' != availability_status is not None:
         product_list = product_list.filter(availability_status=availability_status)
@@ -147,20 +135,8 @@ def upload_file(request):
         form.title = file_name
 
         if form.is_valid():
-
-            file_title_list = []
+            save_invoice(form, file_name)
             product_dicts_dict = {}
-            print('FORM VALID')
-
-            for file_object in File.objects.all():
-                file_title_list.append(file_object.title)
-
-            if file_name not in file_title_list:
-                form.save()
-                file_object = File.objects.latest('id')
-                file_object.title = file_name
-                file_object.save()
-
             file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
             if file_type == 'excel':
                 product_dicts_dict, invoice_date, invoice_number, provider = invoice_parsing(file_path)
@@ -175,8 +151,7 @@ def upload_file(request):
 
             request.session['product_objects_dict_for_view'] = product_dicts_dict
             request.session['invoice'] = invoice
-            product_list = product_dicts_dict.values()
-            context = get_context_for_product_list(product_list)
+            context = get_context_for_product_list(product_dicts_dict.values())
 
             return render(request, 'product_guide\product_base_v2.html', context=context)
     return render(request, 'product_guide/index.html')
@@ -245,7 +220,6 @@ def save_products(request):
     except ObjectDoesNotExist:
         invoice_object = InputInvoice(
             title=invoice_dict['title'],
-            provider=invoice_dict['provider'],
             invoice_number=invoice_dict['invoice_number'],
             recipient=invoice_dict['recipient'],
             arrival_date=invoice_dict['arrival_date']
@@ -261,7 +235,6 @@ def save_products(request):
             vendor_code=product['vendor_code'],
             barcode=product['barcode'],
             uin=product['uin'],
-            provider=invoice_dict['provider'],
             arrival_date=invoice_dict['arrival_date'],
             input_invoice=invoice_object
         )

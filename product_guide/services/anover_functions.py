@@ -1,3 +1,7 @@
+from product_guide.models import File
+from django.core.exceptions import ObjectDoesNotExist
+import xlrd
+
 
 def search_query_processing(search_string):
     prod_name = prod_metal = prod_uin = prod_id = prod_art = prod_weight = None
@@ -9,20 +13,6 @@ def search_query_processing(search_string):
             elif len(string_element) == 16:
                 prod_uin = string_element
     return prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight
-
-
-def make_dict_from_list(product_list):
-
-    """ Функцция, изменения списка на словарь. Принимает список словарей изделий.
-        Возвращает словарь словарей изделий"""
-
-    product_dict = {}
-    counter = 0
-    for product in product_list:
-        counter += 1
-        product_dict[counter] = product
-
-    return product_dict
 
 
 def make_product_dict_from_dbqueryset(dbqueryset):
@@ -76,3 +66,25 @@ def get_context_for_product_list(product_list):
     }
 
     return context
+
+
+def save_invoice(form, file_name):
+
+    try:
+        file = File.objects.get(title=file_name)
+        file.delete()
+    except ObjectDoesNotExist:
+        pass
+
+    form.save()
+    file_object = File.objects.latest('id')
+    file_object.title = file_name
+    file_object.save()
+
+
+# def form_type_check(invoice_path):
+#     document = docx.Document(invoice_path)
+#     print(document.paragraphs[0].text)
+#     if 'Унифицированная форма № ТОРГ-12' in document.paragraphs[0].text:
+#         if len(document.paragraphs) == 3:
+#             return 'Торг12'
