@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.messages.storage import session
+
 from .models import Jewelry, Metal, InputInvoice, OutgoingInvoice, Provider, Recipient, File
 
 
@@ -13,3 +15,4 @@ admin.site.register(OutgoingInvoice)
 admin.site.register(Provider)
 admin.site.register(Recipient)
 admin.site.register(File)
+

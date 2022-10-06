@@ -1,6 +1,7 @@
 import os.path
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
@@ -8,8 +9,11 @@ from .models import Jewelry, User, File, InputInvoice
 from product_guide.services.invoice_parser import invoice_parsing
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
-    make_product_dict_from_dbqueryset, get_context_for_product_list, save_invoice
+    make_product_dict_from_dbqueryset, get_context_for_product_list, save_invoice, form_type_check, \
+    make_product_dict_from_paginator, make_product_queryset_from_dict_dicts, filters_check
 from django.contrib.auth.decorators import login_required
+from product_guide.services.giis_parser import giis_file_parsing
+from .services.readers import read_excel_file
 
 
 def register(request):
@@ -90,43 +94,57 @@ def product_base(request):
     product_dicts_dict, counter, product_list = {}, 0, []
     user = request.user
     prod_name = prod_metal = prod_uin = prod_id = prod_art = prod_weight = None
-    prod_name = request.POST.get('name')
-    prod_metal = request.POST.get('metal')
+    prod_name = request.POST.get('name') if request.POST.get('name') else 'all'
+    prod_metal = request.POST.get('metal') if request.POST.get('metal') else 'all'
+    availability_status = request.POST.get('availability_status')
+    page_num = request.POST.get('page')
     search_string = request.POST.get('search_string')
-
-    if request.method == 'POST':
-        product_dicts_dict = request.session['product_objects_dict_for_view']
 
     if search_string:
         prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight = search_query_processing(search_string)
-    availability_status = request.GET.get('availability_status')
 
-    if not product_dicts_dict:
-        dbqueryset = Jewelry.objects.all().values()
-        product_dicts_dict = make_product_dict_from_dbqueryset(dbqueryset)
+    if filters_check(prod_name, prod_metal) == 'all':
+        if 'filtered_list' in request.session.keys() and page_num is None:
+            request.session.pop('filtered_list')
+
+    if request.method == 'POST':
+
+        product_dicts_dict = request.session['product_objects_dict_for_view']
+
+        product_list = make_product_queryset_from_dict_dicts(product_dicts_dict)
+        if prod_name != 'all':
+            product_list = [p for p in product_list if p['name'] == prod_name]
+            request.session['filtered_list'] = make_product_dict_from_dbqueryset(product_list)
+        if prod_metal != 'all':
+            product_list = [p for p in product_list if p['metal'] == prod_metal] if prod_metal != 'all' else product_list
+            request.session['filtered_list'] = make_product_dict_from_dbqueryset(product_list)
+        product_dicts_dict = make_product_dict_from_dbqueryset(product_list)
+
+    else:
+        products_queryset = Jewelry.objects.all().values()
+        product_dicts_dict = make_product_dict_from_dbqueryset(products_queryset)
+
         request.session['product_objects_dict_for_view'] = product_dicts_dict
         request.session.save()
-        product_list = product_dicts_dict.values()
+
+    if page_num:
+        if 'filtered_list' in request.session.keys():
+            product_dicts_dict = request.session['filtered_list']
+            context = get_context_for_product_list(product_dicts_dict, page_num)
+        else:
+            context = get_context_for_product_list(product_dicts_dict, page_num)
+
     else:
-        product_list = product_dicts_dict.values()
 
-        product_list = [p for p in product_list if p['name'] == prod_name] if 'all' != prod_name else product_list
-        product_list = [p for p in product_list if p['metal'] == prod_metal] if 'all' != prod_metal else product_list
-
-    if 'all' != availability_status is not None:
-        product_list = product_list.filter(availability_status=availability_status)
-
-    if 'all' != prod_uin is not None:
-        product_list = product_list.filter(uin=prod_uin)
-
-    context = get_context_for_product_list(product_list)
-
+        context = get_context_for_product_list(product_dicts_dict, page_num)
+    # print(context['product_list'])
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
 
 @login_required()
 def upload_file(request):
-    provider, invoice_date, invoice_number = None, None, None
+    products_dicts_dict = {}
+
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         file_name = request.FILES['file'].name.replace(' ', '_') if ' ' in request.FILES['file'].name else \
@@ -136,25 +154,32 @@ def upload_file(request):
 
         if form.is_valid():
             save_invoice(form, file_name)
-            product_dicts_dict = {}
             file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
+
             if file_type == 'excel':
-                product_dicts_dict, invoice_date, invoice_number, provider = invoice_parsing(file_path)
 
-            invoice = {
-                'arrival_date': invoice_date,
-                'provider': provider,
-                'invoice_number': invoice_number,
-                'recipient': None,
-                'title': file_name
-            }
+                full_rows_list, sheet, file_type = read_excel_file(file_path)
 
-            request.session['product_objects_dict_for_view'] = product_dicts_dict
-            request.session['invoice'] = invoice
-            context = get_context_for_product_list(product_dicts_dict.values())
+                if form_type_check(full_rows_list, sheet, file_name) == 'giis_report':
+                    products_dicts_dict = giis_file_parsing(full_rows_list, sheet)
 
-            return render(request, 'product_guide\product_base_v2.html', context=context)
-    return render(request, 'product_guide/index.html')
+                else:
+                    products_dicts_dict, invoice_date, invoice_number, provider = invoice_parsing(full_rows_list, sheet, file_type, file_name)
+
+                    invoice = {
+                        'arrival_date': invoice_date,
+                        'provider': provider,
+                        'invoice_number': invoice_number,
+                        'recipient': None,
+                        'title': file_name
+                    }
+                    request.session['invoice'] = invoice
+    # print(products_dicts_dict)
+    request.session['product_objects_dict_for_view'] = products_dicts_dict
+
+    context = get_context_for_product_list(products_dicts_dict, page_num=None)
+    # print(context['product_list'])
+    return render(request, 'product_guide\product_base_v2.html', context=context)
 
 
 @login_required()
@@ -175,9 +200,8 @@ def change_product_attr(request):
                 break
 
         request.session['product_objects_dict_for_view'] = product_objects_dict
-        product_list = product_objects_dict.values()
 
-    context = get_context_for_product_list(product_list)
+    context = get_context_for_product_list(product_objects_dict, page_num=None)
 
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
@@ -194,14 +218,12 @@ def delete_line(request):
         for product_key, product_value in product_objects_dict.items():
 
             if product_value['number'] == product_number:
-                print(True)
                 product_objects_dict.pop(product_key)
                 break
 
         request.session['product_objects_dict_for_view'] = product_objects_dict
-        product_list = product_objects_dict.values()
 
-    context = get_context_for_product_list(product_list)
+    context = get_context_for_product_list(product_objects_dict, page_num=None)
 
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
@@ -260,6 +282,6 @@ def save_products(request):
             repeating_product = False
 
     product_list = product_dicts_dict_from_session.values()
-    context = get_context_for_product_list(product_list)
+    context = get_context_for_product_list(product_list, page_num=None)
 
     return render(request, 'product_guide\product_base_v2.html', context=context)

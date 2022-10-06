@@ -3,7 +3,8 @@
 
     <aside>
         <div class="search">
-            <form class="search_form" action="" method="get">
+            <form class="search_form" action="" method="post">
+                {% csrf_token%}
                 <input id="search_string" type="text" placeholder="Поиск изделий..." name="search_string">
                 <button type="submit">Найти</button>
             </form>
@@ -75,6 +76,13 @@
                 </tr>
             {% endfor %}
         </table>
+        {% for num in num_pages %}
+            <form action="{% url 'product_base' %}" method="post">
+                {% csrf_token%}
+                <input type="text" value="{{num}}" name="page" hidden>
+                <button type="submit">{{ num }}</button>
+            </form>
+        {% endfor %}
         <form method="get" action="{% url 'save_products' %}">
         <button type="submit">Сохранить изделия в базе данных</button>
         </form>

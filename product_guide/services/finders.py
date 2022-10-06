@@ -15,7 +15,7 @@ keywords_weaving = {'перлина': ['шариковая', 'перлина'], 
 
 # Варианты имен изделий
 keywords_name = ['кольцо', 'цепь', 'серьги', 'подвеска', 'пусеты', 'браслет', 'крест', 'икона', 'колье', 'пирсинг',
-                 'моно-серьга', 'ложка']
+                 'моно-серьга', 'ложка', 'пуссеты']
 
 # Варианты вставок в изделия
 keywords_inserts = {'аметистом': ['аметистом', 'аметист'], 'топазом': ['топазом', 'топаз'],
@@ -113,29 +113,15 @@ def find_weight(split_string):
 
         if ',' in elem:
             elem = elem.replace(',', '.')
-        # if elem in sizes:
-        #     print(f'Вес изделия, который определила программа, есть в списке размеров изделий. '
-        #           f'Вы вы уверены что значение {elem}, находящееся в строке ({original_string}),'
-        #           f'действительно является весом изделия?')
-        #     answer = input('введите "да", или укажите правильный вес изделия: ')
-        #     if answer == 'да':
-        #         pass
-        #     else:
-        #         elem = answer
         if isinteger(elem):
             elem = elem + '.00'
         if isfloat(elem):
+            if len(elem.split('.')[1]) > 2:
+                elem = str(round(float(elem), ndigits=2))
             if len(elem.split('.')[1]) == 1:
                 elem = elem + '0'
         if check_weight(elem):
             return elem
-
-    else:
-        print(f'Программе не удалось определить вес изделия в строке {original_string}')
-        answer = ''
-        while not check_weight(answer):
-            answer = input('Укажите вес изделия в формате 0.00: ')
-        return answer
 
 
 def find_art(*args, group):
@@ -153,7 +139,7 @@ def find_art(*args, group):
             return string_from_args[art_ind].upper()
 
         if group == 'word':
-            if '585'in string_from_args or '925' in string_from_args:
+            if '585' in string_from_args or '925' in string_from_args:
                 ind_1 = (string_from_args.index('585') if '585' in string_from_args and 'золото' in string_from_args
                          else string_from_args.index('925'))
                 string_from_args = string_from_args[ind_1 + 1:]
@@ -185,7 +171,6 @@ def find_art(*args, group):
 def find_name(split_string):
     """ Метод поиска наименования изделия, сопоставляет содержимое строки со списком вариантов имен.
     Возвращает имя или None ."""
-
 
     for name in keywords_name:
 
@@ -321,35 +306,30 @@ def find_description(*args, group):
         return description
 
     if group == 'excel':
+        description = {}
         _name = metal = weaving = size = inserts = None
 
         for arg in args:
             split_arg = str(arg).lower().split(' ')
-            if not _name:
-                _name = find_name(split_arg)
-            if not metal:
-                metal = find_metal(args[-1])
-            if not weaving:
-                weaving = find_weaving(split_arg)
-            if not size:
-                size = find_size(split_arg, group)
-            if not inserts:
-                inserts = find_inserts(split_arg)
-
-        description = f'{_name}, {metal}'
-
-        if inserts:
-            description = f'{description}, c {inserts}'
-        if weaving:
-            description = f'{description}, плетение - {weaving}'
-        if size:
-            description = f'{description}, {size} р-р'
+            if 'name' not in description.keys():
+                description['name'] = find_name(split_arg)
+            elif description['name'] is None:
+                description['name'] = find_name(split_arg)
+            if 'metal' not in description.keys():
+                description['metal'] = find_metal(split_arg)
+            elif description['metal'] is None:
+                description['metal'] = find_metal(split_arg)
+            # if 'inserts' not in description.keys():
+            #     description['inserts'] = find_inserts(split_arg)
+            # elif description['inserts'] is None:
+            #     description['inserts'] = find_inserts(split_arg)
+            # if 'weaving' not in description.keys():
+            #     description['weaving'] = find_weaving(split_arg)
+            # elif description['weaving'] is None:
+            #     description['inserts'] = find_inserts(split_arg)
+            if 'size' not in description.keys():
+                description['size'] = find_size(split_arg, group=group)
+            elif description['size'] is None:
+                description['size'] = find_size(split_arg, group=group)
 
         return description
-
-# Test
-
-# print(find_weight('Серьги Серебро 925 0044с-001VMз — 17,5, Кристалл Swarowsky'.split(' ')))
-
-
-# print(find_size('Цепь, Золото 585, плетение - перлина, 45.0 р-р'.split(','), group='excel'))
