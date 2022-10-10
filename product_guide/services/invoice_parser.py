@@ -3,8 +3,8 @@ from product_guide.services.finders import *
 from product_guide.services.readers import read_excel_file
 
 
-def invoice_parsing(path_to_excel_file):
-    full_rows_list, sheet, file_type, file_name, file_path = read_excel_file(path_to_excel_file)
+def invoice_parsing(full_rows_list, sheet, file_type, file_name):
+
     uin_ind = product_ind = weight_ind = price_ind = prod_uin = price_per_gram_ind = start = finish \
         = row_with_provider_index = provider = row_with_date_index = invoice_number = invoice_date = col_with_number \
         = col_with_date = code_ind = prod_barcode_from_giis = prod_weight = prod_name = prod_barcode = prod_art \

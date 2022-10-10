@@ -249,39 +249,37 @@ def save_products(request):
         invoice_object.save()
 
     for product in product_dicts_dict_from_session.values():
-
-        item_object = Jewelry(
-            name=product['name'],
-            metal=product['metal'],
-            weight=product['weight'],
-            vendor_code=product['vendor_code'],
-            barcode=product['barcode'],
-            uin=product['uin'],
-            arrival_date=invoice_dict['arrival_date'],
-            input_invoice=invoice_object
-        )
+        item_object = Jewelry()
+        # print(item_object.__dict__)
+        for key, value in product.items():
+            print(key, value)
+            if product[key] is not None and key != 'number':
+                print(key)
+                item_object.__setattr__(key, value)
+                print(item_object.__dict__)
 
         for product_from_dbqueryset in products_dbqueryset:
 
             invoice_id = product_from_dbqueryset['input_invoice_id']
-
+            print(product_from_dbqueryset)
+            print()
             if (item_object.barcode == product_from_dbqueryset['barcode'] and item_object.barcode is not None or
                     item_object.uin == product_from_dbqueryset['uin'] and item_object.uin is not None or
                     (item_object.name == product_from_dbqueryset['name'] and item_object.metal ==
-                     product_from_dbqueryset[
-                         'metal'] and
+                     product_from_dbqueryset['metal'] and
                      item_object.weight == float(product_from_dbqueryset['weight']) and
                      item_object.vendor_code == product_from_dbqueryset['vendor_code'] and
                      item_object.input_invoice == InputInvoice.objects.get(id=invoice_id))
                 ):
                 repeating_product = True
+                print(True)
 
         if repeating_product is False:
+            print(item_object)
             item_object.save()
         else:
             repeating_product = False
 
-    product_list = product_dicts_dict_from_session.values()
-    context = get_context_for_product_list(product_list, page_num=None)
+    context = get_context_for_product_list(product_dicts_dict_from_session, page_num=None)
 
     return render(request, 'product_guide\product_base_v2.html', context=context)

@@ -1,6 +1,8 @@
 import os.path
 import xlrd
 import openpyxl
+import warnings
+warnings.simplefilter("ignore")
 
 
 def read_excel_file(path_to_excel_file):
@@ -21,12 +23,12 @@ def read_excel_file(path_to_excel_file):
                     elem_ind = row.index(elem)
                     row.remove(elem)
                     row.insert(elem_ind, elem_low)
-        return rows_list, sheet, file_type, file_name, file_path
+        return rows_list, sheet, file_type
 
     elif file_name.endswith('.xlsx'):
         file_type = '.xlsx'
         excel_file = openpyxl.load_workbook(path_to_excel_file)
         sheet = excel_file.active
         rows_list = [row for row in range(1, sheet.max_row + 1)]
-        return rows_list, sheet, file_type, file_name, file_path
+        return rows_list, sheet, file_type
 
