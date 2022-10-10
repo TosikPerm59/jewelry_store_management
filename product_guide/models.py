@@ -18,14 +18,16 @@ class Jewelry(models.Model):
         ('Родирование', 'Родирование'),
         ('Оксидирование', 'Оксидирование')
     )
-    giis_reg_statuses = (
-        ('Зарегистрирован', 'Зарегистрирован'),
-        ('Не зарегистрирован', 'Не зарегистрирован')
-    )
 
     giis_statuses = (
-        ('Числится на хранении', 'Числится на хранении'),
-        ('Выбыл из ГИИС', 'Выбыл из ГИИС')
+        ('На хранении', 'На хранении'),
+        ('Выбыл', 'Выбыл')
+    )
+
+    availability_statuses = (
+        ('В наличии', 'В наличии'),
+        ('Продано', 'Продано'),
+        ('Передано', 'Передано')
     )
 
     name = models.CharField(max_length=20, verbose_name='Вид изделия')
@@ -38,16 +40,15 @@ class Jewelry(models.Model):
     coating = models.CharField(max_length=20, verbose_name='Покрытие', blank=True, null=True, choices=coatings)
     inserts = models.CharField(max_length=50, verbose_name='Вставки', blank=True, null=True)
     availability_status = models.CharField(max_length=50, verbose_name='Статус наличия')
-    giis_reg_status = models.CharField(max_length=50, verbose_name='Статус регистрации в ГИИС', choices=giis_reg_statuses)
     giis_status = models.CharField(max_length=20, null=True, blank=True, verbose_name='Статус ГИИС', choices=giis_statuses)
     price = models.FloatField(null=True, blank=True, verbose_name='Цена')
-    price_per_gram = models.FloatField(null=True, blank=True, verbose_name='Цена за грамм')
     provider = models.ForeignKey('Provider', null=True, blank=True, verbose_name='Поставщик', on_delete=models.PROTECT)
     arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
     input_invoice = models.ForeignKey('InputInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Входящая накладная')
     outgoing_invoice = models.ForeignKey('OutgoingInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Исходящая накладная')
     manufacturer = models.CharField(max_length=100, verbose_name='Производитель', blank=True, null=True)
     trademark = models.CharField(max_length=30, verbose_name='Торговая марка', blank=True, null=True)
+    recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Получатель')
 
     class Meta:
         verbose_name = 'Изделие'
