@@ -77,7 +77,10 @@ def find_uin_in_giis_list(_id='', _list='', name='', metal='', weight='', art=''
 
 
 def find_uin_in_string(description):
-    split_string = description.split(' ')
+    if isinstance(description, str):
+        split_string = description.split(' ')
+    else:
+        split_string = description
     for element in split_string:
         if element.endswith(','):
             element = element.replace(',', '')
@@ -132,7 +135,8 @@ def find_art(*args, group):
 
     for string_from_args in args:
 
-        string_from_args = str(string_from_args).lower().split(' ')
+        if isinstance(string_from_args, str):
+            string_from_args = str(string_from_args).lower().split(' ')
 
         if 'арт.' in string_from_args:
             art_ind = string_from_args.index('арт.') + 1

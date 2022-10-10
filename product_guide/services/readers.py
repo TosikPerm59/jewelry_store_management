@@ -2,6 +2,7 @@ import os.path
 import xlrd
 import openpyxl
 import warnings
+import docx
 warnings.simplefilter("ignore")
 
 
@@ -31,4 +32,11 @@ def read_excel_file(path_to_excel_file):
         sheet = excel_file.active
         rows_list = [row for row in range(1, sheet.max_row + 1)]
         return rows_list, sheet, file_type
+
+
+def read_msword_file(path_to_msword_file):
+    document = docx.Document(path_to_msword_file)
+    header_table = document.tables[0]
+    product_table = document.tables[1]
+    return header_table, product_table
 

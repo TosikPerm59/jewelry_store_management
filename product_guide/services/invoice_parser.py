@@ -13,7 +13,7 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
     products_with_size = {'кольцо': 'кольца', 'цепь': 'цепи', 'браслет': 'браслета', 'колье': 'колье', 'конго': 'конго'}
     counter = 0
     product_list, product_dicts_dict = [], {}
-    provaiders = {'Степин': ['590500827512'],
+    providers = {'Степин': ['590500827512'],
                   'Белышева': ['590202863882'],
                   'Мидас': ['5904148360', '5902179700']}
 
@@ -50,7 +50,7 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
     for elem in full_rows_list[row_with_provider_index]:
         if elem is not None:
             row_with_provider.append(elem)
-    for key, values in provaiders.items():
+    for key, values in providers.items():
         for value in values:
             if value in ''.join(row_with_provider):
                 provider = key
@@ -117,7 +117,6 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
 
     for product in product_list:
 
-
         if product[1] is None or not str(product[1]).isdigit():
             product[1] = '0'
 
@@ -179,3 +178,29 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
             product_dicts_dict[counter] = product_dict
 
     return product_dicts_dict, invoice_date, invoice_number, provider,
+
+
+def word_invoice_parsing(header_table, product_table):
+    max_row = len(product_table.rows)
+    products_dicts_dict = {}
+    counter = 0
+    for row in range(3, max_row - 21):
+        counter += 1
+        string = product_table.rows[row].cells[4].text.lower()
+        string = string.replace(',', '') if ',' in string else string
+        string = string.replace('(', '') if '(' in string else string
+        string = string.replace(')', '') if ')' in string else string
+        split_string = string.split(' ')
+        print(f'Парсинг строки  ({string})')
+        products_dicts_dict[counter] = {
+            'weight': find_weight(split_string),
+            'size': find_size(split_string, group='word'),
+            'name': find_name(split_string),
+            'metal': find_metal(split_string),
+            'uin': find_uin_in_string(split_string),
+            'vendor_code': find_art(split_string, group=None),
+            'number': counter,
+            'barcode': None
+        }
+
+    return products_dicts_dict

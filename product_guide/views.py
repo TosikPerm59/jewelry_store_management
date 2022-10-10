@@ -6,14 +6,14 @@ from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from .models import Jewelry, User, File, InputInvoice
-from product_guide.services.invoice_parser import invoice_parsing
+from product_guide.services.invoice_parser import invoice_parsing, word_invoice_parsing
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
     make_product_dict_from_dbqueryset, get_context_for_product_list, save_invoice, form_type_check, \
     make_product_dict_from_paginator, make_product_queryset_from_dict_dicts, filters_check
 from django.contrib.auth.decorators import login_required
 from product_guide.services.giis_parser import giis_file_parsing
-from .services.readers import read_excel_file
+from .services.readers import read_excel_file, read_msword_file
 
 
 def register(request):
@@ -144,12 +144,16 @@ def product_base(request):
 @login_required()
 def upload_file(request):
     products_dicts_dict = {}
+    file_type = None
 
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         file_name = request.FILES['file'].name.replace(' ', '_') if ' ' in request.FILES['file'].name else \
             request.FILES['file'].name
-        file_type = 'excel' if file_name.endswith('.xls') or file_name.endswith('xlsx') else 'word'
+        file_name = file_name.replace('№', '') if '№' in file_name else file_name
+        file_type = 'excel' if file_name.endswith('.xls') or file_name.endswith('xlsx') else None
+        if file_type is None:
+            file_type = 'msword' if file_name.endswith('.doc') or file_name.endswith('docx') else None
         form.title = file_name
 
         if form.is_valid():
@@ -174,6 +178,9 @@ def upload_file(request):
                         'title': file_name
                     }
                     request.session['invoice'] = invoice
+            elif file_type == 'msword':
+                header_table, product_table = read_msword_file(file_path)
+                products_dicts_dict = word_invoice_parsing(header_table, product_table)
     # print(products_dicts_dict)
     request.session['product_objects_dict_for_view'] = products_dicts_dict
 
