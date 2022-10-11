@@ -5,12 +5,13 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from .models import Jewelry, User, File, InputInvoice
+from .models import Jewelry, User, File, InputInvoice, OutgoingInvoice
 from product_guide.services.invoice_parser import invoice_parsing, word_invoice_parsing
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
     make_product_dict_from_dbqueryset, get_context_for_product_list, save_invoice, form_type_check, \
-    make_product_dict_from_paginator, make_product_queryset_from_dict_dicts, filters_check
+    make_product_dict_from_paginator, make_product_queryset_from_dict_dicts, filters_check, \
+    get_outgoing_invoice_title_list
 from django.contrib.auth.decorators import login_required
 from product_guide.services.giis_parser import giis_file_parsing
 from .services.readers import read_excel_file, read_msword_file
@@ -122,6 +123,7 @@ def product_base(request):
 
     else:
         products_queryset = Jewelry.objects.all().values()
+        # print(products_queryset)
         product_dicts_dict = make_product_dict_from_dbqueryset(products_queryset)
 
         request.session['product_objects_dict_for_view'] = product_dicts_dict
@@ -180,7 +182,16 @@ def upload_file(request):
                     request.session['invoice'] = invoice
             elif file_type == 'msword':
                 header_table, product_table = read_msword_file(file_path)
-                products_dicts_dict = word_invoice_parsing(header_table, product_table)
+                products_dicts_dict, invoice_requisites = word_invoice_parsing(header_table, product_table)
+                if invoice_requisites['provider'].lower().find('александрова'):
+                    if file_name not in get_outgoing_invoice_title_list(OutgoingInvoice.objects.all()):
+                        invoice_object = OutgoingInvoice()
+                        invoice_object.departure_date = invoice_requisites['departure_date']
+                        invoice_object.title = file_name
+                        invoice_object.provider = invoice_requisites['provider']
+                        invoice_object.invoice_number = invoice_requisites['invoice_number']
+                        invoice_object.recipient = invoice_requisites['recipient']
+                        invoice_object.save()
     # print(products_dicts_dict)
     request.session['product_objects_dict_for_view'] = products_dicts_dict
 
