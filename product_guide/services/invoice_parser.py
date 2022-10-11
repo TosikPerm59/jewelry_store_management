@@ -14,8 +14,8 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
     counter = 0
     product_list, product_dicts_dict = [], {}
     providers = {'Степин': ['590500827512'],
-                  'Белышева': ['590202863882'],
-                  'Мидас': ['5904148360', '5902179700']}
+                 'Белышева': ['590202863882'],
+                 'Мидас': ['5904148360', '5902179700']}
 
     if file_type == '.xlsx':
         cols = sheet.max_column
@@ -181,10 +181,36 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
 
 
 def word_invoice_parsing(header_table, product_table):
-    max_row = len(product_table.rows)
+    max_row_product_table = len(product_table.rows)
+    max_row_header_table = len(header_table.rows)
     products_dicts_dict = {}
     counter = 0
-    for row in range(3, max_row - 21):
+    part_list = []
+    invoice_requisites = {}
+    provider_index, recipient_index = None, None
+    for row in range(max_row_header_table):
+
+        for cell in range(7):
+            text = header_table.rows[row].cells[cell].text
+            if len(part_list) == 0:
+                part_list.append(text)
+            elif part_list[-1] != text:
+                part_list.append(text)
+
+    for elem in part_list:
+        if elem == 'Поставщик':
+            provider_index = part_list.index(elem) + 1
+        elif elem == 'Грузополучатель':
+            recipient_index = part_list.index(elem) + 1
+
+    invoice_requisites['provider'] = part_list[provider_index]
+    invoice_requisites['recipient'] = part_list[recipient_index]
+    invoice_requisites['departure_date'] = part_list[-2]
+    invoice_requisites['invoice_number'] = part_list[-3]
+
+    print(invoice_requisites)
+
+    for row in range(3, max_row_product_table - 21):
         counter += 1
         string = product_table.rows[row].cells[4].text.lower()
         string = string.replace(',', '') if ',' in string else string
@@ -203,4 +229,4 @@ def word_invoice_parsing(header_table, product_table):
             'barcode': None
         }
 
-    return products_dicts_dict
+    return products_dicts_dict, invoice_requisites
