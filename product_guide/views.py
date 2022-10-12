@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from .models import Jewelry, User, File, InputInvoice, OutgoingInvoice
+from .models import Jewelry, User, File, InputInvoice, OutgoingInvoice, Counterparties
 from product_guide.services.invoice_parser import invoice_parsing, word_invoice_parsing
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
@@ -183,15 +183,17 @@ def upload_file(request):
             elif file_type == 'msword':
                 header_table, product_table = read_msword_file(file_path)
                 products_dicts_dict, invoice_requisites = word_invoice_parsing(header_table, product_table)
-                if invoice_requisites['provider'].lower().find('александрова'):
+                if invoice_requisites['provider_id'] == 1:
+
                     if file_name not in get_outgoing_invoice_title_list(OutgoingInvoice.objects.all()):
                         invoice_object = OutgoingInvoice()
                         invoice_object.departure_date = invoice_requisites['departure_date']
                         invoice_object.title = file_name
-                        invoice_object.provider = invoice_requisites['provider']
-                        invoice_object.invoice_number = invoice_requisites['invoice_number']
-                        invoice_object.recipient = invoice_requisites['recipient']
+                        invoice_object.invoice_number = int(invoice_requisites['invoice_number'])
+                        invoice_object.recipient_id = invoice_requisites['recipient_id']
+                        # print(invoice_object.__dict__)
                         invoice_object.save()
+
     # print(products_dicts_dict)
     request.session['product_objects_dict_for_view'] = products_dicts_dict
 

@@ -42,13 +42,13 @@ class Jewelry(models.Model):
     availability_status = models.CharField(max_length=50, verbose_name='Статус наличия')
     giis_status = models.CharField(max_length=20, null=True, blank=True, verbose_name='Статус ГИИС', choices=giis_statuses)
     price = models.FloatField(null=True, blank=True, verbose_name='Цена')
-    provider = models.ForeignKey('Provider', null=True, blank=True, verbose_name='Поставщик', on_delete=models.PROTECT)
+    provider_id = models.ForeignKey('Provider', null=True, blank=True, verbose_name='Поставщик', on_delete=models.PROTECT)
     arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
-    input_invoice = models.ForeignKey('InputInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Входящая накладная')
-    outgoing_invoice = models.ForeignKey('OutgoingInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Исходящая накладная')
+    input_invoice_id = models.ForeignKey('InputInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Входящая накладная')
+    outgoing_invoice_id = models.ForeignKey('OutgoingInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Исходящая накладная')
     manufacturer = models.CharField(max_length=100, verbose_name='Производитель', blank=True, null=True)
     trademark = models.CharField(max_length=30, verbose_name='Торговая марка', blank=True, null=True)
-    recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Получатель')
+    recipient_id = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Получатель')
 
     class Meta:
         verbose_name = 'Изделие'
@@ -86,32 +86,38 @@ class Invoice(models.Model):
         return self.title
 
     title = models.CharField(max_length=30, null=True, blank=True, verbose_name='Накладная')
-    provider = models.ForeignKey('Provider', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Поставщик')
     invoice_number = models.IntegerField(null=True, blank=True, verbose_name='Номер накладной')
-    recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Получатель')
 
     class Meta:
         abstract = True
 
 
 class InputInvoice(Invoice, models.Model):
+    provider = models.ForeignKey('Counterparties', null=True, blank=True, on_delete=models.PROTECT,
+                                 verbose_name='Поставщик')
     arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
 
     class Meta:
-        verbose_name = 'Входящая накладная'
+        verbose_name = 'Входящую накладную'
         verbose_name_plural = 'Входящие накладные'
 
 
 class OutgoingInvoice(Invoice, models.Model):
+    recipient = models.ForeignKey('Counterparties', null=True, blank=True, on_delete=models.PROTECT,
+                                  verbose_name='Получатель')
     departure_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата отгрузки')
 
     class Meta:
-        verbose_name = 'Исходящая накладная'
+        verbose_name = 'Исходящую накладную'
         verbose_name_plural = 'Исходящие накладные'
 
 
-class Provider(models.Model):
-    full_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Полное наименование поставщика')
+class Counterparties(models.Model):
+
+    def __str__(self):
+        return self.short_name
+
+    full_name = models.CharField(max_length=50, blank=True, null=True, verbose_name='Полное наименование поставщика')
     first_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Имя')
     surname = models.CharField(max_length=30, blank=True, null=True, verbose_name='Фамилия')
     last_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Отчество')
@@ -125,20 +131,22 @@ class Provider(models.Model):
     address = models.CharField(max_length=100, blank=True, null=True, verbose_name='Адрес')
 
     class Meta:
-        verbose_name = 'Поставщик'
+        verbose_name = 'Контрагента'
+        verbose_name_plural = 'Контрагенты'
+
+
+class Provider(models.Model):
+    title = models.CharField(max_length=50, blank=True, null=True, verbose_name='Поставщик')
+
+    class Meta:
+        verbose_name = 'Поставщика'
         verbose_name_plural = 'Поставщики'
 
 
 class Recipient(models.Model):
-    first_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Имя')
-    surname = models.CharField(max_length=30, blank=True, null=True, verbose_name='Фамилия')
-    last_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Отчество')
-    short_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='ФИО')
-    inn = models.IntegerField(verbose_name='ИНН', blank=True, null=True)
-    email = models.EmailField(verbose_name='Email', blank=True, null=True)
-    tel = models.IntegerField(blank=True, null=True, verbose_name='Телефон')
-    address = models.CharField(max_length=100, blank=True, null=True, verbose_name='Адрес')
+    title = models.CharField(max_length=50, blank=True, null=True, verbose_name='Получатель')
 
     class Meta:
-        verbose_name = 'Грузополучатель'
+        verbose_name = 'Грузополучателя'
         verbose_name_plural = 'Грузополучатели'
+

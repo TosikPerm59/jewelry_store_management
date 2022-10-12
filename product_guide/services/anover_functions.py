@@ -132,7 +132,7 @@ def filters_check(product_name, product_metal):
 def get_outgoing_invoice_title_list(out_inv_queryset):
     outgoing_invoice_title_list = []
     for invoice in out_inv_queryset.values():
-        outgoing_invoice_title_list.append(invoice.title)
-    print(outgoing_invoice_title_list)
+        outgoing_invoice_title_list.append(invoice['title'])
+    # print(outgoing_invoice_title_list)
     return outgoing_invoice_title_list
 

@@ -1,4 +1,4 @@
-from product_guide.models import Jewelry, Metal, File
+from product_guide.models import Jewelry, Metal, File, Counterparties
 from product_guide.services.finders import *
 from product_guide.services.readers import read_excel_file
 
@@ -181,13 +181,15 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
 
 
 def word_invoice_parsing(header_table, product_table):
+    counterparties_queryset = Counterparties.objects.all().values()
     max_row_product_table = len(product_table.rows)
     max_row_header_table = len(header_table.rows)
     products_dicts_dict = {}
     counter = 0
     part_list = []
     invoice_requisites = {}
-    provider_index, recipient_index = None, None
+    provider_id, recipient_id = None, None
+
     for row in range(max_row_header_table):
 
         for cell in range(7):
@@ -200,15 +202,30 @@ def word_invoice_parsing(header_table, product_table):
     for elem in part_list:
         if elem == 'Поставщик':
             provider_index = part_list.index(elem) + 1
+            provider_string = part_list[provider_index]
+
+            for counterparty in counterparties_queryset:
+                # print(provider_string)
+                # print(counterparty['full_name'])
+                if counterparty['full_name'] in provider_string:
+                    provider_id = counterparty['id']
+                    break
         elif elem == 'Грузополучатель':
             recipient_index = part_list.index(elem) + 1
+            recipient_string = part_list[recipient_index]
+            for counterparty in counterparties_queryset:
+                # print(counterparty['full_name'])
+                # print(recipient_string)
+                if counterparty['full_name'] in recipient_string:
+                    recipient_id = counterparty['id']
+                    break
 
-    invoice_requisites['provider'] = part_list[provider_index]
-    invoice_requisites['recipient'] = part_list[recipient_index]
+    invoice_requisites['provider_id'] = provider_id
+    invoice_requisites['recipient_id'] = recipient_id
     invoice_requisites['departure_date'] = part_list[-2]
     invoice_requisites['invoice_number'] = part_list[-3]
 
-    print(invoice_requisites)
+    # print(invoice_requisites)
 
     for row in range(3, max_row_product_table - 21):
         counter += 1
@@ -217,7 +234,7 @@ def word_invoice_parsing(header_table, product_table):
         string = string.replace('(', '') if '(' in string else string
         string = string.replace(')', '') if ')' in string else string
         split_string = string.split(' ')
-        print(f'Парсинг строки  ({string})')
+        # print(f'Парсинг строки  ({string})')
         products_dicts_dict[counter] = {
             'weight': find_weight(split_string),
             'size': find_size(split_string, group='word'),
