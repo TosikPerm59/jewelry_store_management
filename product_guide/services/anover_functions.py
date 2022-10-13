@@ -136,3 +136,10 @@ def get_outgoing_invoice_title_list(out_inv_queryset):
     # print(outgoing_invoice_title_list)
     return outgoing_invoice_title_list
 
+
+def get_files_title_list(files_queryset):
+    files_title_list = []
+    for file in files_queryset.values():
+        files_title_list.append(file['title'])
+    return files_title_list
+

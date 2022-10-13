@@ -2,7 +2,7 @@ import os.path
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
-from django.http import HttpResponse
+from django.http import HttpResponse, response, FileResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from .models import Jewelry, User, File, InputInvoice, OutgoingInvoice, Counterparties
@@ -11,9 +11,10 @@ from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
     make_product_dict_from_dbqueryset, get_context_for_product_list, save_invoice, form_type_check, \
     make_product_dict_from_paginator, make_product_queryset_from_dict_dicts, filters_check, \
-    get_outgoing_invoice_title_list
+    get_outgoing_invoice_title_list, get_files_title_list
 from django.contrib.auth.decorators import login_required
 from product_guide.services.giis_parser import giis_file_parsing
+from .services.outgoing_invoice_changer import change_outgoing_invoice
 from .services.readers import read_excel_file, read_msword_file
 
 
@@ -159,7 +160,14 @@ def upload_file(request):
         form.title = file_name
 
         if form.is_valid():
-            save_invoice(form, file_name)
+            duplicate_file = False
+            files_queryset = File.objects.all()
+            files_title_list = get_files_title_list(files_queryset)
+            if file_name not in files_title_list:
+                save_invoice(form, file_name)
+            else:
+                duplicate_file = True
+
             file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
 
             if file_type == 'excel':
@@ -180,9 +188,12 @@ def upload_file(request):
                         'title': file_name
                     }
                     request.session['invoice'] = invoice
+
             elif file_type == 'msword':
+
                 header_table, product_table = read_msword_file(file_path)
                 products_dicts_dict, invoice_requisites = word_invoice_parsing(header_table, product_table)
+
                 if invoice_requisites['provider_id'] == 1:
 
                     if file_name not in get_outgoing_invoice_title_list(OutgoingInvoice.objects.all()):
@@ -193,6 +204,19 @@ def upload_file(request):
                         invoice_object.recipient_id = invoice_requisites['recipient_id']
                         # print(invoice_object.__dict__)
                         invoice_object.save()
+
+                if duplicate_file is False:
+                    change_outgoing_invoice(file_path)
+
+                context = get_context_for_product_list(products_dicts_dict, page_num=None)
+                context['recipient'] = Counterparties.objects.get(id=invoice_requisites['recipient_id'])
+                context['departure_date'] = invoice_requisites['departure_date']
+                context['invoice_title'] = file_name.split('.')[0]
+                context['file_path'] = file_path
+                context['file_name'] = file_name
+                request.session['product_objects_dict_for_view'] = products_dicts_dict
+
+                return render(request, 'product_guide\outgoing_invoice_view.html', context=context)
 
     # print(products_dicts_dict)
     request.session['product_objects_dict_for_view'] = products_dicts_dict
@@ -272,17 +296,16 @@ def save_products(request):
         item_object = Jewelry()
         # print(item_object.__dict__)
         for key, value in product.items():
-            print(key, value)
+
             if product[key] is not None and key != 'number':
-                print(key)
+
                 item_object.__setattr__(key, value)
-                print(item_object.__dict__)
+
 
         for product_from_dbqueryset in products_dbqueryset:
 
             invoice_id = product_from_dbqueryset['input_invoice_id']
-            print(product_from_dbqueryset)
-            print()
+
             if (item_object.barcode == product_from_dbqueryset['barcode'] and item_object.barcode is not None or
                     item_object.uin == product_from_dbqueryset['uin'] and item_object.uin is not None or
                     (item_object.name == product_from_dbqueryset['name'] and item_object.metal ==
@@ -292,10 +315,10 @@ def save_products(request):
                      item_object.input_invoice == InputInvoice.objects.get(id=invoice_id))
                 ):
                 repeating_product = True
-                print(True)
+
 
         if repeating_product is False:
-            print(item_object)
+
             item_object.save()
         else:
             repeating_product = False
@@ -303,3 +326,15 @@ def save_products(request):
     context = get_context_for_product_list(product_dicts_dict_from_session, page_num=None)
 
     return render(request, 'product_guide\product_base_v2.html', context=context)
+
+
+def download_file(request):
+    file_path = request.GET.get('file_path')
+    file_name = request.GET.get('file_name')
+    response = FileResponse(open(file_path, 'rb'))
+    response['content_type'] = "application/octet-stream"
+    response['Content-Disposition'] = 'attachment; filename='
+    response['Content-Disposition'] += file_name
+    return response
+
+# def save_availability_status_and_set_recipient_for_products(request):

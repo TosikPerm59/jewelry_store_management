@@ -1,10 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "product_guide\base.html" %}
+{% block main %}
 
-</body>
-</html>
+    <aside>
+        <div class="search">
+            <form class="search_form" action="" method="post">
+                {% csrf_token%}
+                <input id="search_string" type="text" placeholder="Поиск изделий..." name="search_string">
+                <button type="submit">Найти</button>
+            </form>
+        </div>
+        <div class="filters">
+            <form action="{% url 'product_base' %}" method="post">
+                {% csrf_token %}
+                <fieldset id="filter_fieldset">
+                    <legend><h4>Фильтр</h4></legend>
+                    <select name="name" id="name" >
+                        <option value="all">Изделие</option>
+                        <option value="Кольцо">Кольца</option>
+                        <option value="Серьги">Серьги</option>
+                        <option value="Цепь">Цепи</option>
+                        <option value="Браслет">Браслеты</option>
+                    </select>
+                    <select name="metal" id="metal">
+                        <option value="all">Металл</option>
+                        <option value="Золото 585">Золото 585</option>
+                        <option value="Серебро 925">Серебро 925</option>
+                    </select>
+                    <select name="availability_status" id="availability_status">
+                        <option value="all">Наличие</option>
+                        <option value="в наличии">в наличии</option>
+                        <option value="продано">продано</option>
+                        <option value="передано">передано</option>
+                    </select>
+                    <button id="filter_button" type="submit">Показать</button>
+                </fieldset>
+            </form>
+        </div>
+    </aside>
+
+    <article>
+
+        <h3>
+            <p>{{ invoice_title }}</p>
+            <p>Грузополучатель: {{ recipient }}</p>
+            <p>Всего {{len_products}} изделий, общим весом {{total_weight}} грамм</p>
+        </h3>
+        {% for product in product_list %}
+            <form method="post" action="{% url 'change_attr' %}" id="change{{product.number}}">
+                {% csrf_token %}
+            </form>
+            <form method="post" action="{% url 'delete_line' %}" id="delete{{product.number}}">
+                {% csrf_token %}
+            </form>
+        {% endfor %}
+        <table class="table">
+            <tr class="table_header">
+                <th>Изделие</th>
+                <th>Металл</th>
+                <th>Вес</th>
+                <th>Артикул</th>
+                <th>Штрихкод</th>
+                <th>УИН</th>
+            </tr>
+
+            {% for product in product_list %}
+
+                <tr class="table_row">
+
+                    <td><input  type="text" value="{{ product.name }}" name="product.name" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.metal }}" name="product.metal" style="width: 11ch" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.weight }}" name="product.weight" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.vendor_code }}" name="product.vendor_code" style="width: 20ch" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.barcode }}" name="product.barcode" style="width: 14ch" form="change{{product.number}}"> </td>
+                    <td><input type="text" value="{{ product.uin }}" name="product.uin" style="width: 17ch" form="change{{product.number}}"> </td>
+<!--                    <td style="border:hidden; padding:0"><input type="text" value="{{ product.number }}" name="product.number" form="change{{product.number}}" hidden></td>-->
+<!--                    <td><button type="submit" form="change{{product.number}}">Сохранить</button> </td>-->
+<!--                    <td style="border:hidden; padding:0"><input type="text" value="{{product.number}}" name="product.number" form="delete{{product.number}}" hidden></td>-->
+<!--                    <td><button type="submit" form="delete{{product.number}}">Удалить строку</button></td>-->
+
+                </tr>
+            {% endfor %}
+        </table>
+        {% for num in num_pages %}
+            <form action="{% url 'product_base' %}" method="post">
+                {% csrf_token%}
+                <input type="text" value="{{num}}" name="page" hidden>
+                <button type="submit">{{ num }}</button>
+            </form>
+        {% endfor %}
+        Изменить статус наличия для {{len_products}} позиций на "Передано" и установить получателем {{ recipient }}
+        <form method="get" action="{% url 'save_products' %}">
+            <button type="submit" id="button_change_and_save">Изменить и установить</button>
+        </form>
+        <form method="get" action="{% url 'download_file' %}">
+            <input type="text" value="{{ file_path }}" name="file_path" hidden>
+            <input type="text" value="{{ file_name }}" name="file_name" hidden>
+            <button type="submit">Скачать файл</button>
+        </form>
+    </article>
+
+{% endblock %}

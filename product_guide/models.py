@@ -121,7 +121,7 @@ class Counterparties(models.Model):
     first_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Имя')
     surname = models.CharField(max_length=30, blank=True, null=True, verbose_name='Фамилия')
     last_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Отчество')
-    short_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='ФИО')
+    short_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='ФИО' )
     inn = models.IntegerField(verbose_name='ИНН', blank=True, null=True)
     email = models.EmailField(verbose_name='Email', blank=True, null=True)
     tel = models.IntegerField(blank=True, null=True, verbose_name='Телефон')
