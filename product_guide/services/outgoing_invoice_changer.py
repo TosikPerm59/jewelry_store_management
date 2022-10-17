@@ -35,7 +35,7 @@ def change_outgoing_invoice(path):
         price = ''.join(((table.rows[row].cells[40].text.split(','))[0]).split('\xa0'))
         if price == '':
             price = ''.join(((table.rows[row].cells[35].text.split(','))[0]).split('\xa0'))
-        cell.text = str(round(float(price) / int(amount) / float(weight), 2)).replace('.', ',')
+        cell.text = str(round(float(price) / float(weight), 2)).replace('.', ',')
         while len(cell.text.split(',')[1]) < 2:
             cell.text += '0'
         set_cell_settings(cell)

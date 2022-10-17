@@ -174,7 +174,7 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
                             'price': round(float(prod_price), ndigits=2),
                             'number': counter
                             }
-
+            # print(product_dict)
             product_dicts_dict[counter] = product_dict
 
     return product_dicts_dict, invoice_date, invoice_number, provider,
@@ -245,5 +245,5 @@ def word_invoice_parsing(header_table, product_table):
             'number': counter,
             'barcode': None
         }
-
+    # print(products_dicts_dict)
     return products_dicts_dict, invoice_requisites

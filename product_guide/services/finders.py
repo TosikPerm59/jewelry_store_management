@@ -91,7 +91,6 @@ def find_uin_in_string(description):
 def find_weight(split_string):
     """ Функция поиска массы(вес) изделия, перебирает элементы, проверяет их на причастность к числу.
     Возвращает вещественное число или None"""
-
     original_string = ' '.join(split_string)
 
     if 'вес' in split_string:
@@ -105,7 +104,7 @@ def find_weight(split_string):
     elif '585' in split_string or '925' in split_string:
         index = split_string.index('585') if '585' in split_string else split_string.index('925')
         split_string = split_string[index + 1:]
-
+    print(split_string)
     for elem in split_string:
         elem = elem.strip()
         try:
@@ -134,43 +133,45 @@ def find_art(*args, group):
     prefixes = ['НЦ', 'ЦБ', 'ЦИ', 'ББ', 'БВ', 'БИ', 'БК', 'НБ', 'шн2/5т']
 
     for string_from_args in args:
+        if string_from_args is not None:
 
-        if isinstance(string_from_args, str):
-            string_from_args = str(string_from_args).lower().split(' ')
+            if isinstance(string_from_args, str):
+                string_from_args = str(string_from_args).lower().split(' ')
 
-        if 'арт.' in string_from_args:
-            art_ind = string_from_args.index('арт.') + 1
-            return string_from_args[art_ind].upper()
+            if 'арт.' in string_from_args:
+                art_ind = string_from_args.index('арт.') + 1
+                return string_from_args[art_ind].upper()
 
-        if group == 'word':
-            if '585' in string_from_args or '925' in string_from_args:
-                ind_1 = (string_from_args.index('585') if '585' in string_from_args and 'золото' in string_from_args
-                         else string_from_args.index('925'))
-                string_from_args = string_from_args[ind_1 + 1:]
+            if group == 'word':
+                if '585' in string_from_args or '925' in string_from_args:
+                    ind_1 = (string_from_args.index('585') if '585' in string_from_args and 'золото' in string_from_args
+                             else string_from_args.index('925'))
+                    string_from_args = string_from_args[ind_1 + 1:]
 
-                if '—' in string_from_args or '---' in string_from_args:
-                    ind_2 = (string_from_args.index('—') if '—' in string_from_args else string_from_args.index('---'))
-                    art = string_from_args[: ind_2]
-                    return ' '.join(art).upper()
+                    if '—' in string_from_args or '---' in string_from_args:
+                        ind_2 = (string_from_args.index('—') if '—' in string_from_args else string_from_args.index('---'))
+                        art = string_from_args[: ind_2]
+                        return ' '.join(art).upper()
 
-        for elem in string_from_args:
-            if len(elem) > 1:
-                if elem[-1] == ',':
-                    elem = elem[:-1]
-            for pref in prefixes:
-                if pref in elem:
+            for elem in string_from_args:
+                if len(elem) > 1:
+                    if elem[-1] == ',':
+                        elem = elem[:-1]
+                for pref in prefixes:
+                    if pref in elem:
+                        return elem.upper()
+
+                if elem.endswith('перлина') and group == 'excel':
+                    return elem.replace('перлина', '').upper()
+
+                if ((elem.isdigit() and len(elem) > 3 or elem.isalnum() and not elem.isdigit()) and 2 < len(elem) != 13 and
+                        not elem.isalpha() and check_word_exceptions(elem.lower())):
                     return elem.upper()
 
-            if elem.endswith('перлина') and group == 'excel':
-                return elem.replace('перлина', '').upper()
-
-            if ((elem.isdigit() and len(elem) > 3 or elem.isalnum() and not elem.isdigit()) and 2 < len(elem) != 13 and
-                    not elem.isalpha() and check_word_exceptions(elem.lower())):
-                return elem.upper()
-
-            if ('-' in elem or '_' in elem) and check_word_exceptions(elem) and len(elem) > 3:
-                return elem.upper()
-
+                if ('-' in elem or '_' in elem) and check_word_exceptions(elem) and len(elem) > 3:
+                    return elem.upper()
+    else:
+        return
 
 def find_name(split_string):
     """ Метод поиска наименования изделия, сопоставляет содержимое строки со списком вариантов имен.

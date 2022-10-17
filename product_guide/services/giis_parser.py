@@ -33,7 +33,7 @@ def giis_file_parsing(rows_list, sheet):
     counter = 0
 
     # Выполняется построчный проход по таблице
-    for row in rows_list[:50]:
+    for row in rows_list:
         counter += 1
         description = find_description(sheet[row][10].value, sheet[row][11].value, sheet[row][14].value,
                                        sheet[row][23].value, group=group)

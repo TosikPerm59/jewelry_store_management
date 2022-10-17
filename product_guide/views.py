@@ -176,6 +176,8 @@ def upload_file(request):
 
                 if form_type_check(full_rows_list, sheet, file_name) == 'giis_report':
                     products_dicts_dict = giis_file_parsing(full_rows_list, sheet)
+                    invoice = {'giis_report': True}
+                    request.session['invoice'] = invoice
 
                 else:
                     products_dicts_dict, invoice_date, invoice_number, provider = invoice_parsing(full_rows_list, sheet, file_type, file_name)
@@ -202,7 +204,6 @@ def upload_file(request):
                         invoice_object.title = file_name
                         invoice_object.invoice_number = int(invoice_requisites['invoice_number'])
                         invoice_object.recipient_id = invoice_requisites['recipient_id']
-                        # print(invoice_object.__dict__)
                         invoice_object.save()
 
                 if duplicate_file is False:
@@ -215,6 +216,7 @@ def upload_file(request):
                 context['file_path'] = file_path
                 context['file_name'] = file_name
                 request.session['product_objects_dict_for_view'] = products_dicts_dict
+                request.session['outgoing_invoice'] = invoice_requisites
 
                 return render(request, 'product_guide\outgoing_invoice_view.html', context=context)
 
@@ -281,16 +283,17 @@ def save_products(request):
 
     invoice_dict = request.session['invoice']
 
-    try:
-        invoice_object = InputInvoice.objects.get(title=invoice_dict['title'])
-    except ObjectDoesNotExist:
-        invoice_object = InputInvoice(
-            title=invoice_dict['title'],
-            invoice_number=invoice_dict['invoice_number'],
-            recipient=invoice_dict['recipient'],
-            arrival_date=invoice_dict['arrival_date']
-        )
-        invoice_object.save()
+    if 'giis_report' not in invoice_dict:
+        try:
+            invoice_object = InputInvoice.objects.get(title=invoice_dict['title'])
+        except ObjectDoesNotExist:
+            invoice_object = InputInvoice(
+                title=invoice_dict['title'],
+                invoice_number=invoice_dict['invoice_number'],
+                recipient=invoice_dict['recipient'],
+                arrival_date=invoice_dict['arrival_date']
+            )
+            invoice_object.save()
 
     for product in product_dicts_dict_from_session.values():
         item_object = Jewelry()
@@ -337,4 +340,18 @@ def download_file(request):
     response['Content-Disposition'] += file_name
     return response
 
-# def save_availability_status_and_set_recipient_for_products(request):
+
+def save_availability_status_and_set_recipient_for_products(request):
+
+    products_dicts_dict = request.session['product_objects_dict_for_view']
+    invoice_requisites = request.session['outgoing_invoice']
+    for product in products_dicts_dict.values():
+        try:
+            product_object = Jewelry.objects.get(uin=product['uin'])
+            if product_object:
+                product_object.availability_status = 'Передано'
+                product_object.recipient_id = invoice_requisites['recipient_id']
+                product_object.save()
+        except ObjectDoesNotExist:
+            pass
+
