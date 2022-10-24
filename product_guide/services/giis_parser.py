@@ -6,18 +6,6 @@ from .validity import check_id
 warnings.simplefilter("ignore")
 
 
-def find_id(*description):
-    """ Функция ищет в описании и наименовании позиции, строку состоящую из 13 символов и состоящую
-    только из цифр.
-        Возвращает строку или None """
-
-    for elem in description:
-        elem = str(elem)
-        for part in elem.split(' '):
-            if check_id(part):
-                return part
-
-
 def giis_file_parsing(rows_list, sheet):
     """ Функция анализа файла Excel сформированного платформой ГИИС ДМДК.
       На вход функция принимает путь к файлу, который необходимо обработать. Так как, данные из портала ГИИС ДМДК

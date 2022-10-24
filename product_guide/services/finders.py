@@ -28,6 +28,18 @@ keywords_inserts = {'аметистом': ['аметистом', 'аметист
                     'кристаллом премиум': ['кристалл премиум']}
 
 
+def find_id(*description):
+    """ Функция ищет в описании и наименовании позиции, строку состоящую из 13 символов и состоящую
+    только из цифр.
+        Возвращает строку или None """
+
+    for elem in description:
+        elem = str(elem)
+        for part in elem.split(' '):
+            if check_id(part):
+                return part
+
+
 def find_barcode(_string):
     spl_str = _string.split(' ')
     for elem in spl_str:

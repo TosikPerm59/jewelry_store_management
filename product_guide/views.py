@@ -1,5 +1,6 @@
 import os.path
-
+import shutil
+import asyncio
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.http import HttpResponse, response, FileResponse
@@ -16,6 +17,7 @@ from django.contrib.auth.decorators import login_required
 from product_guide.services.giis_parser import giis_file_parsing
 from .services.outgoing_invoice_changer import change_outgoing_invoice
 from .services.readers import read_excel_file, read_msword_file
+from .services.upload_file_methods import set_correct_file_name, determine_belonging_file, save_form, file_processing
 
 
 def register(request):
@@ -146,86 +148,22 @@ def product_base(request):
 
 @login_required()
 def upload_file(request):
-    products_dicts_dict = {}
-    file_type = None
-
+    context = None
+    template_path = None
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
-        file_name = request.FILES['file'].name.replace(' ', '_') if ' ' in request.FILES['file'].name else \
-            request.FILES['file'].name
-        file_name = file_name.replace('№', '') if '№' in file_name else file_name
-        file_type = 'excel' if file_name.endswith('.xls') or file_name.endswith('xlsx') else None
-        if file_type is None:
-            file_type = 'msword' if file_name.endswith('.doc') or file_name.endswith('docx') else None
+        file_name = set_correct_file_name(request.FILES['file'].name)
         form.title = file_name
 
         if form.is_valid():
-            duplicate_file = False
-            files_queryset = File.objects.all()
-            files_title_list = get_files_title_list(files_queryset)
-            if file_name not in files_title_list:
-                save_invoice(form, file_name)
-            else:
-                duplicate_file = True
 
+            save_form(form)
             file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
+            context, products_dicts_dict, invoice_session_data, template_path = file_processing(file_name, file_path)
+            request.session['product_objects_dict_for_view'] = products_dicts_dict
+            request.session['invoice'] = invoice_session_data
 
-            if file_type == 'excel':
-
-                full_rows_list, sheet, file_type = read_excel_file(file_path)
-
-                if form_type_check(full_rows_list, sheet, file_name) == 'giis_report':
-                    products_dicts_dict = giis_file_parsing(full_rows_list, sheet)
-                    invoice = {'giis_report': True}
-                    request.session['invoice'] = invoice
-
-                else:
-                    products_dicts_dict, invoice_date, invoice_number, provider = invoice_parsing(full_rows_list, sheet, file_type, file_name)
-
-                    invoice = {
-                        'arrival_date': invoice_date,
-                        'provider': provider,
-                        'invoice_number': invoice_number,
-                        'recipient': None,
-                        'title': file_name
-                    }
-                    request.session['invoice'] = invoice
-
-            elif file_type == 'msword':
-
-                header_table, product_table = read_msword_file(file_path)
-                products_dicts_dict, invoice_requisites = word_invoice_parsing(header_table, product_table)
-
-                if invoice_requisites['provider_id'] == 1:
-
-                    if file_name not in get_outgoing_invoice_title_list(OutgoingInvoice.objects.all()):
-                        invoice_object = OutgoingInvoice()
-                        invoice_object.departure_date = invoice_requisites['departure_date']
-                        invoice_object.title = file_name
-                        invoice_object.invoice_number = int(invoice_requisites['invoice_number'])
-                        invoice_object.recipient_id = invoice_requisites['recipient_id']
-                        invoice_object.save()
-
-                if duplicate_file is False:
-                    change_outgoing_invoice(file_path)
-
-                context = get_context_for_product_list(products_dicts_dict, page_num=None)
-                context['recipient'] = Counterparties.objects.get(id=invoice_requisites['recipient_id'])
-                context['departure_date'] = invoice_requisites['departure_date']
-                context['invoice_title'] = file_name.split('.')[0]
-                context['file_path'] = file_path
-                context['file_name'] = file_name
-                request.session['product_objects_dict_for_view'] = products_dicts_dict
-                request.session['outgoing_invoice'] = invoice_requisites
-
-                return render(request, 'product_guide\outgoing_invoice_view.html', context=context)
-
-    # print(products_dicts_dict)
-    request.session['product_objects_dict_for_view'] = products_dicts_dict
-
-    context = get_context_for_product_list(products_dicts_dict, page_num=None)
-    # print(context['product_list'])
-    return render(request, 'product_guide\product_base_v2.html', context=context)
+    return render(request, template_path, context=context)
 
 
 @login_required()
@@ -332,12 +270,27 @@ def save_products(request):
 
 
 def download_file(request):
+
+
+    # async def delete_file(copy_path):
+    #     await asyncio.sleep(100)
+    #     os.remove(copy_path)
+    #     return HttpResponse('Скачивание выполнено успешно')
+
+
+    print('DOWNLOAD')
     file_path = request.GET.get('file_path')
-    file_name = request.GET.get('file_name')
-    response = FileResponse(open(file_path, 'rb'))
+    path = os.path.split(file_path)[0]
+    name = os.path.split(file_path)[1]
+    copy_path = path + 'Копия' + name
+    print(copy_path)
+    shutil.copyfile(file_path, copy_path)
+    change_outgoing_invoice(copy_path)
+    response = FileResponse(open(copy_path, 'rb'))
     response['content_type'] = "application/octet-stream"
     response['Content-Disposition'] = 'attachment; filename='
-    response['Content-Disposition'] += file_name
+
+    # asyncio.run(delete_file(copy_path))
     return response
 
 
