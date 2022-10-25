@@ -54,15 +54,15 @@ def file_processing(file_name, file_path):
             invoice_session_data = {'giis_report': True}
 
         else:
-            products_dicts_dict, invoice_date, invoice_number, provider = invoice_parsing(full_rows_list, sheet, file_type,
+            products_dicts_dict, invoice_requisites = invoice_parsing(full_rows_list, sheet, file_type,
                                                                                           file_name)
 
             invoice_session_data = {
                 'giis_report': False,
-                'arrival_date': invoice_date,
-                'provider': provider,
-                'invoice_number': invoice_number,
-                'recipient': None,
+                'arrival_date': invoice_requisites['arrival_date'],
+                'invoice_number': invoice_requisites['invoice_number'],
+                'provider_id': invoice_requisites['provider_id'],
+                'recipient': invoice_requisites['recipient_id'],
                 'title': file_name
             }
         context = get_context_for_product_list(products_dicts_dict, page_num=None)

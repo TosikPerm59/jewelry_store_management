@@ -1,21 +1,19 @@
 from product_guide.models import Jewelry, Metal, File, Counterparties
+from product_guide.services.anover_functions import definition_of_invoice_type
 from product_guide.services.finders import *
 from product_guide.services.readers import read_excel_file
+invoice_requisites = {}
 
 
 def invoice_parsing(full_rows_list, sheet, file_type, file_name):
-
     uin_ind = product_ind = weight_ind = price_ind = prod_uin = price_per_gram_ind = start = finish \
         = row_with_provider_index = provider = row_with_date_index = invoice_number = invoice_date = col_with_number \
         = col_with_date = code_ind = prod_barcode_from_giis = prod_weight = prod_name = prod_barcode = prod_art \
-        = prod_price = prod_metal = prod_size = None
+        = prod_price = recipient_id = provider_id = recipient = None
 
     products_with_size = {'кольцо': 'кольца', 'цепь': 'цепи', 'браслет': 'браслета', 'колье': 'колье', 'конго': 'конго'}
     counter = 0
     product_list, product_dicts_dict = [], {}
-    providers = {'Степин': ['590500827512'],
-                 'Белышева': ['590202863882'],
-                 'Мидас': ['5904148360', '5902179700']}
 
     if file_type == '.xlsx':
         cols = sheet.max_column
@@ -37,8 +35,8 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
         if 'грузополучатель' in row or 'плательщик' in row:
             recipient = row[3]
         if 'товарная накладная  ' in row or 'товарная накладная ' in row:
-            date = row[15]
-            number = row[12]
+            invoice_date = row[15]
+            invoice_number = row[12]
         if 'страница 1' in row:
             start = counter + 1
         if 'всего по накладной ' in row:
@@ -141,7 +139,23 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
         # print(product_dict)
         product_dicts_dict[counter] = product_dict
 
-    return product_dicts_dict, invoice_date, invoice_number, provider,
+    invoice_type = definition_of_invoice_type(provider, recipient)
+    counterparties_queryset = Counterparties.objects.all()
+    for counterparties_object in counterparties_queryset:
+        if provider.find(counterparties_object.surname) == 1:
+            provider_id = counterparties_object.id
+        if recipient.find(counterparties_object.surname) == 1:
+            recipient_id = counterparties_object.id
+
+    invoice_type, provider_id, recipient_id = definition_of_invoice_type(provider, recipient)
+
+    invoice_requisites['provider_id'] = provider_id
+    invoice_requisites['recipient_id'] = recipient_id
+    invoice_requisites['arrival_date'] = invoice_date
+    invoice_requisites['invoice_number'] = invoice_number
+    invoice_requisites['invoice_type'] = invoice_type
+
+    return product_dicts_dict, invoice_requisites
 
 
 def word_invoice_parsing(header_table, product_table):
@@ -151,7 +165,7 @@ def word_invoice_parsing(header_table, product_table):
     products_dicts_dict = {}
     counter = 0
     part_list = []
-    invoice_requisites = {}
+
     provider_id, recipient_id = None, None
 
     for row in range(max_row_header_table):

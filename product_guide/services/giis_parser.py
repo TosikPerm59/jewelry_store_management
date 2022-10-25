@@ -1,6 +1,6 @@
 import openpyxl
 import warnings
-from .finders import find_art, find_description, find_weight
+from .finders import find_art, find_description, find_weight, find_id
 from .validity import check_id
 
 warnings.simplefilter("ignore")

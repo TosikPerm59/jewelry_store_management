@@ -1,5 +1,5 @@
 from django.core.paginator import Paginator
-from product_guide.models import File
+from product_guide.models import File, Counterparties
 from django.core.exceptions import ObjectDoesNotExist
 from product_guide.services.validity import isfloat
 
@@ -131,3 +131,16 @@ def get_files_title_list(files_queryset):
 
     return files_title_list
 
+
+def definition_of_invoice_type(provider, recipient):
+    provider_id, invoice_type, recipient_id = None, None, None
+    counterparties_queryset = Counterparties.objects.all()
+
+    for counterparties_object in counterparties_queryset:
+        if provider.find(counterparties_object.surname) == 1:
+            provider_id = counterparties_object.id
+        if recipient.find(counterparties_object.surname) == 1:
+            recipient_id = counterparties_object.id
+            invoice_type = 'incoming' if Counterparties.objects.get(id=recipient_id) == 'Александрова' else 'outgoing'
+
+    return invoice_type, provider_id, recipient_id

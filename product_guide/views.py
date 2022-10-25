@@ -226,7 +226,7 @@ def save_products(request):
             invoice_object = InputInvoice(
                 title=invoice_dict['title'],
                 invoice_number=invoice_dict['invoice_number'],
-                recipient=invoice_dict['recipient'],
+                recipient=invoice_dict['recipient_id'],
                 arrival_date=invoice_dict['arrival_date']
             )
             invoice_object.save()
@@ -266,6 +266,7 @@ def save_products(request):
 
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
+
 @login_required()
 def download_file(request):
 
@@ -290,6 +291,7 @@ def download_file(request):
 
     # asyncio.run(delete_file(copy_path))
     return response
+
 
 @login_required()
 def save_availability_status_and_set_recipient_for_products(request):
