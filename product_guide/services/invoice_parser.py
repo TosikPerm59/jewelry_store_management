@@ -29,11 +29,13 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
         full_rows_list = rows_lst
 
     for row in full_rows_list:
-
+        # print(row)
         if 'поставщик' in row:
             provider = row[3]
-        if 'грузополучатель' in row or 'плательщик' in row:
+            # print(provider)
+        if 'грузополучатель' in row or 'плательщик' in row and recipient is None:
             recipient = row[3]
+            # print(recipient)
         if 'товарная накладная  ' in row or 'товарная накладная ' in row:
             invoice_date = row[15]
             invoice_number = row[12]
@@ -75,19 +77,16 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
         row_start_index, row_finish_index = None, None
 
         if isinteger(row[1]) and int(row[1]) == index_number or isfloat(row[1]) and int(row[1]) == index_number:
-            print('row = ', row )
             index_number += 1
             row_start_index = full_rows_list.index(row)
 
             for row_2 in full_rows_list[row_start_index + 1: finish]:
-                print('row2 = ', row_2)
                 if (isinteger(row_2[1]) and int(row_2[1]) == int(row[1]) + 1 or isfloat(row_2[1])
                         and int(row_2[1]) == int(row[1]) + 1 or 'итого ' in row_2):
                     row_finish_index = full_rows_list.index(row_2)
                     break
 
             for row_3 in full_rows_list[row_start_index: row_finish_index]:
-                print('row3 = ', row_3)
                 if file_type == '.xls':
                     descr += (row_3[2] + ' ' + row_3[12] + ' ').lower()
                 else:
@@ -139,7 +138,6 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
         # print(product_dict)
         product_dicts_dict[counter] = product_dict
 
-    invoice_type = definition_of_invoice_type(provider, recipient)
     counterparties_queryset = Counterparties.objects.all()
     for counterparties_object in counterparties_queryset:
         if provider.find(counterparties_object.surname) == 1:
@@ -154,6 +152,8 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
     invoice_requisites['arrival_date'] = invoice_date
     invoice_requisites['invoice_number'] = invoice_number
     invoice_requisites['invoice_type'] = invoice_type
+
+    print(invoice_requisites)
 
     return product_dicts_dict, invoice_requisites
 
