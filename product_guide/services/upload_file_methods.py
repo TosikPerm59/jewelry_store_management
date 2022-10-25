@@ -49,7 +49,7 @@ def file_processing(file_name, file_path):
 
         full_rows_list, sheet, file_type = read_excel_file(file_path)
 
-        if form_type_check(full_rows_list, sheet, file_name) == 'giis_report':
+        if form_type_check(file_name) == 'giis_report':
             products_dicts_dict = giis_file_parsing(full_rows_list, sheet)
             invoice_session_data = {'giis_report': True}
 

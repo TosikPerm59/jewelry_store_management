@@ -31,151 +31,115 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
         full_rows_list = rows_lst
 
     for row in full_rows_list:
-        counter += 1
-        if 'форма по окуд ' in row:
-            if 'инн' in row:
-                row_with_provider_index = counter - 1
-            else:
-                row_with_provider_index = counter - 2
+
+        if 'поставщик' in row:
+            provider = row[3]
+        if 'грузополучатель' in row or 'плательщик' in row:
+            recipient = row[3]
         if 'товарная накладная  ' in row or 'товарная накладная ' in row:
-            row_with_date_index = counter - 1
+            date = row[15]
+            number = row[12]
         if 'страница 1' in row:
-            start = counter
+            start = counter + 1
         if 'всего по накладной ' in row:
-            finish = counter - 1
+            finish = counter
             break
+        counter += 1
+
     counter = 0
 
-    row_with_provider = []
-    for elem in full_rows_list[row_with_provider_index]:
-        if elem is not None:
-            row_with_provider.append(elem)
-    for key, values in providers.items():
-        for value in values:
-            if value in ''.join(row_with_provider):
-                provider = key
-                break
-        if provider:
-            break
-
-    col_with_number = full_rows_list[row_with_date_index - 1].index('номер документа')
-    col_with_date = full_rows_list[row_with_date_index - 1].index('дата составления')
-    invoice_number = full_rows_list[row_with_date_index][col_with_number]
-    invoice_date = full_rows_list[row_with_date_index][col_with_date]
     header = full_rows_list[start: start + 2]
-    input_invoice = File.objects.get(title=file_name)
 
     for row in header:
         for elem in row:
-            if elem is not None:
-                origin_elem = elem
-                elem = str(elem)
-                r_elem = ''
-                if '\n' in elem:
-                    r_elem = elem.replace('\n', '')
+            if isinstance(elem, str) and elem != '':
+                changed_elem = elem.replace('\n', ' ') if '\n' in elem else elem
 
-                if r_elem.find('наименование') != -1 or elem.find('наименование') != -1:
-                    product_ind = row.index(origin_elem)
-                if r_elem.find('нетто') != -1 or elem.find('нетто') != -1:
-                    weight_ind = row.index(origin_elem)
-                if r_elem.find('сумма сучетом ндс') != -1 or elem.find('сумма сучетом ндс') != -1:
-                    price_ind = row.index(origin_elem)
-                if r_elem.find('цена') != -1 or elem.find('цена') != -1:
-                    price_per_gram_ind = row.index(origin_elem)
-                if r_elem.find('уин') != -1 or elem.find('уин') != -1:
-                    uin_ind = row.index(origin_elem)
-                if code_ind is None:
-                    if r_elem.find('код') != -1 or elem.find('код') != -1:
-                        code_ind = row.index(origin_elem)
+                if changed_elem.find('наименование') != -1:
+                    product_ind = row.index(elem)
 
-    if file_type == '.xls':
-        index_number = 1
-        for row in full_rows_list[start + 3: finish]:
-            descr = ''
-            row_start_index, row_finish_index = None, None
+                if changed_elem.find('нетто') != -1:
+                    weight_ind = row.index(elem)
 
-            if isinteger(row[1]) and int(row[1]) == index_number or isfloat(row[1]) and int(row[1]) == index_number:
-                index_number += 1
-                row_start_index = full_rows_list.index(row)
-                for row_2 in full_rows_list[row_start_index + 1: finish]:
-                    if (isinteger(row_2[1]) and int(row_2[1]) == int(row[1]) + 1 or isfloat(row_2[1])
-                            and int(row_2[1]) == int(row[1]) + 1 or 'итого ' in row_2):
-                        row_finish_index = full_rows_list.index(row_2)
-                        break
+                if changed_elem.find('сумма с учетом') != -1:
+                    price_ind = row.index(elem)
 
-                for row_3 in full_rows_list[row_start_index: row_finish_index]:
+                if changed_elem.find('цена') != -1:
+                    price_per_gram_ind = row.index(elem)
+
+                if changed_elem.find('уин') != -1:
+                    uin_ind = row.index(elem)
+
+    index_number = 1
+    for row in full_rows_list[start + 3: finish]:
+
+        descr = ''
+        row_start_index, row_finish_index = None, None
+
+        if isinteger(row[1]) and int(row[1]) == index_number or isfloat(row[1]) and int(row[1]) == index_number:
+            print('row = ', row )
+            index_number += 1
+            row_start_index = full_rows_list.index(row)
+
+            for row_2 in full_rows_list[row_start_index + 1: finish]:
+                print('row2 = ', row_2)
+                if (isinteger(row_2[1]) and int(row_2[1]) == int(row[1]) + 1 or isfloat(row_2[1])
+                        and int(row_2[1]) == int(row[1]) + 1 or 'итого ' in row_2):
+                    row_finish_index = full_rows_list.index(row_2)
+                    break
+
+            for row_3 in full_rows_list[row_start_index: row_finish_index]:
+                print('row3 = ', row_3)
+                if file_type == '.xls':
                     descr += (row_3[2] + ' ' + row_3[12] + ' ').lower()
-                descr = descr.replace('\n', ' ') if '\n' in descr else descr
-                descr = descr.replace('шк:', ' ') if 'шк:' in descr else descr
-                descr = descr.replace('бирка:', ' ') if 'бирка:' in descr else descr
-                descr = descr.replace('  ', ' ') if '  ' in descr else descr
-                row[2] = descr
-                product_list.append(row)
+                else:
+                    descr += (row_3[2] + ' ' + row_3[6] + ' ').lower() if row_3[6] is not None else ''
+                    descr += (row_3[2] + ' ' + row_3[12] + ' ').lower() if row_3[12] is not None else ''
 
-    if file_type == '.xlsx':
-        product_list = full_rows_list[start + 3: finish]
+            descr = descr.replace('\n', ' ') if '\n' in descr else descr
+            descr = descr.replace('шк:', ' ') if 'шк:' in descr else descr
+            descr = descr.replace('бирка:', ' ') if 'бирка:' in descr else descr
+            descr = descr.replace('  ', ' ') if '  ' in descr else descr
+            row[2] = descr
+            product_list.append(row)
 
     for product in product_list:
+        # print(product)
 
-        if product[1] is None or not str(product[1]).isdigit():
-            product[1] = '0'
+        counter += 1
+        description_string = product[product_ind].lower()
+        if '(' in description_string:
+            description_string = description_string.replace('(', '')
+        if ')' in description_string:
+            description_string = description_string.replace(')', '')
+        if ';' in description_string:
+            description_string = description_string.replace(';', '')
+        split_description_string = description_string.split(' ')
 
-        if file_type == '.xlsx' and int(product[1]) == counter + 1 or file_type == '.xls':
+        prod_name = find_name(description_string)
+        prod_metal = find_metal(description_string)
+        prod_size = find_size(split_description_string, group='excel')
+        prod_weight = product[weight_ind]
+        prod_art = find_art(description_string, group='excel')
+        prod_barcode = find_barcode(description_string)
+        prod_price = product[price_ind]
+        prod_uin = find_uin_in_string(description_string)
 
-            counter += 1
-            description_string = product[product_ind].lower()
-            if '(' in description_string:
-                description_string = description_string.replace('(', '')
-            if ')' in description_string:
-                description_string = description_string.replace(')', '')
-            if ';' in description_string:
-                description_string = description_string.replace(';', '')
-            split_description_string = description_string.split(' ')
+        product_characteristics = [prod_name, prod_metal, prod_weight, prod_barcode, prod_art, prod_uin, prod_price,
+                                   prod_size]
 
-            prod_name = find_name(description_string)
-            prod_metal = find_metal(description_string)
-            prod_size = find_size(split_description_string, group='excel')
-            prod_weight = product[weight_ind]
-            prod_art = find_art(description_string, group='excel')
-            prod_barcode = find_barcode(description_string)
-            prod_price = product[price_ind]
-            prod_uin = find_uin_in_string(description_string)
-            if prod_barcode is None:
-                if code_ind:
-                    prod_barcode = find_barcode(product[code_ind])
-
-            if prod_metal is None:
-                if float(prod_price) / float(prod_weight) > 1000:
-                    prod_metal = 'Золото 585'
-                else:
-                    prod_metal = 'Серебро 925'
-
-            if uin_ind:
-                prod_uin = find_uin_in_string(product[uin_ind])
-            if prod_uin is None:
-                prod_uin = find_uin_in_string(description_string)
-
-            if not prod_metal:
-                if product[price_per_gram_ind] > 2500:
-                    prod_metal = 'Золото 585'
-                else:
-                    prod_metal = 'Серебро 925'
-
-            product_characteristics = [prod_name, prod_metal, prod_weight, prod_barcode, prod_art, prod_uin, prod_price,
-                                       prod_size]
-
-            product_dict = {'name': prod_name,
-                            'metal': prod_metal,
-                            'barcode': prod_barcode,
-                            'uin': prod_uin,
-                            'weight': round(float(prod_weight), ndigits=2),
-                            'vendor_code': prod_art,
-                            'size': round(float(prod_size), ndigits=2) if isfloat(prod_size) else None,
-                            'price': round(float(prod_price), ndigits=2),
-                            'number': counter
+        product_dict = {'name': prod_name,
+                        'metal': prod_metal,
+                        'barcode': prod_barcode,
+                        'uin': prod_uin,
+                        'weight': round(float(prod_weight), ndigits=2),
+                        'vendor_code': prod_art,
+                        'size': round(float(prod_size), ndigits=2) if isfloat(prod_size) else None,
+                        'price': round(float(prod_price), ndigits=2),
+                        'number': counter
                             }
-            # print(product_dict)
-            product_dicts_dict[counter] = product_dict
+        # print(product_dict)
+        product_dicts_dict[counter] = product_dict
 
     return product_dicts_dict, invoice_date, invoice_number, provider,
 

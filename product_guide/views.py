@@ -1,9 +1,7 @@
 import os.path
 import shutil
-import asyncio
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.paginator import Paginator
-from django.http import HttpResponse, response, FileResponse
+from django.http import HttpResponse, FileResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from .models import Jewelry, User, File, InputInvoice, OutgoingInvoice, Counterparties
@@ -268,7 +266,7 @@ def save_products(request):
 
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
-
+@login_required()
 def download_file(request):
 
 
@@ -293,7 +291,7 @@ def download_file(request):
     # asyncio.run(delete_file(copy_path))
     return response
 
-
+@login_required()
 def save_availability_status_and_set_recipient_for_products(request):
 
     products_dicts_dict = request.session['product_objects_dict_for_view']

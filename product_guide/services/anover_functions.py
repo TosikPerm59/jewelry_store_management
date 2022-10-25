@@ -65,7 +65,7 @@ def save_invoice(form, file_name):
     file_object.save()
 
 
-def form_type_check(rows_list, sheet, file_name):
+def form_type_check(file_name):
     if file_name == '4_BATCH_LIST_PRINT.xlsx':
         return 'giis_report'
 

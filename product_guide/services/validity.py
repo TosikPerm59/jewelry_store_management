@@ -41,7 +41,7 @@ def isinteger(value):
     try:
         int(value)
         return True
-    except ValueError:
+    except:
         return False
 
 
