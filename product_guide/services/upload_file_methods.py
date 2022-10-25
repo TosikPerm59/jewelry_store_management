@@ -42,7 +42,7 @@ def save_form(form):
 
 
 def file_processing(file_name, file_path):
-
+    invoice_requisites = {}
     file_type = determine_belonging_file(file_name)
 
     if file_type == 'msexcel':
@@ -55,7 +55,7 @@ def file_processing(file_name, file_path):
 
         else:
             products_dicts_dict, invoice_requisites = invoice_parsing(full_rows_list, sheet, file_type,
-                                                                                          file_name)
+                                                                      file_name)
 
             invoice_session_data = {
                 'giis_report': False,
@@ -67,6 +67,12 @@ def file_processing(file_name, file_path):
             }
         context = get_context_for_product_list(products_dicts_dict, page_num=None)
         template_path = 'product_guide\product_base_v2.html'
+        if invoice_requisites['invoice_type'] == 'incoming':
+            context['invoice_title'] = file_name
+            context['invoice_date'] = invoice_requisites['arrival_date']
+            context['invoice_number'] = invoice_requisites['invoice_number']
+            context['provider'] = Counterparties.objects.get(id=invoice_requisites['provider_id'])
+            template_path = 'product_guide\show_incoming_invoice.html'
         return context, products_dicts_dict, invoice_session_data, template_path
 
     elif file_type == 'msword':
@@ -94,6 +100,6 @@ def file_processing(file_name, file_path):
         context['file_path'] = file_path
         context['file_name'] = file_name
         invoice_session_data = invoice_requisites
-        template_path = 'product_guide\outgoing_invoice_view.html'
+        template_path = 'product_guide\show_outgoing_invoice.html'
         print(context)
         return context, products_dicts_dict, invoice_session_data, template_path
