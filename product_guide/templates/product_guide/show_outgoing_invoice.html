@@ -90,9 +90,8 @@
         <form method="get" action="{% url 'save_products' %}">
             <button type="submit" id="button_change_and_save">Изменить и установить</button>
         </form>
-        <form method="get" action="{% url 'download_file' %}">
+        <form method="get" action="{% url 'download_changed_file' %}">
             <input type="text" value="{{ file_path }}" name="file_path" hidden>
-            <input type="text" value="{{ file_name }}" name="file_name" hidden>
             <button type="submit">Скачать файл</button>
         </form>
     </article>

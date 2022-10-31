@@ -122,6 +122,17 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
         prod_price = product[price_ind]
         prod_uin = find_uin_in_string(description_string)
 
+        if prod_uin is None:
+            if prod_barcode is not None:
+                pass
+
+        if prod_metal is None:
+            price_per_gram = prod_price / prod_weight
+            if price_per_gram > 2500:
+                prod_metal = 'Золото 585'
+            else:
+                prod_metal = 'Серебро 925'
+
         product_characteristics = [prod_name, prod_metal, prod_weight, prod_barcode, prod_art, prod_uin, prod_price,
                                    prod_size]
 
@@ -153,7 +164,7 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
     invoice_requisites['invoice_number'] = invoice_number
     invoice_requisites['invoice_type'] = invoice_type
 
-    print(invoice_requisites)
+    # print(invoice_requisites)
 
     return product_dicts_dict, invoice_requisites
 

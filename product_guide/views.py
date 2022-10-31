@@ -4,18 +4,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, FileResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from .models import Jewelry, User, File, InputInvoice, OutgoingInvoice, Counterparties
-from product_guide.services.invoice_parser import invoice_parsing, word_invoice_parsing
+from .models import Jewelry, User, InputInvoice
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
-    make_product_dict_from_dbqueryset, get_context_for_product_list, save_invoice, form_type_check, \
-    make_product_dict_from_paginator, make_product_queryset_from_dict_dicts, filters_check, \
-    get_outgoing_invoice_title_list, get_files_title_list
+    make_product_dict_from_dbqueryset, get_context_for_product_list,\
+    make_product_queryset_from_dict_dicts, filters_check, create_nomenclature_file
 from django.contrib.auth.decorators import login_required
-from product_guide.services.giis_parser import giis_file_parsing
 from .services.outgoing_invoice_changer import change_outgoing_invoice
-from .services.readers import read_excel_file, read_msword_file
-from .services.upload_file_methods import set_correct_file_name, determine_belonging_file, save_form, file_processing
+from .services.upload_file_methods import set_correct_file_name, save_form, file_processing
 
 
 def register(request):
@@ -92,13 +88,8 @@ def index(request):
 
 @login_required()
 def product_base(request):
-
-    product_dicts_dict, counter, product_list = {}, 0, []
-    user = request.user
-    prod_name = prod_metal = prod_uin = prod_id = prod_art = prod_weight = None
     prod_name = request.POST.get('name') if request.POST.get('name') else 'all'
     prod_metal = request.POST.get('metal') if request.POST.get('metal') else 'all'
-    availability_status = request.POST.get('availability_status')
     page_num = request.POST.get('page')
     search_string = request.POST.get('search_string')
 
@@ -110,23 +101,20 @@ def product_base(request):
             request.session.pop('filtered_list')
 
     if request.method == 'POST':
-
         product_dicts_dict = request.session['product_objects_dict_for_view']
-
         product_list = make_product_queryset_from_dict_dicts(product_dicts_dict)
         if prod_name != 'all':
             product_list = [p for p in product_list if p['name'] == prod_name]
             request.session['filtered_list'] = make_product_dict_from_dbqueryset(product_list)
         if prod_metal != 'all':
-            product_list = [p for p in product_list if p['metal'] == prod_metal] if prod_metal != 'all' else product_list
+            product_list = [p for p in product_list if
+                            p['metal'] == prod_metal] if prod_metal != 'all' else product_list
             request.session['filtered_list'] = make_product_dict_from_dbqueryset(product_list)
         product_dicts_dict = make_product_dict_from_dbqueryset(product_list)
 
     else:
         products_queryset = Jewelry.objects.all().values()
-        # print(products_queryset)
         product_dicts_dict = make_product_dict_from_dbqueryset(products_queryset)
-
         request.session['product_objects_dict_for_view'] = product_dicts_dict
         request.session.save()
 
@@ -136,11 +124,9 @@ def product_base(request):
             context = get_context_for_product_list(product_dicts_dict, page_num)
         else:
             context = get_context_for_product_list(product_dicts_dict, page_num)
-
     else:
-
         context = get_context_for_product_list(product_dicts_dict, page_num)
-    # print(context['product_list'])
+
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
 
@@ -154,7 +140,6 @@ def upload_file(request):
         form.title = file_name
 
         if form.is_valid():
-
             save_form(form)
             file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
             context, products_dicts_dict, invoice_session_data, template_path = file_processing(file_name, file_path)
@@ -212,11 +197,9 @@ def delete_line(request):
 
 @login_required()
 def save_products(request):
-    invoice, invoice_object = None, None
     products_dbqueryset = Jewelry.objects.all().values()
     repeating_product = False
     product_dicts_dict_from_session = request.session['product_objects_dict_for_view']
-
     invoice_dict = request.session['invoice']
 
     if 'giis_report' not in invoice_dict:
@@ -237,25 +220,25 @@ def save_products(request):
         for key, value in product.items():
 
             if product[key] is not None and key != 'number':
-
                 item_object.__setattr__(key, value)
 
-
         for product_from_dbqueryset in products_dbqueryset:
-
+            previous_barcode = None
             invoice_id = product_from_dbqueryset['input_invoice_id']
-
-            if (item_object.barcode == product_from_dbqueryset['barcode'] and item_object.barcode is not None or
-                    item_object.uin == product_from_dbqueryset['uin'] and item_object.uin is not None or
-                    (item_object.name == product_from_dbqueryset['name'] and item_object.metal ==
-                     product_from_dbqueryset['metal'] and
-                     item_object.weight == float(product_from_dbqueryset['weight']) and
-                     item_object.vendor_code == product_from_dbqueryset['vendor_code'] and
-                     item_object.input_invoice == InputInvoice.objects.get(id=invoice_id))
-                ):
+            if item_object.barcode == previous_barcode:
                 repeating_product = True
-
-
+            if item_object.barcode is not None:
+                if int(item_object.barcode) == product_from_dbqueryset['barcode']:
+                    repeating_product = True
+            if item_object.uin is not None:
+                if int(item_object.uin) == product_from_dbqueryset['uin']:
+                    repeating_product = True
+            if (item_object.name == product_from_dbqueryset['name'] and item_object.metal ==
+                    product_from_dbqueryset['metal'] and item_object.weight == float(
+                        product_from_dbqueryset['weight']) and
+                    item_object.vendor_code == product_from_dbqueryset['vendor_code']):
+                repeating_product = True
+            previous_barcode = item_object.barcode
         if repeating_product is False:
 
             item_object.save()
@@ -268,16 +251,12 @@ def save_products(request):
 
 
 @login_required()
-def download_file(request):
-
-
+def download_changed_file(request):
     # async def delete_file(copy_path):
     #     await asyncio.sleep(100)
     #     os.remove(copy_path)
     #     return HttpResponse('Скачивание выполнено успешно')
 
-
-    print('DOWNLOAD')
     file_path = request.GET.get('file_path')
     path = os.path.split(file_path)[0]
     name = os.path.split(file_path)[1]
@@ -293,9 +272,23 @@ def download_file(request):
     return response
 
 
+def download_nomenclature(request):
+    file_path = request.GET.get('file_path')
+    path = os.path.split(file_path)[0]
+    name = os.path.split(file_path)[1]
+    product_dict_dicts = request.session['product_objects_dict_for_view']
+    invoice_dict = request.session['invoice']
+    number = invoice_dict['invoice_number']
+    file_nomenclature_path = create_nomenclature_file(file_path, product_dict_dicts, invoice_dict)
+    response = FileResponse(open(file_nomenclature_path, 'rb'))
+    response['content_type'] = "application/octet-stream"
+    response['Content-Disposition'] = f'attachment; filename={number}.xlsx'
+
+    return response
+
+
 @login_required()
 def save_availability_status_and_set_recipient_for_products(request):
-
     products_dicts_dict = request.session['product_objects_dict_for_view']
     invoice_requisites = request.session['outgoing_invoice']
     for product in products_dicts_dict.values():
@@ -307,4 +300,3 @@ def save_availability_status_and_set_recipient_for_products(request):
                 product_object.save()
         except ObjectDoesNotExist:
             pass
-

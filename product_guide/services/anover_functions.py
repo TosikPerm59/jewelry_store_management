@@ -1,7 +1,10 @@
+import os
+
 from django.core.paginator import Paginator
 from product_guide.models import File, Counterparties
 from django.core.exceptions import ObjectDoesNotExist
 from product_guide.services.validity import isfloat
+from openpyxl import Workbook
 
 
 def search_query_processing(search_string):
@@ -145,3 +148,47 @@ def definition_of_invoice_type(provider, recipient):
             invoice_type = 'incoming' if Counterparties.objects.get(id=recipient_id).surname == 'Александрова' else 'outgoing'
 
     return invoice_type, provider_id, recipient_id
+
+
+def create_nomenclature_file(file_path, products_dict_dict, invoice_dict):
+    path = os.path.split(file_path)[0]
+    path_for_save = path + 'Номенклатура для ' + os.path.split(file_path)[1].split('.')[0] + '.xlsx'
+    nomenclature_file = Workbook()
+    worksheet = nomenclature_file.active
+    invoice_number = invoice_dict['invoice_number']
+    provider = Counterparties.objects.get(id=invoice_dict['provider_id']).surname
+    number = None
+    for number, product in products_dict_dict.items():
+        number = number
+        name = product['name']
+        metal = product['metal']
+        weight = product['weight']
+        barcode = product['barcode']
+        vendor_code = product['vendor_code']
+        uin = product['uin']
+        size = product['size']
+        prod_description = f'{name}, {metal} (арт. {vendor_code}, уин {uin}, вес {weight} г.'
+        if size:
+            prod_description += f', р-р {size})'
+        else:
+            prod_description += ')'
+
+        worksheet['A' + str(number)] = prod_description
+        worksheet['B' + str(number)] = barcode
+        worksheet['C' + str(number)] = vendor_code
+        worksheet['D' + str(number)] = 'Товар'
+        worksheet['E' + str(number)] = product['price']
+        worksheet['F' + str(number)] = provider
+        worksheet['G' + str(number)] = 'шт'
+        worksheet['H' + str(number)] = '1'
+        worksheet['I' + str(number)] = invoice_dict['arrival_date']
+        worksheet['J' + str(number)] = f'Накладная {invoice_number}, {metal}'
+    number = int(number) + 1
+
+    # worksheet['E' + str(number)] = f'=SUM(E1:{number - 1})'
+    nomenclature_file.save(path_for_save)
+    return path_for_save
+
+
+def get_giis_list_from_batches():
+    pass

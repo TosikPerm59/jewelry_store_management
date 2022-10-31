@@ -50,6 +50,7 @@
         {% endfor %}
         <table class="table">
             <tr class="table_header">
+                <th>№</th>
                 <th>Изделие</th>
                 <th>Металл</th>
                 <th>Вес</th>
@@ -61,7 +62,7 @@
             {% for product in product_list %}
 
                 <tr class="table_row">
-
+                    <td>{{product.number}}</td>
                     <td><input  type="text" value="{{ product.name }}" name="product.name" form="change{{product.number}}"> </td>
                     <td><input type="text" value="{{ product.metal }}" name="product.metal" style="width: 11ch" form="change{{product.number}}"> </td>
                     <td><input type="text" value="{{ product.weight }}" name="product.weight" form="change{{product.number}}"> </td>

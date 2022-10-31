@@ -88,7 +88,10 @@
                 <button type="submit">{{ num }}</button>
             </form>
         {% endfor %}
-        Сохранить номенклатуру
+        <form method="get" action="{% url 'download_nomenclature' %}">
+            <input type="text" value="{{ file_path }}" name="file_path" hidden>
+            <button type="submit">Скачать файл</button>
+        </form>
     </article>
 
 {% endblock %}

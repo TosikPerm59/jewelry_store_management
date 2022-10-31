@@ -116,7 +116,7 @@ def find_weight(split_string):
     elif '585' in split_string or '925' in split_string:
         index = split_string.index('585') if '585' in split_string else split_string.index('925')
         split_string = split_string[index + 1:]
-    print(split_string)
+    # print(split_string)
     for elem in split_string:
         elem = elem.strip()
         try:
@@ -250,7 +250,7 @@ def find_size(split_string, group):
             size_index = split_string.index('р-р') - 1
             _string = split_string[size_index]
         if 'безразмер.' in _string:
-            return 'безразм'
+            return
         if ',' in _string:
             _string = _string.replace(',', '.')
         for size in sizes:

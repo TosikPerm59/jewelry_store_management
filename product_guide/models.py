@@ -42,13 +42,13 @@ class Jewelry(models.Model):
     availability_status = models.CharField(max_length=50, verbose_name='Статус наличия')
     giis_status = models.CharField(max_length=20, null=True, blank=True, verbose_name='Статус ГИИС', choices=giis_statuses)
     price = models.FloatField(null=True, blank=True, verbose_name='Цена')
-    provider_id = models.ForeignKey('Provider', null=True, blank=True, verbose_name='Поставщик', on_delete=models.PROTECT)
+    provider = models.ForeignKey('Provider', null=True, blank=True, verbose_name='Поставщик', on_delete=models.PROTECT)
     arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
-    input_invoice_id = models.ForeignKey('InputInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Входящая накладная')
-    outgoing_invoice_id = models.ForeignKey('OutgoingInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Исходящая накладная')
+    input_invoice = models.ForeignKey('InputInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Входящая накладная')
+    outgoing_invoice = models.ForeignKey('OutgoingInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Исходящая накладная')
     manufacturer = models.CharField(max_length=100, verbose_name='Производитель', blank=True, null=True)
     trademark = models.CharField(max_length=30, verbose_name='Торговая марка', blank=True, null=True)
-    recipient_id = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Получатель')
+    recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Получатель')
 
     class Meta:
         verbose_name = 'Изделие'
