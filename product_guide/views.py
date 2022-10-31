@@ -95,6 +95,7 @@ def product_base(request):
 
     if search_string:
         prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight = search_query_processing(search_string)
+    print(prod_name)
 
     if filters_check(prod_name, prod_metal) == 'all':
         if 'filtered_list' in request.session.keys() and page_num is None:
@@ -103,13 +104,16 @@ def product_base(request):
     if request.method == 'POST':
         product_dicts_dict = request.session['product_objects_dict_for_view']
         product_list = make_product_queryset_from_dict_dicts(product_dicts_dict)
+
         if prod_name != 'all':
+            print('NOT ALL')
             product_list = [p for p in product_list if p['name'] == prod_name]
-            request.session['filtered_list'] = make_product_dict_from_dbqueryset(product_list)
+
         if prod_metal != 'all':
             product_list = [p for p in product_list if
                             p['metal'] == prod_metal] if prod_metal != 'all' else product_list
-            request.session['filtered_list'] = make_product_dict_from_dbqueryset(product_list)
+        print('product_list = ', product_list)
+        request.session['filtered_list'] = make_product_dict_from_dbqueryset(product_list)
         product_dicts_dict = make_product_dict_from_dbqueryset(product_list)
 
     else:

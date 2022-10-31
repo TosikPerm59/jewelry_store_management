@@ -3,20 +3,32 @@ import os
 from django.core.paginator import Paginator
 from product_guide.models import File, Counterparties, get_all_obj_from_class
 from django.core.exceptions import ObjectDoesNotExist
+
+from product_guide.services.finders import find_name, find_metal, find_art
 from product_guide.services.validity import isfloat
 from openpyxl import Workbook
 
 
 def search_query_processing(search_string):
-    prod_name = prod_metal = prod_uin = prod_id = prod_art = prod_weight = None
+    # print(search_string)
+    prod_name = prod_metal = prod_uin = prod_id = prod_art = prod_weight = 'all'
     split_search_string = search_string.lower().split(' ')
 
     for string_element in split_search_string:
         if string_element.isdigit():
-            if len(string_element) == 13:
-                prod_id = string_element
-            elif len(string_element) == 16:
-                prod_uin = string_element
+            if prod_id == 'all':
+                if len(string_element) == 13:
+                    prod_id = string_element
+            if prod_uin == 'all':
+                if len(string_element) == 16:
+                    prod_uin = string_element
+
+        if prod_name == 'all':
+            prod_name = find_name(string_element) if find_name(string_element) else prod_name
+        if prod_metal == 'all':
+            prod_metal = find_metal(string_element) if find_metal(string_element) else prod_metal
+
+    # print(prod_name)
 
     return prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight
 
