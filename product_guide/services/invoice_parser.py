@@ -1,4 +1,4 @@
-from product_guide.models import Jewelry, Metal, File, Counterparties
+from product_guide.models import get_all_values_from_class, get_all_obj_from_class, Counterparties
 from product_guide.services.anover_functions import definition_of_invoice_type
 from product_guide.services.finders import *
 from product_guide.services.readers import read_excel_file
@@ -149,7 +149,7 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
         # print(product_dict)
         product_dicts_dict[counter] = product_dict
 
-    counterparties_queryset = Counterparties.objects.all()
+    counterparties_queryset = get_all_obj_from_class(Counterparties)
     for counterparties_object in counterparties_queryset:
         if provider.find(counterparties_object.surname) == 1:
             provider_id = counterparties_object.id
@@ -170,7 +170,7 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
 
 
 def word_invoice_parsing(header_table, product_table):
-    counterparties_queryset = Counterparties.objects.all().values()
+    counterparties_queryset = get_all_values_from_class(Counterparties)
     max_row_product_table = len(product_table.rows)
     max_row_header_table = len(header_table.rows)
     products_dicts_dict = {}

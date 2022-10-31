@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, FileResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from .models import Jewelry, User, InputInvoice
+from .models import Jewelry, User, InputInvoice, get_all_values_from_class, get_all_obj_from_class
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
     make_product_dict_from_dbqueryset, get_context_for_product_list,\
@@ -12,7 +12,7 @@ from product_guide.services.anover_functions import search_query_processing, \
 from django.contrib.auth.decorators import login_required
 from .services.outgoing_invoice_changer import change_outgoing_invoice
 from .services.upload_file_methods import set_correct_file_name, save_form, file_processing
-
+from django.utils.datastructures import MultiValueDictKeyError
 
 def register(request):
     context = {'number_of_messages': 0}
@@ -113,50 +113,54 @@ def product_base(request):
         product_dicts_dict = make_product_dict_from_dbqueryset(product_list)
 
     else:
-        products_queryset = Jewelry.objects.all().values()
+        products_queryset = get_all_values_from_class(Jewelry)
         product_dicts_dict = make_product_dict_from_dbqueryset(products_queryset)
         request.session['product_objects_dict_for_view'] = product_dicts_dict
-        request.session.save()
 
     if page_num:
         if 'filtered_list' in request.session.keys():
             product_dicts_dict = request.session['filtered_list']
-            context = get_context_for_product_list(product_dicts_dict, page_num)
-        else:
-            context = get_context_for_product_list(product_dicts_dict, page_num)
-    else:
-        context = get_context_for_product_list(product_dicts_dict, page_num)
+
+    context = get_context_for_product_list(product_dicts_dict, page_num)
 
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
 
 @login_required()
 def upload_file(request):
-    context = None
-    template_path = None
+    context, template_path = None, None
+
     if request.method == 'POST':
+        file = None
         form = UploadFileForm(request.POST, request.FILES)
-        file_name = set_correct_file_name(request.FILES['file'].name)
-        form.title = file_name
+        try:
+            file = request.FILES['file']
+        except MultiValueDictKeyError:
+            pass
+        if file:
+            file_name = set_correct_file_name(request.FILES['file'].name)
+            form.title = file_name
 
-        if form.is_valid():
-            save_form(form)
-            file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
-            context, products_dicts_dict, invoice_session_data, template_path = file_processing(file_name, file_path)
-            request.session['product_objects_dict_for_view'] = products_dicts_dict
-            request.session['invoice'] = invoice_session_data
+            if form.is_valid():
+                save_form(form)
+                file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
+                context, products_dicts_dict, invoice_session_data, template_path = file_processing(file_name, file_path)
+                request.session['product_objects_dict_for_view'] = products_dicts_dict
+                request.session['invoice'] = invoice_session_data
 
-    return render(request, template_path, context=context)
+            return render(request, template_path, context=context)
+        else:
+            return index(request)
 
 
 @login_required()
 def change_product_attr(request):
     product_number = int(request.POST.get('product.number'))
-    product_objects_dict, product_list = None, None
+    product_dict_dicts, product_list = None, None
 
     if request.method == 'POST':
-        product_objects_dict = request.session['product_objects_dict_for_view']
-        for product_key, product_value in product_objects_dict.items():
+        product_dict_dicts = request.session['product_objects_dict_for_view']
+        for product_key, product_value in product_dict_dicts.items():
             if product_value['number'] == product_number:
                 product_value['name'] = request.POST.get('product.name')
                 product_value['metal'] = request.POST.get('product.metal')
@@ -166,9 +170,9 @@ def change_product_attr(request):
                 product_value['uin'] = request.POST.get('product.uin')
                 break
 
-        request.session['product_objects_dict_for_view'] = product_objects_dict
+        request.session['product_objects_dict_for_view'] = product_dict_dicts
 
-    context = get_context_for_product_list(product_objects_dict, page_num=None)
+    context = get_context_for_product_list(product_dict_dicts, page_num=None)
 
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
@@ -177,29 +181,29 @@ def change_product_attr(request):
 def delete_line(request):
     product_number = int(request.POST.get('product.number'))
     print('delete product_number = ', product_number)
-    product_objects_dict, product_list = None, None
+    product_dict_dicts, product_list = None, None
 
     if request.method == 'POST':
-        product_objects_dict = request.session['product_objects_dict_for_view']
+        product_dict_dicts = request.session['product_objects_dict_for_view']
 
-        for product_key, product_value in product_objects_dict.items():
+        for product_key, product_value in product_dict_dicts.items():
 
             if product_value['number'] == product_number:
-                product_objects_dict.pop(product_key)
+                product_dict_dicts.pop(product_key)
                 break
 
-        request.session['product_objects_dict_for_view'] = product_objects_dict
+        request.session['product_objects_dict_for_view'] = product_dict_dicts
 
-    context = get_context_for_product_list(product_objects_dict, page_num=None)
+    context = get_context_for_product_list(product_dict_dicts, page_num=None)
 
     return render(request, 'product_guide\product_base_v2.html', context=context)
 
 
 @login_required()
 def save_products(request):
-    products_dbqueryset = Jewelry.objects.all().values()
+    products_queryset_from_class = get_all_values_from_class(Jewelry)
     repeating_product = False
-    product_dicts_dict_from_session = request.session['product_objects_dict_for_view']
+    product_dict_dicts_from_session = request.session['product_objects_dict_for_view']
     invoice_dict = request.session['invoice']
 
     if 'giis_report' not in invoice_dict:
@@ -214,15 +218,14 @@ def save_products(request):
             )
             invoice_object.save()
 
-    for product in product_dicts_dict_from_session.values():
+    for product in product_dict_dicts_from_session.values():
         item_object = Jewelry()
-        # print(item_object.__dict__)
-        for key, value in product.items():
 
+        for key, value in product.items():
             if product[key] is not None and key != 'number':
                 item_object.__setattr__(key, value)
 
-        for product_from_dbqueryset in products_dbqueryset:
+        for product_from_dbqueryset in products_queryset_from_class:
             previous_barcode = None
             invoice_id = product_from_dbqueryset['input_invoice_id']
             if item_object.barcode == previous_barcode:
@@ -240,12 +243,11 @@ def save_products(request):
                 repeating_product = True
             previous_barcode = item_object.barcode
         if repeating_product is False:
-
             item_object.save()
         else:
             repeating_product = False
 
-    context = get_context_for_product_list(product_dicts_dict_from_session, page_num=None)
+    context = get_context_for_product_list(product_dict_dicts_from_session, page_num=None)
 
     return render(request, 'product_guide\product_base_v2.html', context=context)
 

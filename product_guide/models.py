@@ -3,6 +3,14 @@ from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
 
 
+def get_all_obj_from_class(cls):
+    return cls.objects.all()
+
+
+def get_all_values_from_class(cls):
+    return cls.objects.all().values()
+
+
 class Jewelry(models.Model):
 
     def __str__(self):
@@ -40,15 +48,19 @@ class Jewelry(models.Model):
     coating = models.CharField(max_length=20, verbose_name='Покрытие', blank=True, null=True, choices=coatings)
     inserts = models.CharField(max_length=50, verbose_name='Вставки', blank=True, null=True)
     availability_status = models.CharField(max_length=50, verbose_name='Статус наличия')
-    giis_status = models.CharField(max_length=20, null=True, blank=True, verbose_name='Статус ГИИС', choices=giis_statuses)
+    giis_status = models.CharField(max_length=20, null=True, blank=True, verbose_name='Статус ГИИС',
+                                   choices=giis_statuses)
     price = models.FloatField(null=True, blank=True, verbose_name='Цена')
     provider = models.ForeignKey('Provider', null=True, blank=True, verbose_name='Поставщик', on_delete=models.PROTECT)
     arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
-    input_invoice = models.ForeignKey('InputInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Входящая накладная')
-    outgoing_invoice = models.ForeignKey('OutgoingInvoice', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Исходящая накладная')
+    input_invoice = models.ForeignKey('InputInvoice', null=True, blank=True, on_delete=models.PROTECT,
+                                      verbose_name='Входящая накладная')
+    outgoing_invoice = models.ForeignKey('OutgoingInvoice', null=True, blank=True, on_delete=models.PROTECT,
+                                         verbose_name='Исходящая накладная')
     manufacturer = models.CharField(max_length=100, verbose_name='Производитель', blank=True, null=True)
     trademark = models.CharField(max_length=30, verbose_name='Торговая марка', blank=True, null=True)
-    recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Получатель')
+    recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT,
+                                  verbose_name='Получатель')
 
     class Meta:
         verbose_name = 'Изделие'
@@ -121,7 +133,7 @@ class Counterparties(models.Model):
     first_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Имя')
     surname = models.CharField(max_length=30, blank=True, null=True, verbose_name='Фамилия')
     last_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Отчество')
-    short_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='ФИО' )
+    short_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='ФИО')
     inn = models.IntegerField(verbose_name='ИНН', blank=True, null=True)
     email = models.EmailField(verbose_name='Email', blank=True, null=True)
     tel = models.IntegerField(blank=True, null=True, verbose_name='Телефон')
@@ -149,4 +161,3 @@ class Recipient(models.Model):
     class Meta:
         verbose_name = 'Грузополучателя'
         verbose_name_plural = 'Грузополучатели'
-

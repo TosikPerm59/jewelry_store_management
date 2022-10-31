@@ -1,7 +1,7 @@
 import os
 
 from django.core.paginator import Paginator
-from product_guide.models import File, Counterparties
+from product_guide.models import File, Counterparties, get_all_obj_from_class
 from django.core.exceptions import ObjectDoesNotExist
 from product_guide.services.validity import isfloat
 from openpyxl import Workbook
@@ -138,7 +138,7 @@ def get_files_title_list(files_queryset):
 def definition_of_invoice_type(provider, recipient):
 
     provider_id, invoice_type, recipient_id = None, None, None
-    counterparties_queryset = Counterparties.objects.all()
+    counterparties_queryset = get_all_obj_from_class(Counterparties)
 
     for counterparties_object in counterparties_queryset:
         if provider.find(counterparties_object.surname.lower()) != -1:

@@ -1,4 +1,4 @@
-from product_guide.models import File, OutgoingInvoice, Counterparties, Jewelry
+from product_guide.models import File, OutgoingInvoice, Counterparties, Jewelry, get_all_obj_from_class
 from django.core.exceptions import ObjectDoesNotExist
 from product_guide.services.anover_functions import form_type_check, get_outgoing_invoice_title_list, \
     get_context_for_product_list
@@ -87,7 +87,7 @@ def file_processing(file_name, file_path):
         products_dicts_dict, invoice_requisites = word_invoice_parsing(header_table, product_table)
 
         if invoice_requisites['provider_id'] == 1:
-            if file_name in get_outgoing_invoice_title_list(OutgoingInvoice.objects.all()):
+            if file_name in get_outgoing_invoice_title_list(get_all_obj_from_class(OutgoingInvoice)):
                 invoice_object = OutgoingInvoice.objects.get(title=file_name)
                 invoice_object.delete()
 

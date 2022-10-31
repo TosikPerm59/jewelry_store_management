@@ -2,7 +2,7 @@ import openpyxl
 import warnings
 from .finders import find_art, find_description, find_weight, find_id
 from .validity import check_id
-from ..models import Jewelry
+from ..models import Jewelry, get_all_obj_from_class
 
 warnings.simplefilter("ignore")
 
@@ -23,7 +23,7 @@ def giis_file_parsing(rows_list, sheet):
     counter = 0
 
     uin_list = []
-    products_queryset = Jewelry.objects.all()
+    products_queryset = get_all_obj_from_class(Jewelry)
     for product in products_queryset:
         uin_list.append(product.uin)
     # Выполняется построчный проход по таблице
