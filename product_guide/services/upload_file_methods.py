@@ -1,10 +1,9 @@
-from product_guide.models import File, OutgoingInvoice, Counterparties, Jewelry, get_all_obj_from_class
+from product_guide.models import File, OutgoingInvoice, Counterparties
 from django.core.exceptions import ObjectDoesNotExist
 from product_guide.services.anover_functions import form_type_check, get_outgoing_invoice_title_list, \
     get_context_for_product_list
 from product_guide.services.giis_parser import giis_file_parsing
 from product_guide.services.invoice_parser import invoice_parsing, word_invoice_parsing
-from product_guide.services.outgoing_invoice_changer import change_outgoing_invoice
 from product_guide.services.readers import read_excel_file, read_msword_file
 
 
@@ -29,7 +28,7 @@ def determine_belonging_file(file_name):
 def save_form(form):
     file_object = None
     try:
-        file_object = File.objects.get(title=form.title)
+        file_object = File.get_object('title', form.title)
     except ObjectDoesNotExist:
         pass
     if file_object:
@@ -44,13 +43,9 @@ def save_form(form):
 def file_processing(file_name, file_path):
     invoice_requisites = {}
     file_type = determine_belonging_file(file_name)
-
     if file_type == 'msexcel':
-
         full_rows_list, sheet, file_type = read_excel_file(file_path)
-
         if form_type_check(file_name) == 'giis_report':
-
             products_dicts_dict = giis_file_parsing(full_rows_list, sheet)
             invoice_session_data = {'giis_report': True}
             invoice_requisites['invoice_type'] = 'giis_report'
@@ -74,9 +69,9 @@ def file_processing(file_name, file_path):
             context['invoice_title'] = file_name
             context['invoice_date'] = invoice_requisites['arrival_date']
             context['invoice_number'] = invoice_requisites['invoice_number']
-            context['provider'] = Counterparties.objects.get(id=invoice_requisites['provider_id'])
+            context['provider'] = Counterparties.get_object('id', invoice_requisites['provider_id'])
             template_path = 'product_guide\show_incoming_invoice.html'
-        # print(context)
+        print(context)
 
         return context, products_dicts_dict, invoice_session_data, template_path
 
@@ -87,8 +82,8 @@ def file_processing(file_name, file_path):
         products_dicts_dict, invoice_requisites = word_invoice_parsing(header_table, product_table)
 
         if invoice_requisites['provider_id'] == 1:
-            if file_name in get_outgoing_invoice_title_list(get_all_obj_from_class(OutgoingInvoice)):
-                invoice_object = OutgoingInvoice.objects.get(title=file_name)
+            if file_name in get_outgoing_invoice_title_list(OutgoingInvoice.get_all_obj()):
+                invoice_object = OutgoingInvoice.get_object('title', file_name)
                 invoice_object.delete()
 
             invoice_object = OutgoingInvoice()
@@ -99,7 +94,7 @@ def file_processing(file_name, file_path):
             invoice_object.save()
 
         context = get_context_for_product_list(products_dicts_dict, page_num=None)
-        context['recipient'] = Counterparties.objects.get(id=invoice_requisites['recipient_id'])
+        context['recipient'] = Counterparties.get_object('id', invoice_requisites['recipient_id'])
         context['departure_date'] = invoice_requisites['departure_date']
         context['invoice_title'] = file_name.split('.')[0]
         context['file_path'] = file_path

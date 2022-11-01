@@ -1,7 +1,6 @@
-from product_guide.models import get_all_values_from_class, get_all_obj_from_class, Counterparties
+from product_guide.models import Counterparties
 from product_guide.services.anover_functions import definition_of_invoice_type
 from product_guide.services.finders import *
-from product_guide.services.readers import read_excel_file
 invoice_requisites = {}
 
 
@@ -11,7 +10,6 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
         = col_with_date = code_ind = prod_barcode_from_giis = prod_weight = prod_name = prod_barcode = prod_art \
         = prod_price = recipient_id = provider_id = recipient = None
 
-    products_with_size = {'кольцо': 'кольца', 'цепь': 'цепи', 'браслет': 'браслета', 'колье': 'колье', 'конго': 'конго'}
     counter = 0
     product_list, product_dicts_dict = [], {}
 
@@ -133,9 +131,6 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
             else:
                 prod_metal = 'Серебро 925'
 
-        product_characteristics = [prod_name, prod_metal, prod_weight, prod_barcode, prod_art, prod_uin, prod_price,
-                                   prod_size]
-
         product_dict = {'name': prod_name,
                         'metal': prod_metal,
                         'barcode': prod_barcode,
@@ -145,11 +140,11 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
                         'size': round(float(prod_size), ndigits=2) if isfloat(prod_size) else None,
                         'price': round(float(prod_price), ndigits=2),
                         'number': counter
-                            }
-        # print(product_dict)
+                        }
+
         product_dicts_dict[counter] = product_dict
 
-    counterparties_queryset = get_all_obj_from_class(Counterparties)
+    counterparties_queryset = Counterparties.get_all_obj()
     for counterparties_object in counterparties_queryset:
         if provider.find(counterparties_object.surname) == 1:
             provider_id = counterparties_object.id
@@ -164,13 +159,11 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
     invoice_requisites['invoice_number'] = invoice_number
     invoice_requisites['invoice_type'] = invoice_type
 
-    # print(invoice_requisites)
-
     return product_dicts_dict, invoice_requisites
 
 
 def word_invoice_parsing(header_table, product_table):
-    counterparties_queryset = get_all_values_from_class(Counterparties)
+    counterparties_queryset = Counterparties.get_all_values()
     max_row_product_table = len(product_table.rows)
     max_row_header_table = len(header_table.rows)
     products_dicts_dict = {}

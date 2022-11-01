@@ -7,10 +7,8 @@ warnings.simplefilter("ignore")
 
 
 def read_excel_file(path_to_excel_file):
-
     path_to_excel_file = path_to_excel_file.replace('"', '') if '"' in path_to_excel_file else path_to_excel_file
     file_name = os.path.split(path_to_excel_file)[1]
-    file_path = os.path.split(path_to_excel_file)[0]
 
     if file_name.endswith('.xls'):
         file_type = '.xls'
@@ -24,6 +22,7 @@ def read_excel_file(path_to_excel_file):
                     elem_ind = row.index(elem)
                     row.remove(elem)
                     row.insert(elem_ind, elem_low)
+
         return rows_list, sheet, file_type
 
     elif file_name.endswith('.xlsx'):
@@ -31,6 +30,7 @@ def read_excel_file(path_to_excel_file):
         excel_file = openpyxl.load_workbook(path_to_excel_file)
         sheet = excel_file.active
         rows_list = [row for row in range(1, sheet.max_row + 1)]
+        print(file_type)
         return rows_list, sheet, file_type
 
 
@@ -39,4 +39,3 @@ def read_msword_file(path_to_msword_file):
     header_table = document.tables[0]
     product_table = document.tables[1]
     return header_table, product_table
-

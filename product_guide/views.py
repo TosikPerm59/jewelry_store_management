@@ -1,10 +1,10 @@
 import os.path
 import shutil
-from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import User
 from django.http import HttpResponse, FileResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from .models import Jewelry, User, InputInvoice, get_all_values_from_class, get_all_obj_from_class
+from .models import Jewelry, InputInvoice
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
     make_product_dict_from_dbqueryset, get_context_for_product_list,\
@@ -14,10 +14,10 @@ from .services.outgoing_invoice_changer import change_outgoing_invoice
 from .services.upload_file_methods import set_correct_file_name, save_form, file_processing
 from django.utils.datastructures import MultiValueDictKeyError
 
+
 def register(request):
     context = {'number_of_messages': 0}
     user_names = User.objects.all().values('username')
-    users = User.objects.all().values()
     username_list, message = [], []
     for user in user_names:
         username_list.append(user['username'])
@@ -94,7 +94,8 @@ def product_base(request):
     search_string = request.POST.get('search_string')
 
     if search_string:
-        prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight = search_query_processing(search_string)
+        prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight = \
+            search_query_processing(search_string)
     print(prod_name)
 
     if filters_check(prod_name, prod_metal) == 'all':
@@ -106,19 +107,18 @@ def product_base(request):
         product_list = make_product_queryset_from_dict_dicts(product_dicts_dict)
 
         if prod_name != 'all':
-            print('NOT ALL')
             product_list = [p for p in product_list if p['name'] == prod_name]
 
         if prod_metal != 'all':
             product_list = [p for p in product_list if
                             p['metal'] == prod_metal] if prod_metal != 'all' else product_list
-        print('product_list = ', product_list)
+
         request.session['filtered_list'] = make_product_dict_from_dbqueryset(product_list)
         product_dicts_dict = make_product_dict_from_dbqueryset(product_list)
 
     else:
-        products_queryset = get_all_values_from_class(Jewelry)
-        product_dicts_dict = make_product_dict_from_dbqueryset(products_queryset)
+        products_dicts_list = Jewelry.get_all_values()
+        product_dicts_dict = make_product_dict_from_dbqueryset(products_dicts_list)
         request.session['product_objects_dict_for_view'] = product_dicts_dict
 
     if page_num:
@@ -147,7 +147,7 @@ def upload_file(request):
 
             if form.is_valid():
                 save_form(form)
-                file_path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name
+                file_path = ('C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name)
                 context, products_dicts_dict, invoice_session_data, template_path = file_processing(file_name, file_path)
                 request.session['product_objects_dict_for_view'] = products_dicts_dict
                 request.session['invoice'] = invoice_session_data
@@ -205,15 +205,16 @@ def delete_line(request):
 
 @login_required()
 def save_products(request):
-    products_queryset_from_class = get_all_values_from_class(Jewelry)
+    products_queryset_from_class = Jewelry.get_all_values()
     repeating_product = False
     product_dict_dicts_from_session = request.session['product_objects_dict_for_view']
     invoice_dict = request.session['invoice']
+    previous_barcode = None
 
     if 'giis_report' not in invoice_dict:
-        try:
-            invoice_object = InputInvoice.objects.get(title=invoice_dict['title'])
-        except ObjectDoesNotExist:
+        invoice_object = InputInvoice.get_object('title', invoice_dict['title'])
+
+        if invoice_object is None:
             invoice_object = InputInvoice(
                 title=invoice_dict['title'],
                 invoice_number=invoice_dict['invoice_number'],
@@ -222,17 +223,15 @@ def save_products(request):
             )
             invoice_object.save()
 
-    for product in product_dict_dicts_from_session.values():
+    for first_key, product in product_dict_dicts_from_session.items():
         item_object = Jewelry()
 
-        for key, value in product.items():
-            if product[key] is not None and key != 'number':
-                item_object.__setattr__(key, value)
+        for second_key, value in product.items():
+            if product[second_key] is not None and second_key != 'number':
+                item_object.__setattr__(second_key, value)
 
         for product_from_dbqueryset in products_queryset_from_class:
-            previous_barcode = None
-            invoice_id = product_from_dbqueryset['input_invoice_id']
-            if item_object.barcode == previous_barcode:
+            if item_object.barcode == previous_barcode and item_object.barcode is not None:
                 repeating_product = True
             if item_object.barcode is not None:
                 if int(item_object.barcode) == product_from_dbqueryset['barcode']:
@@ -245,7 +244,7 @@ def save_products(request):
                         product_from_dbqueryset['weight']) and
                     item_object.vendor_code == product_from_dbqueryset['vendor_code']):
                 repeating_product = True
-            previous_barcode = item_object.barcode
+            previous_barcode = product['barcode']
         if repeating_product is False:
             item_object.save()
         else:
@@ -280,8 +279,6 @@ def download_changed_file(request):
 
 def download_nomenclature(request):
     file_path = request.GET.get('file_path')
-    path = os.path.split(file_path)[0]
-    name = os.path.split(file_path)[1]
     product_dict_dicts = request.session['product_objects_dict_for_view']
     invoice_dict = request.session['invoice']
     number = invoice_dict['invoice_number']
@@ -298,11 +295,9 @@ def save_availability_status_and_set_recipient_for_products(request):
     products_dicts_dict = request.session['product_objects_dict_for_view']
     invoice_requisites = request.session['outgoing_invoice']
     for product in products_dicts_dict.values():
-        try:
-            product_object = Jewelry.objects.get(uin=product['uin'])
-            if product_object:
-                product_object.availability_status = 'Передано'
-                product_object.recipient_id = invoice_requisites['recipient_id']
-                product_object.save()
-        except ObjectDoesNotExist:
-            pass
+        product_object = Jewelry.get_object('uin', product['uin'])
+        if product_object:
+            product_object.availability_status = 'Передано'
+            product_object.recipient_id = invoice_requisites['recipient_id']
+            product_object.save()
+

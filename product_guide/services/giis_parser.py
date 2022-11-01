@@ -1,8 +1,6 @@
-import openpyxl
 import warnings
 from .finders import find_art, find_description, find_weight, find_id
-from .validity import check_id
-from ..models import Jewelry, get_all_obj_from_class
+from ..models import Jewelry
 
 warnings.simplefilter("ignore")
 
@@ -17,21 +15,19 @@ def giis_file_parsing(rows_list, sheet):
       Функция возвращает словарь с позициями в которых все характеристики упорядочены и проверены. """
 
     giis_dicts_dict = {}
-    invoice_requisites = {}
     group = 'excel'
     rows_list = rows_list[4:]
     counter = 0
 
     uin_list = []
-    products_queryset = get_all_obj_from_class(Jewelry)
+    products_queryset = Jewelry.get_all_obj()
     for product in products_queryset:
         uin_list.append(product.uin)
     # Выполняется построчный проход по таблице
-    for row in rows_list:
+    for row in rows_list[: 10]:
         description, size, barcode, vendor_code = None, None, None, None
         uin = sheet[row][1].value if sheet[row][1].value else None
         counter += 1
-        # print(int(uin) not in uin_list)
         if uin:
             if int(uin) not in uin_list:
                 description = find_description(sheet[row][10].value, sheet[row][11].value, sheet[row][14].value,
@@ -42,15 +38,15 @@ def giis_file_parsing(rows_list, sheet):
                     sheet[row][10].value, sheet[row][11].value, group=group) else None
                 size = description['size'] if description['size'] else None
             else:
-                object = Jewelry.objects.get(uin=int(uin))
+                obj = Jewelry.get_object('uin', int(uin))
                 description = {
-                    'name': object.name,
-                    'metal': object.metal,
-                    'barcode': object.barcode,
-                    'uin': object.uin,
-                    'weight': object.weight,
-                    'vendor_code': object.vendor_code,
-                    'size': object.size
+                    'name': obj.name,
+                    'metal': obj.metal,
+                    'barcode': obj.barcode,
+                    'uin': obj.uin,
+                    'weight': obj.weight,
+                    'vendor_code': obj.vendor_code,
+                    'size': obj.size
                 }
 
         product_dict = {'name': description['name'],

@@ -103,7 +103,6 @@ def find_uin_in_string(description):
 def find_weight(split_string):
     """ Функция поиска массы(вес) изделия, перебирает элементы, проверяет их на причастность к числу.
     Возвращает вещественное число или None"""
-    original_string = ' '.join(split_string)
 
     if 'вес' in split_string:
         weight_ind = split_string.index('вес') + 1
@@ -184,6 +183,7 @@ def find_art(*args, group):
                     return elem.upper()
     else:
         return
+
 
 def find_name(split_string):
     """ Метод поиска наименования изделия, сопоставляет содержимое строки со списком вариантов имен.
@@ -324,7 +324,7 @@ def find_description(*args, group):
 
     if group == 'excel':
         description = {}
-        _name = metal = weaving = size = inserts = None
+        _name = None
 
         for arg in args:
             split_arg = str(arg).lower().split(' ')
@@ -336,14 +336,6 @@ def find_description(*args, group):
                 description['metal'] = find_metal(split_arg)
             elif description['metal'] is None:
                 description['metal'] = find_metal(split_arg)
-            # if 'inserts' not in description.keys():
-            #     description['inserts'] = find_inserts(split_arg)
-            # elif description['inserts'] is None:
-            #     description['inserts'] = find_inserts(split_arg)
-            # if 'weaving' not in description.keys():
-            #     description['weaving'] = find_weaving(split_arg)
-            # elif description['weaving'] is None:
-            #     description['inserts'] = find_inserts(split_arg)
             if 'size' not in description.keys():
                 description['size'] = find_size(split_arg, group=group)
             elif description['size'] is None:

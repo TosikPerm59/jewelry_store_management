@@ -1,17 +1,39 @@
 from django.db import models
-from django.contrib.auth.models import User
-from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ObjectDoesNotExist
 
 
-def get_all_obj_from_class(cls):
-    return cls.objects.all()
+class ExtendedModelsModel(models.Model):
+
+    @classmethod
+    def get_all_obj(cls):
+        return cls.objects.all()
+
+    @classmethod
+    def get_all_values(cls):
+        return cls.objects.all().values()
+
+    @classmethod
+    def get_object(cls, attr, value):
+        obj = None
+        try:
+            if hasattr(cls, attr):
+                if attr == 'name':
+                    obj = cls.objects.get(name=value)
+                if attr == 'title':
+                    obj = cls.objects.get(title=value)
+                if attr == 'uin':
+                    obj = cls.objects.get(uin=value)
+                if attr == 'id':
+                    obj = cls.objects.get(id=value)
+            return obj
+        except ObjectDoesNotExist:
+            pass
+
+    class Meta:
+        abstract = True
 
 
-def get_all_values_from_class(cls):
-    return cls.objects.all().values()
-
-
-class Jewelry(models.Model):
+class Jewelry(ExtendedModelsModel):
 
     def __str__(self):
         return self.name
@@ -68,7 +90,7 @@ class Jewelry(models.Model):
         ordering = ['metal', 'name', '-weight']
 
 
-class Metal(models.Model):
+class Metal(ExtendedModelsModel):
     name = models.CharField(max_length=15, verbose_name='Металл')
 
     def __str__(self):
@@ -79,7 +101,7 @@ class Metal(models.Model):
         verbose_name_plural = 'Металлы'
 
 
-class File(models.Model):
+class File(ExtendedModelsModel):
 
     def __str__(self):
         return self.title
@@ -92,7 +114,7 @@ class File(models.Model):
         verbose_name_plural = 'Файлы'
 
 
-class Invoice(models.Model):
+class Invoice(ExtendedModelsModel):
 
     def __str__(self):
         return self.title
@@ -104,7 +126,7 @@ class Invoice(models.Model):
         abstract = True
 
 
-class InputInvoice(Invoice, models.Model):
+class InputInvoice(Invoice, ExtendedModelsModel):
     provider = models.ForeignKey('Counterparties', null=True, blank=True, on_delete=models.PROTECT,
                                  verbose_name='Поставщик')
     arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
@@ -114,7 +136,7 @@ class InputInvoice(Invoice, models.Model):
         verbose_name_plural = 'Входящие накладные'
 
 
-class OutgoingInvoice(Invoice, models.Model):
+class OutgoingInvoice(Invoice, ExtendedModelsModel):
     recipient = models.ForeignKey('Counterparties', null=True, blank=True, on_delete=models.PROTECT,
                                   verbose_name='Получатель')
     departure_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата отгрузки')
@@ -124,7 +146,7 @@ class OutgoingInvoice(Invoice, models.Model):
         verbose_name_plural = 'Исходящие накладные'
 
 
-class Counterparties(models.Model):
+class Counterparties(ExtendedModelsModel):
 
     def __str__(self):
         return self.short_name
@@ -147,7 +169,7 @@ class Counterparties(models.Model):
         verbose_name_plural = 'Контрагенты'
 
 
-class Provider(models.Model):
+class Provider(ExtendedModelsModel):
     title = models.CharField(max_length=50, blank=True, null=True, verbose_name='Поставщик')
 
     class Meta:
@@ -155,7 +177,7 @@ class Provider(models.Model):
         verbose_name_plural = 'Поставщики'
 
 
-class Recipient(models.Model):
+class Recipient(ExtendedModelsModel):
     title = models.CharField(max_length=50, blank=True, null=True, verbose_name='Получатель')
 
     class Meta:

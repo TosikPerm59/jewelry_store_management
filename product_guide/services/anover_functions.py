@@ -1,16 +1,12 @@
 import os
-
 from django.core.paginator import Paginator
-from product_guide.models import File, Counterparties, get_all_obj_from_class
-from django.core.exceptions import ObjectDoesNotExist
-
-from product_guide.services.finders import find_name, find_metal, find_art
+from product_guide.models import File, Counterparties
+from product_guide.services.finders import find_name, find_metal
 from product_guide.services.validity import isfloat
 from openpyxl import Workbook
 
 
 def search_query_processing(search_string):
-    # print(search_string)
     prod_name = prod_metal = prod_uin = prod_id = prod_art = prod_weight = 'all'
     split_search_string = search_string.lower().split(' ')
 
@@ -28,8 +24,6 @@ def search_query_processing(search_string):
         if prod_metal == 'all':
             prod_metal = find_metal(string_element) if find_metal(string_element) else prod_metal
 
-    # print(prod_name)
-
     return prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight
 
 
@@ -42,7 +36,6 @@ def calculate_weight_number_price(products_dicts_dict):
         counter += 1
         try:
             if isfloat(product['weight']):
-
                 total_weight += float(product['weight'])
         except:
             pass
@@ -63,17 +56,13 @@ def get_context_for_product_list(products_dicts_dict, page_num):
         'total_weight': round(total_weight, ndigits=2),
         'len_products': number_of_products
     }
-
     return context
 
 
 def save_invoice(form, file_name):
-    try:
-        file = File.objects.get(title=file_name)
-        file.delete()
-    except ObjectDoesNotExist:
-        pass
 
+    file = File.get_object('title', file_name)
+    file.delete()
     form.save()
     file_object = File.objects.latest('id')
     file_object.title = file_name
@@ -121,7 +110,6 @@ def make_product_dict_from_dbqueryset(dbqueryset):
 
 
 def filters_check(product_name, product_metal):
-
     if product_name == 'all' and product_metal == 'all':
         return 'all'
     else:
@@ -133,7 +121,6 @@ def get_outgoing_invoice_title_list(out_inv_queryset):
 
     for invoice in out_inv_queryset.values():
         outgoing_invoice_title_list.append(invoice['title'])
-    # print(outgoing_invoice_title_list)
 
     return outgoing_invoice_title_list
 
@@ -148,16 +135,15 @@ def get_files_title_list(files_queryset):
 
 
 def definition_of_invoice_type(provider, recipient):
-
     provider_id, invoice_type, recipient_id = None, None, None
-    counterparties_queryset = get_all_obj_from_class(Counterparties)
+    counterparties_queryset = Counterparties.get_all_obj()
 
     for counterparties_object in counterparties_queryset:
         if provider.find(counterparties_object.surname.lower()) != -1:
             provider_id = counterparties_object.id
         if recipient.find(counterparties_object.surname.lower()) != -1:
             recipient_id = counterparties_object.id
-            invoice_type = 'incoming' if Counterparties.objects.get(id=recipient_id).surname == 'Александрова' else 'outgoing'
+            invoice_type = 'incoming' if Counterparties.get_object('id', recipient_id).surname == 'Александрова' else 'outgoing'
 
     return invoice_type, provider_id, recipient_id
 
@@ -168,7 +154,7 @@ def create_nomenclature_file(file_path, products_dict_dict, invoice_dict):
     nomenclature_file = Workbook()
     worksheet = nomenclature_file.active
     invoice_number = invoice_dict['invoice_number']
-    provider = Counterparties.objects.get(id=invoice_dict['provider_id']).surname
+    provider = Counterparties.get_object('id', invoice_dict['provider_id']).surname
     number = None
     for number, product in products_dict_dict.items():
         number = number
@@ -195,9 +181,7 @@ def create_nomenclature_file(file_path, products_dict_dict, invoice_dict):
         worksheet['H' + str(number)] = '1'
         worksheet['I' + str(number)] = invoice_dict['arrival_date']
         worksheet['J' + str(number)] = f'Накладная {invoice_number}, {metal}'
-    number = int(number) + 1
 
-    # worksheet['E' + str(number)] = f'=SUM(E1:{number - 1})'
     nomenclature_file.save(path_for_save)
     return path_for_save
 
