@@ -27,7 +27,16 @@ def check_file_path(file_path):
 def check_id(_id):
     if not _id:
         return
-    if len(_id) == 13 and _id.isdigit():
+    if len(str(_id)) == 13 and str(_id).isdigit():
+        return True
+    else:
+        return
+
+
+def check_uin(uin):
+    if not uin:
+        return
+    if len(str(uin)) == 16 and str(uin).isdigit():
         return True
     else:
         return

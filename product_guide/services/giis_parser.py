@@ -24,9 +24,10 @@ def giis_file_parsing(rows_list, sheet):
     for product in products_queryset:
         uin_list.append(product.uin)
     # Выполняется построчный проход по таблице
-    for row in rows_list[: 10]:
+    for row in rows_list:
         description, size, barcode, vendor_code = None, None, None, None
         uin = sheet[row][1].value if sheet[row][1].value else None
+        uin2 = sheet[row][2].value if sheet[row][2].value else None
         counter += 1
         if uin:
             if int(uin) not in uin_list:

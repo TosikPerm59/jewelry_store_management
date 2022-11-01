@@ -37,6 +37,15 @@ class ExtendedModelsModel(models.Model):
         except ObjectDoesNotExist:
             pass
 
+    @classmethod
+    def get_all_values_list(cls, attr_name):
+        values_list = []
+        for product_dict in cls.get_all_values():
+            if attr_name in product_dict.keys():
+                if product_dict[attr_name] is not None:
+                    values_list.append(product_dict[attr_name])
+        return values_list
+
     class Meta:
         abstract = True
 

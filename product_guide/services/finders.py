@@ -46,7 +46,7 @@ def find_barcode(_string):
         if elem.startswith('(') and elem.endswith(')'):
             elem = elem[1: -1]
         if check_id(elem):
-            return elem
+            return int(elem)
 
 
 def find_uin_in_giis_list(_id='', _list='', name='', metal='', weight='', art=''):
@@ -96,8 +96,8 @@ def find_uin_in_string(description):
     for element in split_string:
         if element.endswith(','):
             element = element.replace(',', '')
-        if len(element) == 16 and isinteger(element):
-            return element
+        if check_uin(element):
+            return int(element)
 
 
 def find_weight(split_string):

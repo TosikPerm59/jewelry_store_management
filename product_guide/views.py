@@ -7,12 +7,14 @@ from django.shortcuts import render, redirect
 from .models import Jewelry, InputInvoice
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
-    make_product_dict_from_dbqueryset, get_context_for_product_list,\
+    make_product_dict_from_dbqueryset, get_context_for_product_list, \
     make_product_queryset_from_dict_dicts, filters_check, create_nomenclature_file
 from django.contrib.auth.decorators import login_required
 from .services.outgoing_invoice_changer import change_outgoing_invoice
 from .services.upload_file_methods import set_correct_file_name, save_form, file_processing
 from django.utils.datastructures import MultiValueDictKeyError
+
+from .services.validity import check_id, check_uin
 
 
 def register(request):
@@ -207,11 +209,13 @@ def delete_line(request):
 
 @login_required()
 def save_products(request):
-    products_queryset_from_class = Jewelry.get_all_values()
+    products_queryset_from_bd = Jewelry.get_all_values()
     repeating_product = False
     product_dict_dicts_from_session = request.session['product_objects_dict_for_view']
     invoice_dict = request.session['invoice']
-    previous_barcode = None
+    previous_barcode, repeating_counter = None, 0
+    uins_list = Jewelry.get_all_values_list('uin')
+    barcodes_list = Jewelry.get_all_values_list('barcode')
 
     if 'giis_report' not in invoice_dict:
         invoice_object = InputInvoice.get_object('title', invoice_dict['title'])
@@ -225,32 +229,31 @@ def save_products(request):
             )
             invoice_object.save()
 
-    for first_key, product in product_dict_dicts_from_session.items():
-        item_object = Jewelry()
-
-        for second_key, value in product.items():
-            if product[second_key] is not None and second_key != 'number':
-                item_object.__setattr__(second_key, value)
-
-        for product_from_dbqueryset in products_queryset_from_class:
-            if item_object.barcode == previous_barcode and item_object.barcode is not None:
+    for product_from_sessions_key, product_from_sessions_dict in product_dict_dicts_from_session.items():
+        if check_id(product_from_sessions_dict['barcode']):
+            if product_from_sessions_dict['barcode'] in barcodes_list:
                 repeating_product = True
-            if item_object.barcode is not None:
-                if int(item_object.barcode) == product_from_dbqueryset['barcode']:
-                    repeating_product = True
-            if item_object.uin is not None:
-                if int(item_object.uin) == product_from_dbqueryset['uin']:
-                    repeating_product = True
-            if (item_object.name == product_from_dbqueryset['name'] and item_object.metal ==
-                    product_from_dbqueryset['metal'] and item_object.weight == float(
-                        product_from_dbqueryset['weight']) and
-                    item_object.vendor_code == product_from_dbqueryset['vendor_code']):
+            else:
+                barcodes_list.append(product_from_sessions_dict['barcode'])
+        if check_uin(product_from_sessions_dict['uin']):
+            if product_from_sessions_dict['uin'] in uins_list:
                 repeating_product = True
-            previous_barcode = product['barcode']
+            else:
+                uins_list.append(product_from_sessions_dict['uin'])
+
         if repeating_product is False:
-            item_object.save()
-        else:
-            repeating_product = False
+            new_object = Jewelry()
+
+            for key, value in product_from_sessions_dict.items():
+
+                if product_from_sessions_dict[key] is not None and key != 'number':
+                    new_object.__setattr__(key, value)
+
+            try:
+                new_object.save()
+            except:
+                print(new_object.__dict__['uin'])
+        repeating_product = False
 
     context = get_context_for_product_list(product_dict_dicts_from_session, page_num=None)
 
@@ -302,4 +305,3 @@ def save_availability_status_and_set_recipient_for_products(request):
             product_object.availability_status = 'Передано'
             product_object.recipient_id = invoice_requisites['recipient_id']
             product_object.save()
-
