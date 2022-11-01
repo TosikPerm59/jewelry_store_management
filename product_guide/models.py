@@ -4,6 +4,14 @@ from django.core.exceptions import ObjectDoesNotExist
 
 class ExtendedModelsModel(models.Model):
 
+    def __str__(self):
+        if hasattr(self, 'name'):
+            return self.name
+        if hasattr(self, 'title'):
+            return self.title
+        if hasattr(self, 'surname'):
+            return self.surname
+
     @classmethod
     def get_all_obj(cls):
         return cls.objects.all()
@@ -34,9 +42,6 @@ class ExtendedModelsModel(models.Model):
 
 
 class Jewelry(ExtendedModelsModel):
-
-    def __str__(self):
-        return self.name
 
     metals = (
         ('Золото 585', 'Золото 585'),
@@ -93,18 +98,12 @@ class Jewelry(ExtendedModelsModel):
 class Metal(ExtendedModelsModel):
     name = models.CharField(max_length=15, verbose_name='Металл')
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Металл'
         verbose_name_plural = 'Металлы'
 
 
 class File(ExtendedModelsModel):
-
-    def __str__(self):
-        return self.title
 
     title = models.CharField(max_length=50, blank=True, null=True, verbose_name='Имя файла')
     file = models.FileField(upload_to='product_guide/documents/', verbose_name='Файл')
@@ -115,9 +114,6 @@ class File(ExtendedModelsModel):
 
 
 class Invoice(ExtendedModelsModel):
-
-    def __str__(self):
-        return self.title
 
     title = models.CharField(max_length=30, null=True, blank=True, verbose_name='Накладная')
     invoice_number = models.IntegerField(null=True, blank=True, verbose_name='Номер накладной')
@@ -147,9 +143,6 @@ class OutgoingInvoice(Invoice, ExtendedModelsModel):
 
 
 class Counterparties(ExtendedModelsModel):
-
-    def __str__(self):
-        return self.short_name
 
     full_name = models.CharField(max_length=50, blank=True, null=True, verbose_name='Полное наименование поставщика')
     first_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Имя')
