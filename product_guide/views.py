@@ -147,8 +147,10 @@ def upload_file(request):
 
             if form.is_valid():
                 save_form(form)
-                file_path = ('C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\' + file_name)
-                context, products_dicts_dict, invoice_session_data, template_path = file_processing(file_name, file_path)
+                path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\'
+                file_path = path + file_name
+                context, products_dicts_dict, invoice_session_data, template_path = \
+                    file_processing(file_name, file_path)
                 request.session['product_objects_dict_for_view'] = products_dicts_dict
                 request.session['invoice'] = invoice_session_data
 
