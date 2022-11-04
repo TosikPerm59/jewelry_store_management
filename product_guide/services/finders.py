@@ -149,7 +149,10 @@ def find_art(*args, group):
 
             if 'арт.' in string_from_args:
                 art_ind = string_from_args.index('арт.') + 1
-                return string_from_args[art_ind].upper()
+                vendor_code = string_from_args[art_ind].upper()
+                if vendor_code[-1] == ',':
+                    vendor_code = vendor_code[:-1]
+                return vendor_code
 
             if group == 'word':
                 if '585' in string_from_args or '925' in string_from_args:

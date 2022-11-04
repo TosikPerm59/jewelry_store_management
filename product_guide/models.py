@@ -71,7 +71,8 @@ class Jewelry(ExtendedModelsModel):
     availability_statuses = (
         ('В наличии', 'В наличии'),
         ('Продано', 'Продано'),
-        ('Передано', 'Передано')
+        ('Передано', 'Передано'),
+        ('В договоре', 'В договоре')
     )
 
     name = models.CharField(max_length=20, verbose_name='Вид изделия')

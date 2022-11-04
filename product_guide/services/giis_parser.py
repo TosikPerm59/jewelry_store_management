@@ -24,7 +24,7 @@ def giis_file_parsing(rows_list, sheet):
     for product in products_queryset:
         uin_list.append(product.uin)
     # Выполняется построчный проход по таблице
-    for row in rows_list:
+    for row in rows_list[50:100]:
         description, size, barcode, vendor_code, weight = None, None, None, None, None
         uin = sheet[row][1].value if sheet[row][1].value else None
         uin2 = sheet[row][2].value if sheet[row][2].value else None
@@ -52,15 +52,15 @@ def giis_file_parsing(rows_list, sheet):
                     weight = find_weight([sheet[row][12].value])
             else:
                 obj = Jewelry.get_object('uin', int(uin))
+                print(obj.weight)
                 description = {
                     'name': obj.name,
-                    'metal': obj.metal,
-                    'barcode': obj.barcode,
-                    'uin': obj.uin,
-                    'weight': obj.weight,
-                    'vendor_code': obj.vendor_code,
-                    'size': obj.size
+                    'metal': obj.metal
                 }
+                weight = obj.weight
+                vendor_code = obj.vendor_code
+                size = obj.size
+                barcode = obj.barcode
 
         product_dict = {'name': description['name'],
                         'metal': description['metal'],
