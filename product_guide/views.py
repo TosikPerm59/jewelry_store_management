@@ -252,7 +252,10 @@ def save_products(request):
             try:
                 new_object.save()
             except:
-                print(new_object.__dict__['uin'])
+                print('repeat False, save error')
+                print(new_object.__dict__)
+        else:
+            print('repeat True', product_from_sessions_dict)
         repeating_product = False
 
     context = get_context_for_product_list(product_dict_dicts_from_session, page_num=None)

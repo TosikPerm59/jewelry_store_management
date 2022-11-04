@@ -25,7 +25,7 @@ def check_file_path(file_path):
 
 
 def check_id(_id):
-    digits_count_list = [8, 10, 13]
+    digits_count_list = [10, 13]
     if not _id:
         return
     if len(str(_id)) in digits_count_list and str(_id).isdigit():
