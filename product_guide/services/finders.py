@@ -129,8 +129,6 @@ def find_weight(split_string):
         if isinteger(elem):
             elem = elem + '.00'
         if isfloat(elem):
-            if len(elem.split('.')[1]) > 2:
-                elem = str(round(float(elem), ndigits=2))
             if len(elem.split('.')[1]) == 1:
                 elem = elem + '0'
         if check_weight(elem):

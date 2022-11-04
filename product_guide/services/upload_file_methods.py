@@ -64,14 +64,13 @@ def file_processing(file_name, file_path):
             }
         context = get_context_for_product_list(products_dicts_dict, page_num=None)
         template_path = 'product_guide\product_base_v2.html'
-        print(invoice_requisites)
+
         if invoice_requisites['invoice_type'] == 'incoming':
             context['invoice_title'] = file_name
             context['invoice_date'] = invoice_requisites['arrival_date']
             context['invoice_number'] = invoice_requisites['invoice_number']
             context['provider'] = Counterparties.get_object('id', invoice_requisites['provider_id'])
             template_path = 'product_guide\show_incoming_invoice.html'
-        print(context)
 
         return context, products_dicts_dict, invoice_session_data, template_path
 
@@ -101,5 +100,5 @@ def file_processing(file_name, file_path):
         context['file_name'] = file_name
         invoice_session_data = invoice_requisites
         template_path = 'product_guide\show_outgoing_invoice.html'
-        print(context)
+
         return context, products_dicts_dict, invoice_session_data, template_path

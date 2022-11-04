@@ -85,7 +85,7 @@ def check_word_exceptions(_string):
 def check_weight(weight):
 
     try:
-        if isfloat(weight) and len(weight.split('.')[1]) == 2 and float(weight) < 200:
+        if isfloat(weight) and len(weight.split('.')[1]) <= 3 and float(weight) < 200:
             return True
     except IndexError:
         return False

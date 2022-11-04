@@ -18,17 +18,23 @@ def giis_file_parsing(rows_list, sheet):
     group = 'excel'
     rows_list = rows_list[4:]
     counter = 0
-
+    kits_dict = {}
     uin_list = []
     products_queryset = Jewelry.get_all_obj()
     for product in products_queryset:
         uin_list.append(product.uin)
     # Выполняется построчный проход по таблице
     for row in rows_list:
-        description, size, barcode, vendor_code = None, None, None, None
+        description, size, barcode, vendor_code, weight = None, None, None, None, None
         uin = sheet[row][1].value if sheet[row][1].value else None
         uin2 = sheet[row][2].value if sheet[row][2].value else None
+        uins = None
         counter += 1
+        if uin2:
+            if uin2 not in kits_dict.keys():
+                print('CONT')
+                kits_dict[uin2] = {'weight': find_weight([sheet[row][12].value]), 'uin1': uin}
+                continue
         if uin:
             if int(uin) not in uin_list:
                 description = find_description(sheet[row][10].value, sheet[row][11].value, sheet[row][14].value,
@@ -38,6 +44,12 @@ def giis_file_parsing(rows_list, sheet):
                 vendor_code = find_art(sheet[row][10].value, sheet[row][11].value, group=group) if find_art(
                     sheet[row][10].value, sheet[row][11].value, group=group) else None
                 size = description['size'] if description['size'] else None
+                if uin2 in kits_dict.keys():
+                    weight = float(find_weight([sheet[row][12].value])) + float(kits_dict[uin2]['weight'])
+                    uins = [uin, kits_dict[uin2]['uin1']]
+                    uin = uin2
+                else:
+                    weight = find_weight([sheet[row][12].value])
             else:
                 obj = Jewelry.get_object('uin', int(uin))
                 description = {
@@ -54,11 +66,11 @@ def giis_file_parsing(rows_list, sheet):
                         'metal': description['metal'],
                         'barcode': barcode,
                         'uin': uin,
-                        'weight': find_weight([sheet[row][12].value]),
+                        'weight': weight,
                         'vendor_code': vendor_code,
                         'size': size,
-
-                        'number': counter
+                        'number': counter,
+                        'uins': uins
                         }
 
         giis_dicts_dict[counter] = product_dict
