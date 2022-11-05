@@ -33,6 +33,10 @@ class ExtendedModelsModel(models.Model):
                     obj = cls.objects.get(uin=value)
                 if attr == 'id':
                     obj = cls.objects.get(id=value)
+                if attr == 'barcode':
+                    obj = cls.objects.get(barcode=value)
+                if attr == 'vendor_code':
+                    obj = cls.objects.get(vendor_code=value)
             return obj
         except ObjectDoesNotExist:
             pass
@@ -95,7 +99,6 @@ class Jewelry(ExtendedModelsModel):
     outgoing_invoice = models.ForeignKey('OutgoingInvoice', null=True, blank=True, on_delete=models.PROTECT,
                                          verbose_name='Исходящая накладная')
     manufacturer = models.CharField(max_length=100, verbose_name='Производитель', blank=True, null=True)
-    trademark = models.CharField(max_length=30, verbose_name='Торговая марка', blank=True, null=True)
     recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT,
                                   verbose_name='Получатель')
 

@@ -13,7 +13,21 @@ def giis_file_parsing(rows_list, sheet):
     и анализируя данные принимает решение о помещении этих данных соответствующим ключам словаря принадлежащего
     текущей позиции.
       Функция возвращает словарь с позициями в которых все характеристики упорядочены и проверены. """
-
+    manufacturers_dict = {'2451000818': 'Красцветмет',
+                          '3123362920': 'АртКарат',
+                          '5904148360': 'Мидас-Пермь',
+                          '4415004722': 'Аквамарин',
+                          '332136077322': 'ИП Федосов В.И.',
+                          '4400005628': 'Ювелит',
+                          '3719004049': 'Красная Пресня',
+                          '3321021079': 'Золотые Купола',
+                          '615403468530': 'Золотая подкова',
+                          '744500352130': 'ЮФ Самоцветы',
+                          '441500729382': 'ИП Козин О.В.',
+                          '5902179700': 'Урал-Голд',
+                          '5406605334': 'Новосибирский ЮЗ',
+                          '441501193827': 'ИП Халеева Е.Г.'
+                          }
     giis_dicts_dict = {}
     group = 'excel'
     rows_list = rows_list[4:]
@@ -21,14 +35,21 @@ def giis_file_parsing(rows_list, sheet):
     kits_dict = {}
     uin_list = []
     products_queryset = Jewelry.get_all_obj()
+    manufacturers_set = set()
+    manufacturer = None
     for product in products_queryset:
         uin_list.append(product.uin)
     # Выполняется построчный проход по таблице
-    for row in rows_list[:500]:
-        description, size, barcode, vendor_code, weight = None, None, None, None, None
+    for row in rows_list[:15]:
+        description, size, barcode, vendor_code, weight, giis_status = None, None, None, None, None, None
         uin = sheet[row][1].value if sheet[row][1].value else None
         uin2 = sheet[row][2].value if sheet[row][2].value else None
         uins = None
+        giis_status = sheet[row][6].value if sheet[row][6].value else None
+        manufacturer_inn = sheet[row][9].value if sheet[row][9].value != '0000000000' else None
+        if manufacturer_inn:
+            manufacturer = manufacturers_dict[manufacturer_inn]
+        manufacturers_set.add(manufacturer_inn)
         counter += 1
         if uin2:
             if uin2 not in kits_dict.keys():
@@ -68,11 +89,15 @@ def giis_file_parsing(rows_list, sheet):
                         'vendor_code': vendor_code,
                         'size': size,
                         'number': counter,
-                        'uins': uins
+                        'uins': uins,
+                        'giis_status': giis_status,
+                        'availability_status': 'В наличии',
+                        'manufacturer': manufacturer
                         }
 
         giis_dicts_dict[counter] = product_dict
         print(counter, product_dict)
 
     print(f'Сформирован список изделии файла ГИИС из {counter} позиций')
+    print(manufacturers_set)
     return giis_dicts_dict

@@ -245,17 +245,14 @@ def save_products(request):
             new_object = Jewelry()
 
             for key, value in product_from_sessions_dict.items():
-
                 if product_from_sessions_dict[key] is not None and key != 'number':
                     new_object.__setattr__(key, value)
 
             try:
+                print(new_object.__dict__)
                 new_object.save()
             except:
-                print('repeat False, save error')
-                print(new_object.__dict__)
-        else:
-            print('repeat True', product_from_sessions_dict)
+                pass
         repeating_product = False
 
     context = get_context_for_product_list(product_dict_dicts_from_session, page_num=None)
@@ -287,6 +284,7 @@ def download_changed_file(request):
 
 def download_nomenclature(request):
     file_path = request.GET.get('file_path')
+    print(file_path)
     product_dict_dicts = request.session['product_objects_dict_for_view']
     invoice_dict = request.session['invoice']
     number = invoice_dict['invoice_number']

@@ -1,6 +1,6 @@
 import os
 from django.core.paginator import Paginator
-from product_guide.models import File, Counterparties
+from product_guide.models import File, Counterparties, Jewelry
 from product_guide.services.finders import find_name, find_metal
 from product_guide.services.validity import isfloat
 from openpyxl import Workbook
@@ -149,6 +149,7 @@ def definition_of_invoice_type(provider, recipient):
 
 
 def create_nomenclature_file(file_path, products_dict_dict, invoice_dict):
+    print(file_path)
     path = os.path.split(file_path)[0]
     path_for_save = path + 'Номенклатура для ' + os.path.split(file_path)[1].split('.')[0] + '.xlsx'
     nomenclature_file = Workbook()
@@ -181,10 +182,47 @@ def create_nomenclature_file(file_path, products_dict_dict, invoice_dict):
         worksheet['H' + str(number)] = '1'
         worksheet['I' + str(number)] = invoice_dict['arrival_date']
         worksheet['J' + str(number)] = f'Накладная {invoice_number}, {metal}'
-
+    print(path_for_save)
     nomenclature_file.save(path_for_save)
     return path_for_save
 
 
-def get_giis_list_from_batches():
-    pass
+def find_products_in_db(products_dicts_dict):
+    obj = None
+    counter = 0
+    new_product_list = []
+
+
+    for product in products_dicts_dict.values():
+        new_product_dicts_dict = {}
+        objs_list = []
+        counter += 1
+
+        new_product_dicts_dict[counter] = product
+        if product['barcode']:
+            obj = Jewelry.objects.filter(barcode=product['barcode'])
+
+            if obj:
+                print()
+                print(counter, obj)
+                new_product_dicts_dict[counter] = obj.__dict__
+        else:
+            if product['vendor_code']:
+                objs = Jewelry.objects.filter(name=product['name'], metal=product['metal'], weight=product['weight'], vendor_code=product['vendor_code'])
+                if objs:
+                    for obj in objs:
+                        objs_list.append(obj.__dict__)
+                    new_product_dicts_dict[counter] = objs_list
+        if counter not in new_product_dicts_dict.keys():
+            objs = Jewelry.objects.filter(name=product['name'], metal=product['metal'], weight=product['weight'])
+            if objs:
+                for obj in objs:
+                    objs_list.append(obj.__dict__)
+                new_product_dicts_dict[counter] = objs_list
+        new_product_list.append(new_product_dicts_dict)
+
+    for product in new_product_list:
+        print(product)
+
+
+

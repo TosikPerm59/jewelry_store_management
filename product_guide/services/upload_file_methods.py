@@ -1,7 +1,7 @@
 from product_guide.models import File, OutgoingInvoice, Counterparties
 from django.core.exceptions import ObjectDoesNotExist
 from product_guide.services.anover_functions import form_type_check, get_outgoing_invoice_title_list, \
-    get_context_for_product_list
+    get_context_for_product_list, find_products_in_db
 from product_guide.services.giis_parser import giis_file_parsing
 from product_guide.services.invoice_parser import invoice_parsing, word_invoice_parsing
 from product_guide.services.readers import read_excel_file, read_msword_file
@@ -60,18 +60,19 @@ def file_processing(file_name, file_path):
                 'invoice_number': invoice_requisites['invoice_number'],
                 'provider_id': invoice_requisites['provider_id'],
                 'recipient': invoice_requisites['recipient_id'],
-                'title': file_name
+                'title': file_name,
             }
         context = get_context_for_product_list(products_dicts_dict, page_num=None)
         template_path = 'product_guide\product_base_v2.html'
 
         if invoice_requisites['invoice_type'] == 'incoming':
+            find_products_in_db(products_dicts_dict)
             context['invoice_title'] = file_name
+            context['file_path'] = file_path
             context['invoice_date'] = invoice_requisites['arrival_date']
             context['invoice_number'] = invoice_requisites['invoice_number']
             context['provider'] = Counterparties.get_object('id', invoice_requisites['provider_id'])
             template_path = 'product_guide\show_incoming_invoice.html'
-
         return context, products_dicts_dict, invoice_session_data, template_path
 
     elif file_type == 'msword':
