@@ -9,7 +9,6 @@ warnings.simplefilter("ignore")
 def read_excel_file(path_to_excel_file):
     path_to_excel_file = path_to_excel_file.replace('"', '') if '"' in path_to_excel_file else path_to_excel_file
     file_name = os.path.split(path_to_excel_file)[1]
-
     if file_name.endswith('.xls'):
         file_type = '.xls'
         excel_file = xlrd.open_workbook(path_to_excel_file)
@@ -30,7 +29,6 @@ def read_excel_file(path_to_excel_file):
         excel_file = openpyxl.load_workbook(path_to_excel_file)
         sheet = excel_file.active
         rows_list = [row for row in range(1, sheet.max_row + 1)]
-        print(file_type)
         return rows_list, sheet, file_type
 
 

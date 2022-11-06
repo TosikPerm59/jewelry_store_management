@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse, FileResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from .models import Jewelry, InputInvoice
+from .models import Jewelry, InputInvoice, Manufacturer
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
     make_product_dict_from_dbqueryset, get_context_for_product_list, \
@@ -146,7 +146,6 @@ def upload_file(request):
         if file:
             file_name = set_correct_file_name(request.FILES['file'].name)
             form.title = file_name
-
             if form.is_valid():
                 save_form(form)
                 path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\'
@@ -246,10 +245,13 @@ def save_products(request):
 
             for key, value in product_from_sessions_dict.items():
                 if product_from_sessions_dict[key] is not None and key != 'number':
-                    new_object.__setattr__(key, value)
+                    if key != 'manufacturer_id':
+                        new_object.__setattr__(key, value)
+                    else:
+                        obj = Manufacturer.get_object('id', product_from_sessions_dict[key])
+                        new_object.__setattr__('manufacturer', obj)
 
             try:
-                print(new_object.__dict__)
                 new_object.save()
             except:
                 pass
@@ -271,7 +273,6 @@ def download_changed_file(request):
     path = os.path.split(file_path)[0]
     name = os.path.split(file_path)[1]
     copy_path = path + 'Копия' + name
-    print(copy_path)
     shutil.copyfile(file_path, copy_path)
     change_outgoing_invoice(copy_path)
     response = FileResponse(open(copy_path, 'rb'))
@@ -284,7 +285,6 @@ def download_changed_file(request):
 
 def download_nomenclature(request):
     file_path = request.GET.get('file_path')
-    print(file_path)
     product_dict_dicts = request.session['product_objects_dict_for_view']
     invoice_dict = request.session['invoice']
     number = invoice_dict['invoice_number']

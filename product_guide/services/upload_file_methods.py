@@ -13,6 +13,10 @@ def set_correct_file_name(file_name):
         file_name = file_name.replace(' ', '_')
     if '№' in file_name:
         file_name = file_name.replace('№', '')
+    if '(' in file_name:
+        file_name = file_name.replace('(', '')
+    if ')' in file_name:
+        file_name = file_name.replace(') ', '')
 
     return file_name
 

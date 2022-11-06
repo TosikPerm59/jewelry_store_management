@@ -70,7 +70,7 @@ def save_invoice(form, file_name):
 
 
 def form_type_check(file_name):
-    if file_name == '4_BATCH_LIST_PRINT.xlsx':
+    if file_name.startswith('4_BATCH_LIST_PRINT'):
         return 'giis_report'
 
 
@@ -149,7 +149,6 @@ def definition_of_invoice_type(provider, recipient):
 
 
 def create_nomenclature_file(file_path, products_dict_dict, invoice_dict):
-    print(file_path)
     path = os.path.split(file_path)[0]
     path_for_save = path + 'Номенклатура для ' + os.path.split(file_path)[1].split('.')[0] + '.xlsx'
     nomenclature_file = Workbook()
@@ -182,7 +181,6 @@ def create_nomenclature_file(file_path, products_dict_dict, invoice_dict):
         worksheet['H' + str(number)] = '1'
         worksheet['I' + str(number)] = invoice_dict['arrival_date']
         worksheet['J' + str(number)] = f'Накладная {invoice_number}, {metal}'
-    print(path_for_save)
     nomenclature_file.save(path_for_save)
     return path_for_save
 
@@ -191,7 +189,6 @@ def find_products_in_db(products_dicts_dict):
     obj = None
     counter = 0
     new_product_list = []
-
 
     for product in products_dicts_dict.values():
         new_product_dicts_dict = {}
@@ -203,8 +200,6 @@ def find_products_in_db(products_dicts_dict):
             obj = Jewelry.objects.filter(barcode=product['barcode'])
 
             if obj:
-                print()
-                print(counter, obj)
                 new_product_dicts_dict[counter] = obj.__dict__
         else:
             if product['vendor_code']:

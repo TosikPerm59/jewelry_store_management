@@ -6,11 +6,20 @@ class ExtendedModelsModel(models.Model):
 
     def __str__(self):
         if hasattr(self, 'name'):
-            return self.name
+            if self.name is not None:
+                return self.name
+            else:
+                return '-'
         if hasattr(self, 'title'):
-            return self.title
+            if self.title is not None:
+                return self.title
+            else:
+                return '-'
         if hasattr(self, 'surname'):
-            return self.surname
+            if self.surname is not None:
+                return self.surname
+            else:
+                return '-'
 
     @classmethod
     def get_all_obj(cls):
@@ -37,6 +46,8 @@ class ExtendedModelsModel(models.Model):
                     obj = cls.objects.get(barcode=value)
                 if attr == 'vendor_code':
                     obj = cls.objects.get(vendor_code=value)
+                if attr == 'inn':
+                    obj = cls.objects.get(inn=value)
             return obj
         except ObjectDoesNotExist:
             pass
@@ -55,7 +66,6 @@ class ExtendedModelsModel(models.Model):
 
 
 class Jewelry(ExtendedModelsModel):
-
     metals = (
         ('Золото 585', 'Золото 585'),
         ('Серебро 925', 'Серебро 925')
@@ -98,14 +108,15 @@ class Jewelry(ExtendedModelsModel):
                                       verbose_name='Входящая накладная')
     outgoing_invoice = models.ForeignKey('OutgoingInvoice', null=True, blank=True, on_delete=models.PROTECT,
                                          verbose_name='Исходящая накладная')
-    manufacturer = models.CharField(max_length=100, verbose_name='Производитель', blank=True, null=True)
+    manufacturer = models.ForeignKey('Manufacturer', null=True, blank=True, verbose_name='Производитель',
+                                     on_delete=models.PROTECT)
     recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT,
                                   verbose_name='Получатель')
 
     class Meta:
         verbose_name = 'Изделие'
         verbose_name_plural = 'Изделия'
-        ordering = ['metal', 'name', '-weight']
+        ordering = ['metal', 'name', 'weight']
 
 
 class Metal(ExtendedModelsModel):
@@ -117,7 +128,6 @@ class Metal(ExtendedModelsModel):
 
 
 class File(ExtendedModelsModel):
-
     title = models.CharField(max_length=50, blank=True, null=True, verbose_name='Имя файла')
     file = models.FileField(upload_to='product_guide/documents/', verbose_name='Файл')
 
@@ -127,7 +137,6 @@ class File(ExtendedModelsModel):
 
 
 class Invoice(ExtendedModelsModel):
-
     title = models.CharField(max_length=30, null=True, blank=True, verbose_name='Накладная')
     invoice_number = models.IntegerField(null=True, blank=True, verbose_name='Номер накладной')
 
@@ -156,7 +165,6 @@ class OutgoingInvoice(Invoice, ExtendedModelsModel):
 
 
 class Counterparties(ExtendedModelsModel):
-
     full_name = models.CharField(max_length=50, blank=True, null=True, verbose_name='Полное наименование поставщика')
     first_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Имя')
     surname = models.CharField(max_length=30, blank=True, null=True, verbose_name='Фамилия')
@@ -189,3 +197,12 @@ class Recipient(ExtendedModelsModel):
     class Meta:
         verbose_name = 'Грузополучателя'
         verbose_name_plural = 'Грузополучатели'
+
+
+class Manufacturer(ExtendedModelsModel):
+    title = models.CharField(max_length=50, blank=True, null=True, verbose_name='Производитель')
+    inn = models.CharField(max_length=50, blank=True, null=True, verbose_name='ИНН')
+
+    class Meta:
+        verbose_name = 'Производителя'
+        verbose_name_plural = 'Производители'
