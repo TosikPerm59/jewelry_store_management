@@ -115,7 +115,7 @@ def find_weight(split_string):
     elif '585' in split_string or '925' in split_string:
         index = split_string.index('585') if '585' in split_string else split_string.index('925')
         split_string = split_string[index + 1:]
-    # print(split_string)
+    print(type(split_string))
     for elem in split_string:
         elem = elem.strip()
         try:
@@ -150,7 +150,7 @@ def find_art(*args, group):
             if 'арт.' in string_from_args:
                 art_ind = string_from_args.index('арт.') + 1
                 vendor_code = string_from_args[art_ind].upper()
-                if vendor_code[-1] == ',':
+                if vendor_code[-1] == ',' or vendor_code[-1] == '.':
                     vendor_code = vendor_code[:-1]
                 return vendor_code
 
@@ -167,7 +167,7 @@ def find_art(*args, group):
 
             for elem in string_from_args:
                 if len(elem) > 1:
-                    if elem[-1] == ',':
+                    if elem[-1] == ',' or elem[-1] == '.':
                         elem = elem[:-1]
                 for pref in prefixes:
                     if pref in elem:

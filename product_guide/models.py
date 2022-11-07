@@ -93,7 +93,7 @@ class Jewelry(ExtendedModelsModel):
     metal = models.CharField(max_length=15, verbose_name='Металл', blank=True, null=True)
     weight = models.FloatField(verbose_name='Вес')
     size = models.FloatField(verbose_name='Размер', blank=True, null=True)
-    vendor_code = models.CharField(max_length=15, verbose_name='Артикул', blank=True, null=True)
+    vendor_code = models.CharField(max_length=20, verbose_name='Артикул', blank=True, null=True)
     barcode = models.IntegerField(verbose_name='Штрихкод', blank=True, null=True, unique=True)
     uin = models.IntegerField(verbose_name='УИН', blank=True, null=True, unique=True)
     coating = models.CharField(max_length=20, verbose_name='Покрытие', blank=True, null=True, choices=coatings)

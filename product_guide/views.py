@@ -93,12 +93,12 @@ def product_base(request):
     prod_name = request.POST.get('name') if request.POST.get('name') else 'all'
     prod_metal = request.POST.get('metal') if request.POST.get('metal') else 'all'
     page_num = request.POST.get('page')
+    prod_uin = None
     search_string = request.POST.get('search_string')
 
     if search_string:
         prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight = \
             search_query_processing(search_string)
-    print(prod_name)
 
     if filters_check(prod_name, prod_metal) == 'all':
         if 'filtered_list' in request.session.keys() and page_num is None:
@@ -114,6 +114,11 @@ def product_base(request):
         if prod_metal != 'all':
             product_list = [p for p in product_list if
                             p['metal'] == prod_metal] if prod_metal != 'all' else product_list
+
+        # if prod_uin != 'all':
+        #     print(prod_uin)
+        #     product_list = [p for p in product_list if
+        #                     p['uin'] == prod_uin] if prod_uin != 'all' else product_list
 
         request.session['filtered_list'] = make_product_dict_from_dbqueryset(product_list)
         product_dicts_dict = make_product_dict_from_dbqueryset(product_list)
