@@ -1,7 +1,7 @@
 import os
 from django.core.paginator import Paginator
 from product_guide.models import File, Counterparties, Jewelry
-from product_guide.services.finders import find_name, find_metal
+from product_guide.services.finders import find_name, find_metal, find_art, find_weight
 from product_guide.services.validity import isfloat
 from openpyxl import Workbook
 
@@ -13,16 +13,27 @@ def search_query_processing(search_string):
     for string_element in split_search_string:
         if string_element.isdigit():
             if prod_id == 'all':
-                if len(string_element) == 13:
+                if len(string_element) == 13 or len(string_element) == 10:
                     prod_id = string_element
             if prod_uin == 'all':
                 if len(string_element) == 16:
                     prod_uin = string_element
+        string_element = string_element.replace(',', '.') if ',' in string_element else string_element
+        prod_weight = float(string_element) if isfloat(string_element) and prod_weight == 'all' else string_element
 
         if prod_name == 'all':
             prod_name = find_name(string_element) if find_name(string_element) else prod_name
         if prod_metal == 'all':
             prod_metal = find_metal(string_element) if find_metal(string_element) else prod_metal
+        if prod_art == 'all':
+            prod_art = find_art(string_element, group=None) if find_art(string_element, group=None) else prod_art
+
+    print('prod_name = ', prod_name)
+    print('prod_metal = ', prod_metal)
+    print('prod_uin = ', prod_uin)
+    print('prod_id = ', prod_id)
+    print('prod_art = ', prod_art)
+    print('prod_weight = ', prod_weight)
 
     return prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight
 
@@ -201,13 +212,13 @@ def find_products_in_db(products_dicts_dict):
 
             if obj:
                 new_product_dicts_dict[counter] = obj.__dict__
-        else:
-            if product['vendor_code']:
-                objs = Jewelry.objects.filter(name=product['name'], metal=product['metal'], weight=product['weight'], vendor_code=product['vendor_code'])
-                if objs:
-                    for obj in objs:
-                        objs_list.append(obj.__dict__)
-                    new_product_dicts_dict[counter] = objs_list
+            else:
+                if product['vendor_code']:
+                    objs = Jewelry.objects.filter(name=product['name'], metal=product['metal'], weight=product['weight'], vendor_code=product['vendor_code'])
+                    if objs:
+                        for obj in objs:
+                            objs_list.append(obj.__dict__)
+                        new_product_dicts_dict[counter] = objs_list
         if counter not in new_product_dicts_dict.keys():
             objs = Jewelry.objects.filter(name=product['name'], metal=product['metal'], weight=product['weight'])
             if objs:
