@@ -2,40 +2,48 @@ import os
 from django.core.paginator import Paginator
 from product_guide.models import File, Counterparties, Jewelry
 from product_guide.services.finders import find_name, find_metal, find_art, find_weight
-from product_guide.services.validity import isfloat
+from product_guide.services.validity import isfloat, check_weight, check_id, check_uin
 from openpyxl import Workbook
 
 
 def search_query_processing(search_string):
-    prod_name = prod_metal = prod_uin = prod_id = prod_art = prod_weight = 'all'
+    name = metal = uin = barcode = vendor_code = weight = 'all'
     split_search_string = search_string.lower().split(' ')
 
     for string_element in split_search_string:
         if string_element.isdigit():
-            if prod_id == 'all':
-                if len(string_element) == 13 or len(string_element) == 10:
-                    prod_id = string_element
-            if prod_uin == 'all':
-                if len(string_element) == 16:
-                    prod_uin = string_element
+            if barcode == 'all':
+                if check_id(string_element):
+                    barcode = string_element
+            if uin == 'all':
+                if check_uin(string_element):
+                    uin = string_element
         string_element = string_element.replace(',', '.') if ',' in string_element else string_element
-        prod_weight = float(string_element) if isfloat(string_element) and prod_weight == 'all' else string_element
+        weight = string_element if isfloat(string_element) and weight == 'all' and check_weight(string_element)\
+            else weight
 
-        if prod_name == 'all':
-            prod_name = find_name(string_element) if find_name(string_element) else prod_name
-        if prod_metal == 'all':
-            prod_metal = find_metal(string_element) if find_metal(string_element) else prod_metal
-        if prod_art == 'all':
-            prod_art = find_art(string_element, group=None) if find_art(string_element, group=None) else prod_art
+        if name == 'all':
+            name = find_name(string_element) if find_name(string_element) else name
+        if metal == 'all':
+            metal = find_metal(string_element) if find_metal(string_element) else metal
+        if vendor_code == 'all':
+            vendor_code = find_art(string_element, group=None) if (
+                                                                   find_art(string_element, group=None) and
+                                                                   check_id(string_element) is False and
+                                                                   check_uin(string_element is False)
+                                                                   ) else vendor_code
 
-    print('prod_name = ', prod_name)
-    print('prod_metal = ', prod_metal)
-    print('prod_uin = ', prod_uin)
-    print('prod_id = ', prod_id)
-    print('prod_art = ', prod_art)
-    print('prod_weight = ', prod_weight)
+    filters_dict = {
+        'name': name,
+        'metal': metal,
+        'uin': uin,
+        'barcode': barcode,
+        'vendor_code': vendor_code,
+        'weight': weight
 
-    return prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight
+    }
+    print(filters_dict)
+    return filters_dict
 
 
 def calculate_weight_number_price(products_dicts_dict):
@@ -120,9 +128,10 @@ def make_product_dict_from_dbqueryset(dbqueryset):
     return product_dicts_dict
 
 
-def filters_check(product_name, product_metal):
-    if product_name == 'all' and product_metal == 'all':
-        return 'all'
+def filters_check(filters_dict):
+    for value in filters_dict.values():
+        if value == 'all':
+            return 'all'
     else:
         return 'filtered'
 

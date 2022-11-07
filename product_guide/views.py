@@ -14,7 +14,7 @@ from .services.outgoing_invoice_changer import change_outgoing_invoice
 from .services.upload_file_methods import set_correct_file_name, save_form, file_processing
 from django.utils.datastructures import MultiValueDictKeyError
 
-from .services.validity import check_id, check_uin
+from .services.validity import check_id, check_uin, isfloat, isinteger
 
 
 def register(request):
@@ -90,17 +90,18 @@ def index(request):
 
 @login_required()
 def product_base(request):
-    prod_name = request.POST.get('name') if request.POST.get('name') else 'all'
-    prod_metal = request.POST.get('metal') if request.POST.get('metal') else 'all'
+    filters_dict = {
+                    'name': request.POST.get('name') if request.POST.get('name') else 'all',
+                    'metal': request.POST.get('metal') if request.POST.get('metal') else 'all'
+                    }
     page_num = request.POST.get('page')
     prod_uin = None
     search_string = request.POST.get('search_string')
 
     if search_string:
-        prod_name, prod_metal, prod_uin, prod_id, prod_art, prod_weight = \
-            search_query_processing(search_string)
+        filters_dict = search_query_processing(search_string)
 
-    if filters_check(prod_name, prod_metal) == 'all':
+    if filters_check(filters_dict) == 'all':
         if 'filtered_list' in request.session.keys() and page_num is None:
             request.session.pop('filtered_list')
 
@@ -108,17 +109,11 @@ def product_base(request):
         product_dicts_dict = request.session['product_objects_dict_for_view']
         product_list = make_product_queryset_from_dict_dicts(product_dicts_dict)
 
-        if prod_name != 'all':
-            product_list = [p for p in product_list if p['name'] == prod_name]
-
-        if prod_metal != 'all':
-            product_list = [p for p in product_list if
-                            p['metal'] == prod_metal] if prod_metal != 'all' else product_list
-
-        # if prod_uin != 'all':
-        #     print(prod_uin)
-        #     product_list = [p for p in product_list if
-        #                     p['uin'] == prod_uin] if prod_uin != 'all' else product_list
+        for key, value in filters_dict.items():
+            if value != 'all':
+                value = float(value) if isfloat(value) else value
+                value = int(value) if isinteger(value) else value
+                product_list = [p for p in product_list if p[key] == value]
 
         request.session['filtered_list'] = make_product_dict_from_dbqueryset(product_list)
         product_dicts_dict = make_product_dict_from_dbqueryset(product_list)
