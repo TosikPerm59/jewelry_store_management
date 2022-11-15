@@ -1,10 +1,11 @@
 import os.path
 import shutil
 from django.contrib.auth.models import User
+from django.db.models import Model
 from django.http import HttpResponse, FileResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from .models import Jewelry, InputInvoice, Manufacturer
+from .models import Jewelry, InputInvoice, Manufacturer, Provider, Counterparties
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
     make_product_dict_from_dbqueryset, get_context_for_product_list, \
@@ -91,9 +92,9 @@ def index(request):
 @login_required()
 def product_base(request):
     filters_dict = {
-                    'name': request.POST.get('name') if request.POST.get('name') else 'all',
-                    'metal': request.POST.get('metal') if request.POST.get('metal') else 'all'
-                    }
+        'name': request.POST.get('name') if request.POST.get('name') else 'all',
+        'metal': request.POST.get('metal') if request.POST.get('metal') else 'all'
+    }
     page_num = request.POST.get('page')
     prod_uin = None
     search_string = request.POST.get('search_string')
@@ -154,7 +155,7 @@ def upload_file(request):
                     file_processing(file_name, file_path)
                 request.session['product_objects_dict_for_view'] = products_dicts_dict
                 request.session['invoice'] = invoice_session_data
-
+            # print(context)
             return render(request, template_path, context=context)
         else:
             return index(request)
@@ -229,16 +230,22 @@ def save_products(request):
             invoice_object.save()
 
     for product_from_sessions_key, product_from_sessions_dict in product_dict_dicts_from_session.items():
-        if check_id(product_from_sessions_dict['barcode']):
-            if product_from_sessions_dict['barcode'] in barcodes_list:
-                repeating_product = True
-            else:
-                barcodes_list.append(product_from_sessions_dict['barcode'])
-        if check_uin(product_from_sessions_dict['uin']):
-            if product_from_sessions_dict['uin'] in uins_list:
-                repeating_product = True
-            else:
-                uins_list.append(product_from_sessions_dict['uin'])
+        barcode = product_from_sessions_dict['barcode']
+        if barcode is not None or barcode != 'None':
+            if check_id(barcode):
+                if barcode in barcodes_list:
+                    prod_obj = Jewelry.get_object('barcode', int(barcode))
+                    if prod_obj.uin is None or prod_obj.uin == 'None':
+                        prod_obj.uin = product_from_sessions_dict['uin']
+                        prod_obj.save()
+                    repeating_product = True
+                else:
+                    barcodes_list.append(product_from_sessions_dict['barcode'])
+            if check_uin(product_from_sessions_dict['uin']):
+                if product_from_sessions_dict['uin'] in uins_list:
+                    repeating_product = True
+                else:
+                    uins_list.append(product_from_sessions_dict['uin'])
 
         if repeating_product is False:
             new_object = Jewelry()
@@ -270,7 +277,7 @@ def download_changed_file(request):
     #     return HttpResponse('Скачивание выполнено успешно')
 
     file_path = request.GET.get('file_path')
-    path = os.path.split(file_path)[0]
+    path = os.path.split(file_path)[0] + '/media/'
     name = os.path.split(file_path)[1]
     copy_path = path + 'Копия' + name
     shutil.copyfile(file_path, copy_path)
@@ -297,12 +304,61 @@ def download_nomenclature(request):
 
 
 @login_required()
-def save_availability_status_and_set_recipient_for_products(request):
-    products_dicts_dict = request.session['product_objects_dict_for_view']
-    invoice_requisites = request.session['outgoing_invoice']
-    for product in products_dicts_dict.values():
-        product_object = Jewelry.get_object('uin', product['uin'])
-        if product_object:
-            product_object.availability_status = 'Передано'
-            product_object.recipient_id = invoice_requisites['recipient_id']
-            product_object.save()
+def save_incoming_invoice(request):
+    attr_list = ['name', 'metal', 'vendor_code', 'barcode', 'uin', 'weight', 'size', 'price']
+    product_dict = {}
+    product_dict_dicts_from_session = request.session['product_objects_dict_for_view']
+    product_dict_dicts = {}
+    invoice_data = request.session['invoice']
+    incoming_invoices_titles_list = InputInvoice.get_all_values_list('title')
+    provider_obj = None
+
+    counterparties_obj = Counterparties.get_object('id', invoice_data['provider_id'])
+    print('counterparties_obj = ', counterparties_obj.__dict__)
+    if counterparties_obj:
+        provider_surname = counterparties_obj.surname
+        provider_obj = Provider.get_object('title', provider_surname)
+
+        if not provider_obj:
+            provider_obj = Provider()
+            provider_obj.title = counterparties_obj.surname
+            provider_obj.counterparties_id = counterparties_obj.id
+            provider_obj.save()
+    print('provider_obj = ', provider_obj.__dict__)
+    input_invoice_obj = InputInvoice.get_object('title', invoice_data['title'])
+    if not input_invoice_obj:
+        input_invoice_obj = InputInvoice()
+        input_invoice_obj.provider_id = provider_obj.id
+        input_invoice_obj.arrival_date = invoice_data['arrival_date']
+        input_invoice_obj.save()
+    print('input_invoice_obj = ', input_invoice_obj.__dict__)
+    for number, product in product_dict_dicts_from_session.items():
+        prod_obj = None
+        for attr in attr_list:
+            product_dict[attr] = request.POST.get(str(number) + '.' + attr)
+            # print(product_dict[attr])
+        if product['uin'] != 'None' and product['uin'] is not None:
+            prod_obj = Jewelry.get_object('uin', product_dict['uin'])
+            if prod_obj:
+                for attr in attr_list:
+
+                    if product_dict[attr] is not None and product_dict[attr] != 'None' and attr != 'uin':
+                        print(attr)
+                        value = product_dict[attr]
+                        if isinstance(value, str):
+                            value = value.replace(',', '.') if ',' in value else value
+                        setattr(prod_obj, attr, value)
+
+                prod_obj.arrival_date = invoice_data['arrival_date']
+                prod_obj.input_invoice_id = input_invoice_obj.id
+                prod_obj.provider_id = provider_obj.id
+                print(prod_obj.__dict__)
+                prod_obj.save()
+                if '_state' in prod_obj.__dict__:
+                    delattr(prod_obj, '_state')
+                    prod_obj.number = number
+
+        product_dict_dicts[number] = prod_obj.__dict__
+    request.session['product_objects_dict_for_view'] = product_dict_dicts
+    context = get_context_for_product_list(product_dict_dicts, page_num=None)
+    return render(request, 'product_guide\product_base_v2.html', context=context)

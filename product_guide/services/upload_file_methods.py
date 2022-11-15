@@ -1,6 +1,6 @@
 from product_guide.models import File, OutgoingInvoice, Counterparties
 from django.core.exceptions import ObjectDoesNotExist
-from product_guide.services.anover_functions import form_type_check, get_outgoing_invoice_title_list, \
+from product_guide.services.anover_functions import determine_giis_report, get_outgoing_invoice_title_list, \
     get_context_for_product_list, find_products_in_db
 from product_guide.services.giis_parser import giis_file_parsing
 from product_guide.services.invoice_parser import invoice_parsing, word_invoice_parsing
@@ -16,12 +16,14 @@ def set_correct_file_name(file_name):
     if '(' in file_name:
         file_name = file_name.replace('(', '')
     if ')' in file_name:
-        file_name = file_name.replace(') ', '')
+        file_name = file_name.replace(')', '')
 
     return file_name
 
 
 def determine_belonging_file(file_name):
+    """Определение типа файла.
+    Функция принимает имя файла, возвращает строку 'msexcel' или 'msword'."""
 
     if file_name.endswith('.xls') or file_name.endswith('.xlsx'):
         return 'msexcel'
@@ -45,38 +47,51 @@ def save_form(form):
 
 
 def file_processing(file_name, file_path):
+    """Функция обработки входящих файлов. Определяет тип, и производит парсинг файла.
+    Принимает имя и путь к файлу, возвращает: контекст, dict изделий, данные
+    о накладной для сессии, путь к шаблону"""
     invoice_requisites = {}
+    # Определение типа файла.
     file_type = determine_belonging_file(file_name)
+    # Если тип файла Excel
     if file_type == 'msexcel':
+        # Чтение файла Excel
         full_rows_list, sheet, file_type = read_excel_file(file_path)
-        if form_type_check(file_name) == 'giis_report':
+        # Если файл является отчетом ГИИС
+        if determine_giis_report(file_name) == 'giis_report':
+            # Парсинг файла отчета ГИИС
             products_dicts_dict = giis_file_parsing(full_rows_list, sheet)
             invoice_session_data = {'giis_report': True}
             invoice_requisites['invoice_type'] = 'giis_report'
 
         else:
+            #  Парсинг накладной
             products_dicts_dict, invoice_requisites = invoice_parsing(full_rows_list, sheet, file_type,
                                                                       file_name)
-
+            #  Данные для сохранения в сесии
             invoice_session_data = {
                 'giis_report': False,
                 'arrival_date': invoice_requisites['arrival_date'],
                 'invoice_number': invoice_requisites['invoice_number'],
                 'provider_id': invoice_requisites['provider_id'],
-                'recipient': invoice_requisites['recipient_id'],
+                'recipient_id': invoice_requisites['recipient_id'],
                 'title': file_name,
             }
+        #  Создание контекста для рэндэринга
         context = get_context_for_product_list(products_dicts_dict, page_num=None)
-        template_path = 'product_guide\product_base_v2.html'
 
+        template_path = 'product_guide\product_base_v2.html'
+        # Если накладная является входящей, то в контекст добавляются дополнительные данные
         if invoice_requisites['invoice_type'] == 'incoming':
-            find_products_in_db(products_dicts_dict)
+            context['prod_list'] = find_products_in_db(products_dicts_dict)
             context['invoice_title'] = file_name
             context['file_path'] = file_path
             context['invoice_date'] = invoice_requisites['arrival_date']
             context['invoice_number'] = invoice_requisites['invoice_number']
             context['provider'] = Counterparties.get_object('id', invoice_requisites['provider_id'])
             template_path = 'product_guide\show_incoming_invoice.html'
+        # print(products_dicts_dict)
+        # print(context)
         return context, products_dicts_dict, invoice_session_data, template_path
 
     elif file_type == 'msword':
@@ -106,4 +121,6 @@ def file_processing(file_name, file_path):
         invoice_session_data = invoice_requisites
         template_path = 'product_guide\show_outgoing_invoice.html'
 
+        # print(products_dicts_dict)
+        # print(context)
         return context, products_dicts_dict, invoice_session_data, template_path

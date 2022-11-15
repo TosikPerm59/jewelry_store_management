@@ -48,17 +48,15 @@
             <p>Всего {{len_products}} изделий, общим весом {{total_weight}} грамм</p>
         </h3>
 
-        {% for product in product_list %}
-            <form method="post" action="{% url 'change_attr' %}" id="change{{product.number}}">
-                {% csrf_token %}
-            </form>
-            <form method="post" action="{% url 'delete_line' %}" id="delete{{product.number}}">
-                {% csrf_token %}
-            </form>
-        {% endfor %}
+
+        <form method="post" action="{% url 'save_incoming_invoice' %}" id="save_products">
+            {% csrf_token %}
+        </form>
+
 
         <table class="table">
             <tr class="table_header">
+                <th>№</th>
                 <th>Изделие</th>
                 <th>Металл</th>
                 <th>Артикул</th>
@@ -70,18 +68,99 @@
             </tr>
 
             {% for product in product_list %}
-
                 <tr class="table_row">
+                    <td>{{product.number}}</td>
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.name"
+                                      value="{{product.name}}" checked form="save_products">
+                        {{product.name}}</td>
 
-                    <td><input  type="text" value="{{ product.name }}" name="product.name" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.metal }}" name="product.metal" style="width: 11ch" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.vendor_code }}" name="product.vendor_code" style="width: 20ch" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.barcode }}" name="product.barcode" style="width: 14ch" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.uin }}" name="product.uin" style="width: 17ch" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.weight }}" name="product.weight" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.size }}" name="product.size" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.price }}" name="product.price" form="change{{product.number}}"> </td>
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.metal"
+                                      value="{{product.metal}}" checked form="save_products" >
+                        {{ product.metal }}</td>
 
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.vendor_code"
+                                      value="{{product.vendor_code}}" checked form="save_products">
+                        {{ product.vendor_code }}</td>
+
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.barcode"
+                                      value="{{product.barcode}}" checked form="save_products">
+                        {{ product.barcode }}</td>
+
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.uin"
+                                      value="{{product.uin}}" checked form="save_products">
+                        {{ product.uin }}</td>
+
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.weight"
+                                      value="{{product.weight}}" checked form="save_products">
+                        {{ product.weight }}</td>
+
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.size"
+                                      value="{{product.size}}" checked form="save_products">
+                        {{ product.size }}</td>
+
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.price"
+                                      value="{{product.price}}" checked form="save_products">
+                        {{ product.price }}</td>
+
+                </tr>
+                {% for prod in prod_list %}
+                {% if prod.number == product.number%}
+                <tr class="table_row">
+                    <td></td>
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.name"
+                                      value="{{prod.name}}" form="save_products">
+                        {{prod.name}}</td>
+
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.metal"
+                                      value="{{prod.metal}}" form="save_products">
+                        {{ prod.metal }}</td>
+
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.vendor_code"
+                                      value="{{prod.vendor_code}}" form="save_products">
+                        {{ prod.vendor_code }}</td>
+
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.barcode"
+                                      value="{{prod.barcode}}" form="save_products">
+                        {{ prod.barcode }}</td>
+
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.uin"
+                                      value="{{prod.uin}}" form="save_products">
+                        {{ prod.uin }}</td>
+
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.weight"
+                                      value="{{prod.weight}}" form="save_products">
+                        {{ prod.weight }}</td>
+
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.size"
+                                      value="{{prod.size}}" form="save_products">
+                        {{ prod.size }}</td>
+
+                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.price"
+                                      value="{{prod.price}}" form="save_products">
+                        {{ prod.price }}</td>
+
+
+
+                {% endif %}
+                {% endfor%}
+                    </tr>
+                <tr>
+                <td colspan="9"></td>
+                </tr>
+                <tr>
+                <td colspan="9"></td>
+                </tr>
+                <tr>
+                <td colspan="9"></td>
+                </tr>
+                <tr>
+                <td colspan="9"></td>
+                </tr>
+                <tr>
+                <td colspan="9"></td>
+                </tr>
+                <tr>
+                <td colspan="9"></td>
                 </tr>
             {% endfor %}
         </table>
@@ -92,10 +171,7 @@
                 <button type="submit">{{ num }}</button>
             </form>
         {% endfor %}
-        <form method="get" action="{% url 'download_nomenclature' %}">
-            <input type="text" value="{{ file_path }}" name="file_path" hidden>
-            <button type="submit">Скачать файл</button>
-        </form>
+        <button type="submit" form="save_products">Сохранить</button>
     </article>
 
 {% endblock %}

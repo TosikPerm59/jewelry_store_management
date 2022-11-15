@@ -1,5 +1,7 @@
 import os
 from django.core.paginator import Paginator
+
+from jewelry_store_management.settings import BASE_DIR
 from product_guide.models import File, Counterparties, Jewelry
 from product_guide.services.finders import find_name, find_metal, find_art, find_weight
 from product_guide.services.validity import isfloat, check_weight, check_id, check_uin
@@ -19,7 +21,7 @@ def search_query_processing(search_string):
                 if check_uin(string_element):
                     uin = string_element
         string_element = string_element.replace(',', '.') if ',' in string_element else string_element
-        weight = string_element if isfloat(string_element) and weight == 'all' and check_weight(string_element)\
+        weight = string_element if isfloat(string_element) and weight == 'all' and check_weight(string_element) \
             else weight
 
         if name == 'all':
@@ -28,10 +30,10 @@ def search_query_processing(search_string):
             metal = find_metal(string_element) if find_metal(string_element) else metal
         if vendor_code == 'all':
             vendor_code = find_art(string_element, group=None) if (
-                                                                   find_art(string_element, group=None) and
-                                                                   check_id(string_element) is False and
-                                                                   check_uin(string_element is False)
-                                                                   ) else vendor_code
+                    find_art(string_element, group=None) and
+                    check_id(string_element) is False and
+                    check_uin(string_element is False)
+            ) else vendor_code
 
     filters_dict = {
         'name': name,
@@ -63,23 +65,33 @@ def calculate_weight_number_price(products_dicts_dict):
 
 
 def get_context_for_product_list(products_dicts_dict, page_num):
+    """Функция создания контекста для рэндэринга. Определяет общий вес и количесво изделий,
+     разделяет все изделия постранично по 50 штук на странице, определяет выбранную пользователем
+     страницу, создает dict контекста, по умолчанию выбирается первая страница.
+    Принимает dict с изделиями и номер страницы, возвращает dict с контекстом для выбранной
+    пользователем страницы. """
+
+    # Определение общего веса и количества изделий из products_dicts_dict
     total_weight, number_of_products = calculate_weight_number_price(products_dicts_dict)
+    # Конвертация dict в list
     product_queryset = make_product_queryset_from_dict_dicts(products_dicts_dict)
     product_list = []
+    # Разбиение всех изделий из products_dicts_dict постранично по 50 штук
     paginator = Paginator(product_queryset, 50)
+    # Получение списка изделий для выбранной пользователем страницы
     page = paginator.get_page(page_num)
+    # Создание dict с контекстом
     context = {
         'product_list': page.object_list,
-        'list_length': len(product_list),
-        'num_pages': [x for x in range(paginator.num_pages + 1)][1:],
-        'total_weight': round(total_weight, ndigits=2),
-        'len_products': number_of_products
+        'position_list': [x for x in range(number_of_products)],  # Список номеров позиций
+        'num_pages': [x for x in range(paginator.num_pages + 1)][1:], # Список номеров страниц
+        'total_weight': round(total_weight, ndigits=2),  # Общий вес изделий в списке
+        'len_products': number_of_products  # Количество изделий в списке
     }
     return context
 
 
 def save_invoice(form, file_name):
-
     file = File.get_object('title', file_name)
     file.delete()
     form.save()
@@ -88,7 +100,7 @@ def save_invoice(form, file_name):
     file_object.save()
 
 
-def form_type_check(file_name):
+def determine_giis_report(file_name):
     if file_name.startswith('4_BATCH_LIST_PRINT'):
         return 'giis_report'
 
@@ -163,7 +175,8 @@ def definition_of_invoice_type(provider, recipient):
             provider_id = counterparties_object.id
         if recipient.find(counterparties_object.surname.lower()) != -1:
             recipient_id = counterparties_object.id
-            invoice_type = 'incoming' if Counterparties.get_object('id', recipient_id).surname == 'Александрова' else 'outgoing'
+            invoice_type = 'incoming' if Counterparties.get_object('id',
+                                                                   recipient_id).surname == 'Александрова' else 'outgoing'
 
     return invoice_type, provider_id, recipient_id
 
@@ -206,38 +219,59 @@ def create_nomenclature_file(file_path, products_dict_dict, invoice_dict):
 
 
 def find_products_in_db(products_dicts_dict):
+    def add_object(new_product_dicts_dict, funded_object):
+        new_product_dicts_dict[number] = []
+        for obj in funded_object:
+            del obj._state
+            obj.number = number
+            new_product_dicts_dict[number].append(obj.__dict__)
+        return new_product_dicts_dict
+
     obj = None
-    counter = 0
     new_product_list = []
+    new_product_dicts_dict = {}
+    for number, product_dict in products_dicts_dict.items():
+        if product_dict['barcode']:
+            funded_object = Jewelry.get_object('barcode', product_dict['barcode'])
+            if funded_object:
+                del funded_object._state
+                funded_object.number = number
+                new_product_dicts_dict[number] = funded_object.__dict__
+        if number not in new_product_dicts_dict.keys():
+            if product_dict['vendor_code']:
+                funded_object = Jewelry.objects.filter(name=product_dict['name'],
+                                                       metal=product_dict['metal'], weight=product_dict['weight'],
+                                                       vendor_code=product_dict['vendor_code'])
+                if funded_object:
+                    new_product_dicts_dict = add_object(new_product_dicts_dict, funded_object)
+            if number not in new_product_dicts_dict.keys():
+                funded_object = Jewelry.objects.filter(name=product_dict['name'], metal=product_dict['metal'],
+                                                       weight=float(product_dict['weight']))
+                if funded_object:
+                    new_product_dicts_dict = add_object(new_product_dicts_dict, funded_object)
+            if number not in new_product_dicts_dict.keys():
+                funded_object = Jewelry.objects.filter(name=product_dict['name'], weight=float(product_dict['weight']))
+                if funded_object:
+                    new_product_dicts_dict = add_object(new_product_dicts_dict, funded_object)
+            if number not in new_product_dicts_dict.keys():
+                funded_object = Jewelry.objects.filter(metal=product_dict['metal'],
+                                                       weight=float(product_dict['weight']))
+                if funded_object:
+                    new_product_dicts_dict = add_object(new_product_dicts_dict, funded_object)
+            if number not in new_product_dicts_dict.keys():
+                funded_object = Jewelry.objects.filter(weight=float(product_dict['weight']))
+                if funded_object:
+                    new_product_dicts_dict = add_object(new_product_dicts_dict, funded_object)
 
-    for product in products_dicts_dict.values():
-        new_product_dicts_dict = {}
-        objs_list = []
-        counter += 1
+    for product in new_product_dicts_dict.values():
 
-        new_product_dicts_dict[counter] = product
-        if product['barcode']:
-            obj = Jewelry.objects.filter(barcode=product['barcode'])
+        if not isinstance(product, list):
+            new_product_list.append(product)
+        else:
+            for prod in product:
+                new_product_list.append(prod)
 
-            if obj:
-                new_product_dicts_dict[counter] = obj.__dict__
-            else:
-                if product['vendor_code']:
-                    objs = Jewelry.objects.filter(name=product['name'], metal=product['metal'], weight=product['weight'], vendor_code=product['vendor_code'])
-                    if objs:
-                        for obj in objs:
-                            objs_list.append(obj.__dict__)
-                        new_product_dicts_dict[counter] = objs_list
-        if counter not in new_product_dicts_dict.keys():
-            objs = Jewelry.objects.filter(name=product['name'], metal=product['metal'], weight=product['weight'])
-            if objs:
-                for obj in objs:
-                    objs_list.append(obj.__dict__)
-                new_product_dicts_dict[counter] = objs_list
-        new_product_list.append(new_product_dicts_dict)
+    return new_product_list
 
-    for product in new_product_list:
-        print(product)
-
-
-
+    def clear_media_folder():
+        path = os.path.join(BASE_DIR, 'media')

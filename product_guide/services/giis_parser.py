@@ -13,21 +13,7 @@ def giis_file_parsing(rows_list, sheet):
     и анализируя данные принимает решение о помещении этих данных соответствующим ключам словаря принадлежащего
     текущей позиции.
       Функция возвращает словарь с позициями в которых все характеристики упорядочены и проверены. """
-    manufacturers_dict = {'2451000818': 'Красцветмет',
-                          '3123362920': 'АртКарат',
-                          '5904148360': 'Мидас-Пермь',
-                          '4415004722': 'Аквамарин',
-                          '332136077322': 'ИП Федосов В.И.',
-                          '4400005628': 'Ювелит',
-                          '3719004049': 'Красная Пресня',
-                          '3321021079': 'Золотые Купола',
-                          '615403468530': 'Золотая подкова',
-                          '744500352130': 'ЮФ Самоцветы',
-                          '441500729382': 'ИП Козин О.В.',
-                          '5902179700': 'Урал-Голд',
-                          '5406605334': 'Новосибирский ЮЗ',
-                          '441501193827': 'ИП Халеева Е.Г.'
-                          }
+
     giis_dicts_dict = {}
     group = 'excel'
     rows_list = rows_list[4:]
@@ -36,7 +22,7 @@ def giis_file_parsing(rows_list, sheet):
     uin_list = []
     products_queryset = Jewelry.get_all_obj()
     manufacturers = Manufacturer.get_all_values_list('inn')
-    new_manufacturer = set()
+
     for product in products_queryset:
         uin_list.append(product.uin)
     # Выполняется построчный проход по таблице
@@ -59,7 +45,6 @@ def giis_file_parsing(rows_list, sheet):
                 manufacturer = Manufacturer(inn=manufacturer_inn)
                 manufacturer.save()
             manufacturer = Manufacturer.get_object('inn', str(manufacturer_inn))
-            print(manufacturer)
             if manufacturer:
                 manufacturer_id = manufacturer.id
         counter += 1

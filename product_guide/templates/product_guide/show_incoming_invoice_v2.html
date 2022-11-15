@@ -39,7 +39,15 @@
     </aside>
 
     <article>
-        <h5> Всего {{len_products}} изделий общим весом {{total_weight}} грамм</h5>
+
+        <h3>
+            <p>Накладная: {{ invoice_title }}</p>
+            <p>Дата поступления: {{ invoice_date }}</p>
+            <p>Номер накладной: {{ invoice_number }}</p>
+            <p>Постащик: {{ provider }}</p>
+            <p>Всего {{len_products}} изделий, общим весом {{total_weight}} грамм</p>
+        </h3>
+
         {% for product in product_list %}
             <form method="post" action="{% url 'change_attr' %}" id="change{{product.number}}">
                 {% csrf_token %}
@@ -48,41 +56,20 @@
                 {% csrf_token %}
             </form>
         {% endfor %}
+
         <table class="table">
             <tr class="table_header">
                 <th>№</th>
                 <th>Изделие</th>
                 <th>Металл</th>
-                <th>Вес</th>
                 <th>Артикул</th>
                 <th>Штрихкод</th>
                 <th>УИН</th>
-                <th>Статус ГИИС</th>
+                <th>Вес</th>
+                <th>Размер</th>
                 <th>Цена</th>
-                <th>Поставщик</th>
             </tr>
-
-            {% for product in product_list %}
-
-                <tr class="table_row">
-                    <td>{{product.number}}</td>
-                    <td><input  type="text" value="{{ product.name }}" name="product.name" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.metal }}" name="product.metal" style="width: 11ch" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.weight }}" name="product.weight" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.vendor_code }}" name="product.vendor_code" style="width: 20ch" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.barcode }}" name="product.barcode" style="width: 14ch" form="change{{product.number}}"> </td>
-                    <td><input type="text" value="{{ product.uin }}" name="product.uin" style="width: 17ch" form="change{{product.number}}"> </td>
-                    <td><input  type="text" value="{{ product.giis_status }}" name="product.giis_status" style="width: 11ch" form="change{{product.number}}"> </td>
-                    <td><input  type="text" value="{{ product.price }}" name="product.price" form="change{{product.number}}"> </td>
-                    <td><input  type="text" value="{{ product.provider }}" name="product.provider" form="change{{product.number}}"> </td>
-<!--                    <td style="border:hidden; padding:0"><input type="text" value="{{ product.number }}" name="product.number" form="change{{product.number}}" hidden></td>-->
-<!--                    <td><button type="submit" form="change{{product.number}}">Сохранить</button> </td>-->
-<!--                    <td style="border:hidden; padding:0"><input type="text" value="{{product.number}}" name="product.number" form="delete{{product.number}}" hidden></td>-->
-<!--                    <td><button type="submit" form="delete{{product.number}}">Удалить строку</button></td>-->
-
-
-                </tr>
-            {% endfor %}
+            {{my_string}}
         </table>
         {% for num in num_pages %}
             <form action="{% url 'product_base' %}" method="post">
@@ -91,8 +78,10 @@
                 <button type="submit">{{ num }}</button>
             </form>
         {% endfor %}
-        <form method="get" action="{% url 'save_products' %}">
-        <button type="submit">Сохранить изделия в базе данных</button>
+        <form method="get" action="{% url 'download_nomenclature' %}">
+            <input type="text" value="{{ file_path }}" name="file_path" hidden>
+            <button type="submit">Скачать файл</button>
         </form>
     </article>
+
 {% endblock %}

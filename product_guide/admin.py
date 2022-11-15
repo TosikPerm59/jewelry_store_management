@@ -12,6 +12,10 @@ class OutgoingInvoiceAdmin(admin.ModelAdmin):
     list_display = ('title', 'recipient')
 
 
+class ManufacturerAdmin(admin.ModelAdmin):
+    list_display = ('title', 'inn')
+
+
 admin.site.register(Jewelry, JewelryAdmin)
 admin.site.register(Metal)
 admin.site.register(InputInvoice)
@@ -20,5 +24,5 @@ admin.site.register(Provider)
 admin.site.register(Recipient)
 admin.site.register(File)
 admin.site.register(Counterparties)
-admin.site.register(Manufacturer)
+admin.site.register(Manufacturer, ManufacturerAdmin)
 

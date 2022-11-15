@@ -18,10 +18,10 @@ html {
 }
 body {
     flex-direction: column;
-
-    width: 1400px;
+    margin: 0;
+    padding: 5px;
+    width: fit-content;
     height: 100%;
-    margin: 5px;
 }
 
 header {
@@ -71,6 +71,7 @@ main {
     width: 100%;
     border: 2px gray solid;
     border-radius: 5px;
+    padding-bottom: 15px;
 }
 
 aside {
@@ -107,6 +108,7 @@ select {
 article {
     flex-direction: column;
     height: 100%;
+    padding: 5px 5px 5px 10px;
 
 }
 
@@ -135,7 +137,11 @@ article {
 }
 
 .table_row td input{
-    width: 10ch;
+    width: 7ch;
+}
+
+.table_row td .choice_variant{
+    width: 2ch;
 }
 
 .register_window {

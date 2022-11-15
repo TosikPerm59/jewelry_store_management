@@ -17,7 +17,7 @@ def read_excel_file(path_to_excel_file):
         for row in rows_list:
             for elem in row:
                 if isinstance(elem, str):
-                    elem_low = elem.lower()
+                    elem_low = elem.replace('\n', '').lower() if '\n' in elem else elem.lower()
                     elem_ind = row.index(elem)
                     row.remove(elem)
                     row.insert(elem_ind, elem_low)
