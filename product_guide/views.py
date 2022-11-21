@@ -5,7 +5,7 @@ from django.db.models import Model
 from django.http import HttpResponse, FileResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from .models import Jewelry, InputInvoice, Manufacturer, Provider, Counterparties
+from .models import Jewelry, InputInvoice, Manufacturer, Provider, Counterparties, File
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
     make_product_dict_from_dbqueryset, get_context_for_product_list, \

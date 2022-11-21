@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 
 
+
 class ExtendedModelsModel(models.Model):
 
     def __str__(self):
@@ -61,12 +62,12 @@ class ExtendedModelsModel(models.Model):
                     values_list.append(product_dict[attr_name])
         return values_list
 
-
     @classmethod
     def delete_all_objects(cls):
         objects = cls.objects.all()
-        for obj in objects:
-            obj.delete()
+        if objects:
+            for obj in objects:
+                obj.delete()
 
     class Meta:
         abstract = True
