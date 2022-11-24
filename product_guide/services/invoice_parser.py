@@ -27,6 +27,7 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
 
     for row in full_rows_list:
         if 'поставщик' in row:
+            # print(row)
             for elem in row:
                 if isinstance(elem, str) and elem != '' and elem is not None:
                     string_with_provider += elem + ' '

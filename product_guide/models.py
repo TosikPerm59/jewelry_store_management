@@ -87,7 +87,7 @@ class Jewelry(ExtendedModelsModel):
 
     giis_statuses = (
         ('На хранении', 'На хранении'),
-        ('Выбыл', 'Выбыл')
+        ('Выведено', 'Выведено')
     )
 
     availability_statuses = (
@@ -174,7 +174,7 @@ class OutgoingInvoice(Invoice, ExtendedModelsModel):
 
 
 class Counterparties(ExtendedModelsModel):
-    full_name = models.CharField(max_length=50, blank=True, null=True, verbose_name='Полное наименование поставщика')
+    full_name = models.CharField(max_length=70, blank=True, null=True, verbose_name='Полное наименование поставщика')
     first_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Имя')
     surname = models.CharField(max_length=30, blank=True, null=True, verbose_name='Фамилия')
     last_name = models.CharField(max_length=30, blank=True, null=True, verbose_name='Отчество')
@@ -182,7 +182,7 @@ class Counterparties(ExtendedModelsModel):
     inn = models.IntegerField(verbose_name='ИНН', blank=True, null=True)
     email = models.EmailField(verbose_name='Email', blank=True, null=True)
     tel = models.IntegerField(blank=True, null=True, verbose_name='Телефон')
-    checking_account = models.IntegerField(blank=True, null=True, verbose_name='Рассчетный сет')
+    checking_account = models.IntegerField(blank=True, null=True, verbose_name='Рассчетный счет')
     bank = models.CharField(max_length=50, blank=True, null=True, verbose_name='Банк')
     bik = models.IntegerField(blank=True, null=True, verbose_name='БИК')
     address = models.CharField(max_length=100, blank=True, null=True, verbose_name='Адрес')

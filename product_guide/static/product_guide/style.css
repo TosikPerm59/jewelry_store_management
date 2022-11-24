@@ -211,3 +211,70 @@ article {
     margin-top: 10px;
     width: 100%;
 }
+
+
+.modal {
+    position: absolute;
+    border: none;
+    border-radius: 10px;
+    top: 0;
+    left: 0;
+    padding: 0;
+}
+
+.modal::backdrop {
+    background-color: black;
+    opacity: 0.7;
+}
+
+.wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modalWindow {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    border-radius: 10px;
+    box-shadow: 0 10px 15px rgba(0,0,0 .4);
+    background-color: #fff;
+    padding: 30px;
+}
+
+.closeModal {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    border: none;
+    background: none;
+    opacity: 0.7;
+}
+
+.closeModal:hover {
+    opacity: 1;
+}
+
+.modal_title {
+    align-items: center;
+    text-align: center;
+    height: 50px;
+}
+
+.modal_descr {
+    display: flex;
+}
+
+.attr_name {
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    padding-left: 30px;
+}
+
+.attr_value {
+    display: flex;
+    flex-direction: column;
+}

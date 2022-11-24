@@ -34,7 +34,7 @@ def giis_file_parsing(rows_list, sheet):
         uins = None
         giis_status = sheet[row][6].value if sheet[row][6].value else None
         if giis_status == 'Терминальная стадия':
-            giis_status = 'Выбыл'
+            giis_status = 'Выведено'
             availability_status = 'Продано'
         else:
             availability_status = 'В наличии'

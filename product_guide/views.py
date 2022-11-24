@@ -93,7 +93,9 @@ def index(request):
 def product_base(request):
     filters_dict = {
         'name': request.POST.get('name') if request.POST.get('name') else 'all',
-        'metal': request.POST.get('metal') if request.POST.get('metal') else 'all'
+        'metal': request.POST.get('metal') if request.POST.get('metal') else 'all',
+        'availability_status': request.POST.get('availability_status') if request.POST.get('availability_status') else 'all',
+        'giis_status': request.POST.get('giis_status') if request.POST.get('giis_status') else 'all'
     }
     page_num = request.POST.get('page')
     prod_uin = None
@@ -310,11 +312,10 @@ def save_incoming_invoice(request):
     product_dict_dicts_from_session = request.session['product_objects_dict_for_view']
     product_dict_dicts = {}
     invoice_data = request.session['invoice']
-    incoming_invoices_titles_list = InputInvoice.get_all_values_list('title')
     provider_obj = None
 
     counterparties_obj = Counterparties.get_object('id', invoice_data['provider_id'])
-    print('counterparties_obj = ', counterparties_obj.__dict__)
+    # print('counterparties_obj = ', counterparties_obj.__dict__)
     if counterparties_obj:
         provider_surname = counterparties_obj.surname
         provider_obj = Provider.get_object('title', provider_surname)
@@ -324,20 +325,21 @@ def save_incoming_invoice(request):
             provider_obj.title = counterparties_obj.surname
             provider_obj.counterparties_id = counterparties_obj.id
             provider_obj.save()
-    print('provider_obj = ', provider_obj.__dict__)
+    # print('provider_obj = ', provider_obj.__dict__)
     input_invoice_obj = InputInvoice.get_object('title', invoice_data['title'])
     if not input_invoice_obj:
         input_invoice_obj = InputInvoice()
         input_invoice_obj.provider_id = provider_obj.id
         input_invoice_obj.arrival_date = invoice_data['arrival_date']
         input_invoice_obj.save()
-    print('input_invoice_obj = ', input_invoice_obj.__dict__)
+    # print('input_invoice_obj = ', input_invoice_obj.__dict__)
     for number, product in product_dict_dicts_from_session.items():
         prod_obj = None
         for attr in attr_list:
             product_dict[attr] = request.POST.get(str(number) + '.' + attr)
             # print(product_dict[attr])
         if product['uin'] != 'None' and product['uin'] is not None:
+            # print(product['uin'])
             prod_obj = Jewelry.get_object('uin', product_dict['uin'])
             if prod_obj:
                 for attr in attr_list:
