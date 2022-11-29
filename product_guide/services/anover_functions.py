@@ -2,7 +2,7 @@ import os
 from django.core.paginator import Paginator
 
 from jewelry_store_management.settings import BASE_DIR
-from product_guide.models import File, Counterparties, Jewelry
+from product_guide.models import File, Counterparties, Jewelry, Provider, InputInvoice
 from product_guide.services.finders import find_name, find_metal, find_art, find_weight
 from product_guide.services.validity import isfloat, check_weight, check_id, check_uin
 from openpyxl import Workbook
@@ -140,12 +140,12 @@ def make_product_dict_from_dbqueryset(dbqueryset):
     return product_dicts_dict
 
 
-def filters_check(filters_dict):
+def has_filters_check(filters_dict):
+    status = False
     for value in filters_dict.values():
-        if value == 'all':
-            return 'all'
-    else:
-        return 'filtered'
+        if value != 'all':
+            status = True
+    return status
 
 
 def get_outgoing_invoice_title_list(out_inv_queryset):
@@ -273,5 +273,27 @@ def find_products_in_db(products_dicts_dict):
 
     return new_product_list
 
-    def clear_media_folder():
-        path = os.path.join(BASE_DIR, 'media')
+
+def get_or_save_provider(invoice_data):
+    counterparties_obj = Counterparties.get_object('id', invoice_data['provider_id'])
+    # print('counterparties_obj = ', counterparties_obj.__dict__)
+    if counterparties_obj:
+        provider_surname = counterparties_obj.surname
+        provider_obj = Provider.get_object('title', provider_surname)
+
+        if not provider_obj:
+            provider_obj = Provider()
+            provider_obj.title = provider_surname
+            provider_obj.counterparties_id = counterparties_obj.id
+            provider_obj.save()
+
+        return provider_obj
+
+
+def get_or_save_input_invoice_obj(invoice_data, provider_obj):
+    input_invoice_obj = InputInvoice.get_object('title', invoice_data['title'])
+    if not input_invoice_obj:
+        input_invoice_obj = InputInvoice()
+        input_invoice_obj.provider_id = provider_obj.id
+        input_invoice_obj.arrival_date = invoice_data['arrival_date']
+        input_invoice_obj.save()

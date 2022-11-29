@@ -9,13 +9,15 @@ from .models import Jewelry, InputInvoice, Manufacturer, Provider, Counterpartie
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import search_query_processing, \
     make_product_dict_from_dbqueryset, get_context_for_product_list, \
-    make_product_queryset_from_dict_dicts, filters_check, create_nomenclature_file
+    make_product_queryset_from_dict_dicts, has_filters_check, create_nomenclature_file, get_or_save_provider, \
+    get_or_save_input_invoice_obj
 from django.contrib.auth.decorators import login_required
 from .services.outgoing_invoice_changer import change_outgoing_invoice
 from .services.upload_file_methods import set_correct_file_name, save_form, file_processing
 from django.utils.datastructures import MultiValueDictKeyError
 
 from .services.validity import check_id, check_uin, isfloat, isinteger
+from .services.view_classes import RequestSession, ShowProductsPost, UploadFilePost
 
 
 def register(request):
@@ -90,77 +92,41 @@ def index(request):
 
 
 @login_required()
-def product_base(request):
-    filters_dict = {
-        'name': request.POST.get('name') if request.POST.get('name') else 'all',
-        'metal': request.POST.get('metal') if request.POST.get('metal') else 'all',
-        'availability_status': request.POST.get('availability_status') if request.POST.get('availability_status') else 'all',
-        'giis_status': request.POST.get('giis_status') if request.POST.get('giis_status') else 'all'
-    }
-    page_num = request.POST.get('page')
-    prod_uin = None
-    search_string = request.POST.get('search_string')
+def show_products(request):
 
-    if search_string:
-        filters_dict = search_query_processing(search_string)
+    try:
+        if request.method == 'POST':
+            print('POST')
+            request_obj = ShowProductsPost(request)
+            product_dicts_dict = request_obj.product_dicts_dict
+            page_num = request_obj.page_num
+        else:
+            print('GET')
+            products_dicts_list = Jewelry.get_all_values()
+            product_dicts_dict = make_product_dict_from_dbqueryset(products_dicts_list)
+            RequestSession.save_product_dicts_dict_in_session(request, product_dicts_dict)
+            page_num = None
+            RequestSession.delete_filtered_list_from_session(request)
 
-    if filters_check(filters_dict) == 'all':
-        if 'filtered_list' in request.session.keys() and page_num is None:
-            request.session.pop('filtered_list')
+        context = get_context_for_product_list(product_dicts_dict, page_num)
 
-    if request.method == 'POST':
-        product_dicts_dict = request.session['product_objects_dict_for_view']
-        product_list = make_product_queryset_from_dict_dicts(product_dicts_dict)
+        return render(request, 'product_guide\product_base_v2.html', context=context)
 
-        for key, value in filters_dict.items():
-            if value != 'all':
-                value = float(value) if isfloat(value) else value
-                value = int(value) if isinteger(value) else value
-                product_list = [p for p in product_list if p[key] == value]
-
-        request.session['filtered_list'] = make_product_dict_from_dbqueryset(product_list)
-        product_dicts_dict = make_product_dict_from_dbqueryset(product_list)
-
-    else:
-        products_dicts_list = Jewelry.get_all_values()
-        product_dicts_dict = make_product_dict_from_dbqueryset(products_dicts_list)
-        request.session['product_objects_dict_for_view'] = product_dicts_dict
-
-    if page_num:
-        if 'filtered_list' in request.session.keys():
-            product_dicts_dict = request.session['filtered_list']
-
-    context = get_context_for_product_list(product_dicts_dict, page_num)
-
-    return render(request, 'product_guide\product_base_v2.html', context=context)
+    except:
+        return index(request)
 
 
 @login_required()
 def upload_file(request):
-    context, template_path = None, None
-
-    if request.method == 'POST':
-        file = None
-        form = UploadFileForm(request.POST, request.FILES)
-        try:
-            file = request.FILES['file']
-        except MultiValueDictKeyError:
-            pass
-        if file:
-            file_name = set_correct_file_name(request.FILES['file'].name)
-            form.title = file_name
-            if form.is_valid():
-                save_form(form)
-                path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\'
-                file_path = path + file_name
-                context, products_dicts_dict, invoice_session_data, template_path = \
-                    file_processing(file_name, file_path)
-                request.session['product_objects_dict_for_view'] = products_dicts_dict
-                request.session['invoice'] = invoice_session_data
-            # print(context)
-            return render(request, template_path, context=context)
+    try:
+        RequestSession.delete_filtered_list_from_session(request)
+        if request.method == 'POST':
+            request_obj = UploadFilePost(request)
+            return render(request, request_obj.template_path, context=request_obj.context)
         else:
             return index(request)
+    except:
+        return index(request)
 
 
 @login_required()
@@ -180,7 +146,7 @@ def change_product_attr(request):
                 product_value['uin'] = request.POST.get('product.uin')
                 break
 
-        request.session['product_objects_dict_for_view'] = product_dict_dicts
+        RequestSession.save_product_dicts_dict_in_session(request, product_dict_dicts)
 
     context = get_context_for_product_list(product_dict_dicts, page_num=None)
 
@@ -312,32 +278,17 @@ def save_incoming_invoice(request):
     product_dict_dicts_from_session = request.session['product_objects_dict_for_view']
     product_dict_dicts = {}
     invoice_data = request.session['invoice']
-    provider_obj = None
 
-    counterparties_obj = Counterparties.get_object('id', invoice_data['provider_id'])
-    # print('counterparties_obj = ', counterparties_obj.__dict__)
-    if counterparties_obj:
-        provider_surname = counterparties_obj.surname
-        provider_obj = Provider.get_object('title', provider_surname)
+    provider_obj = get_or_save_provider(invoice_data)
 
-        if not provider_obj:
-            provider_obj = Provider()
-            provider_obj.title = counterparties_obj.surname
-            provider_obj.counterparties_id = counterparties_obj.id
-            provider_obj.save()
-    # print('provider_obj = ', provider_obj.__dict__)
-    input_invoice_obj = InputInvoice.get_object('title', invoice_data['title'])
-    if not input_invoice_obj:
-        input_invoice_obj = InputInvoice()
-        input_invoice_obj.provider_id = provider_obj.id
-        input_invoice_obj.arrival_date = invoice_data['arrival_date']
-        input_invoice_obj.save()
-    # print('input_invoice_obj = ', input_invoice_obj.__dict__)
+    input_invoice_obj = get_or_save_input_invoice_obj(invoice_data, provider_obj)
+
     for number, product in product_dict_dicts_from_session.items():
+        print(number, product)
         prod_obj = None
         for attr in attr_list:
             product_dict[attr] = request.POST.get(str(number) + '.' + attr)
-            # print(product_dict[attr])
+            # print('product_dict[attr] = ', product_dict[attr])
         if product['uin'] != 'None' and product['uin'] is not None:
             # print(product['uin'])
             prod_obj = Jewelry.get_object('uin', product_dict['uin'])
