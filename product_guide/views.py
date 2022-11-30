@@ -13,11 +13,19 @@ from product_guide.services.anover_functions import search_query_processing, \
     get_or_save_input_invoice_obj
 from django.contrib.auth.decorators import login_required
 from .services.outgoing_invoice_changer import change_outgoing_invoice
+from .services.testing_classes import Testing
 from .services.upload_file_methods import set_correct_file_name, save_form, file_processing
 from django.utils.datastructures import MultiValueDictKeyError
-
+import traceback
 from .services.validity import check_id, check_uin, isfloat, isinteger
 from .services.view_classes import RequestSession, ShowProductsPost, UploadFilePost
+
+
+def show_exeption(request, exception_text):
+
+    splitted_exception_text = exception_text.split('\n')
+    context = {'exception_list': splitted_exception_text}
+    return render(request, 'product_guide/show_exception.html', context=context)
 
 
 def register(request):
@@ -93,8 +101,13 @@ def index(request):
 
 @login_required()
 def show_products(request):
-
+    """ Представление, которое формирует список изделий для отображения. Формируется в зависимости от запроса.
+            При GET запросе, отображаются все изделия хранящиеся в базе. При POST запросе, отображаются изделия
+            в соответствии с запросом. POST запрос может быть с указанием номера страницы, с запросом поисковой
+            строки или с запросом фильтрации данных. """
+    print('SHOW PRODUCTS')
     try:
+
         if request.method == 'POST':
             print('POST')
             request_obj = ShowProductsPost(request)
@@ -102,77 +115,46 @@ def show_products(request):
             page_num = request_obj.page_num
         else:
             print('GET')
+            RequestSession.session_cleanup(request)
             products_dicts_list = Jewelry.get_all_values()
             product_dicts_dict = make_product_dict_from_dbqueryset(products_dicts_list)
             RequestSession.save_product_dicts_dict_in_session(request, product_dicts_dict)
             page_num = None
-            RequestSession.delete_filtered_list_from_session(request)
 
         context = get_context_for_product_list(product_dicts_dict, page_num)
-
+        Testing.show_session_data(request)
         return render(request, 'product_guide\product_base_v2.html', context=context)
 
-    except:
-        return index(request)
+    except Exception:
+        print('EXCEPTION')
+        print(traceback.format_exc())
+        return show_exeption(request, traceback.format_exc())
 
 
 @login_required()
 def upload_file(request):
+    """ Представление, которое обрабатывает загружаемый файл, формирует данные и загружает шаблон, в зависимости от типа
+        загружаемого файла. """
+    print('UPLOAD FILE')
     try:
-        RequestSession.delete_filtered_list_from_session(request)
+        RequestSession.session_cleanup(request)  # Очистить сессию от временных данных
         if request.method == 'POST':
+            print('POST')
             request_obj = UploadFilePost(request)
+
+            # Показать данные сессии
+            Testing.show_session_data(request, show_products=False, show_invoice=True)
+            # Показать данные контекста
+            Testing.show_context_data(request_obj.context, show_lists=False)
+
             return render(request, request_obj.template_path, context=request_obj.context)
         else:
+            print('GET')
             return index(request)
-    except:
-        return index(request)
-
-
-@login_required()
-def change_product_attr(request):
-    product_number = int(request.POST.get('product.number'))
-    product_dict_dicts, product_list = None, None
-
-    if request.method == 'POST':
-        product_dict_dicts = request.session['product_objects_dict_for_view']
-        for product_key, product_value in product_dict_dicts.items():
-            if product_value['number'] == product_number:
-                product_value['name'] = request.POST.get('product.name')
-                product_value['metal'] = request.POST.get('product.metal')
-                product_value['weight'] = request.POST.get('product.weight')
-                product_value['vendor_code'] = request.POST.get('product.vendor_code')
-                product_value['barcode'] = request.POST.get('product.barcode')
-                product_value['uin'] = request.POST.get('product.uin')
-                break
-
-        RequestSession.save_product_dicts_dict_in_session(request, product_dict_dicts)
-
-    context = get_context_for_product_list(product_dict_dicts, page_num=None)
-
-    return render(request, 'product_guide\product_base_v2.html', context=context)
-
-
-@login_required()
-def delete_line(request):
-    product_number = int(request.POST.get('product.number'))
-    print('delete product_number = ', product_number)
-    product_dict_dicts, product_list = None, None
-
-    if request.method == 'POST':
-        product_dict_dicts = request.session['product_objects_dict_for_view']
-
-        for product_key, product_value in product_dict_dicts.items():
-
-            if product_value['number'] == product_number:
-                product_dict_dicts.pop(product_key)
-                break
-
-        request.session['product_objects_dict_for_view'] = product_dict_dicts
-
-    context = get_context_for_product_list(product_dict_dicts, page_num=None)
-
-    return render(request, 'product_guide\product_base_v2.html', context=context)
+    except Exception:
+        print('EXCEPTION')
+        print(traceback.format_exc())
+        return show_exeption(request, traceback.format_exc())
 
 
 @login_required()
@@ -238,46 +220,12 @@ def save_products(request):
 
 
 @login_required()
-def download_changed_file(request):
-    # async def delete_file(copy_path):
-    #     await asyncio.sleep(100)
-    #     os.remove(copy_path)
-    #     return HttpResponse('Скачивание выполнено успешно')
-
-    file_path = request.GET.get('file_path')
-    path = os.path.split(file_path)[0] + '/media/'
-    name = os.path.split(file_path)[1]
-    copy_path = path + 'Копия' + name
-    shutil.copyfile(file_path, copy_path)
-    change_outgoing_invoice(copy_path)
-    response = FileResponse(open(copy_path, 'rb'))
-    response['content_type'] = "application/octet-stream"
-    response['Content-Disposition'] = 'attachment; filename='
-
-    # asyncio.run(delete_file(copy_path))
-    return response
-
-
-def download_nomenclature(request):
-    file_path = request.GET.get('file_path')
-    product_dict_dicts = request.session['product_objects_dict_for_view']
-    invoice_dict = request.session['invoice']
-    number = invoice_dict['invoice_number']
-    file_nomenclature_path = create_nomenclature_file(file_path, product_dict_dicts, invoice_dict)
-    response = FileResponse(open(file_nomenclature_path, 'rb'))
-    response['content_type'] = "application/octet-stream"
-    response['Content-Disposition'] = f'attachment; filename={number}.xlsx'
-
-    return response
-
-
-@login_required()
 def save_incoming_invoice(request):
     attr_list = ['name', 'metal', 'vendor_code', 'barcode', 'uin', 'weight', 'size', 'price']
     product_dict = {}
-    product_dict_dicts_from_session = request.session['product_objects_dict_for_view']
+    product_dict_dicts_from_session = RequestSession.get_product_dicts_dict_from_session(request)
     product_dict_dicts = {}
-    invoice_data = request.session['invoice']
+    invoice_data = RequestSession.get_invoice_from_session(request)
 
     provider_obj = get_or_save_provider(invoice_data)
 
@@ -314,4 +262,84 @@ def save_incoming_invoice(request):
         product_dict_dicts[number] = prod_obj.__dict__
     request.session['product_objects_dict_for_view'] = product_dict_dicts
     context = get_context_for_product_list(product_dict_dicts, page_num=None)
+    return render(request, 'product_guide\product_base_v2.html', context=context)
+
+
+def download_nomenclature(request):
+    file_path = request.GET.get('file_path')
+    product_dict_dicts = request.session['product_objects_dict_for_view']
+    invoice_dict = request.session['invoice']
+    number = invoice_dict['invoice_number']
+    file_nomenclature_path = create_nomenclature_file(file_path, product_dict_dicts, invoice_dict)
+    response = FileResponse(open(file_nomenclature_path, 'rb'))
+    response['content_type'] = "application/octet-stream"
+    response['Content-Disposition'] = f'attachment; filename={number}.xlsx'
+
+    return response
+
+
+@login_required()
+def download_changed_file(request):
+    # async def delete_file(copy_path):
+    #     await asyncio.sleep(100)
+    #     os.remove(copy_path)
+    #     return HttpResponse('Скачивание выполнено успешно')
+
+    file_path = request.GET.get('file_path')
+    path = os.path.split(file_path)[0] + '/media/'
+    name = os.path.split(file_path)[1]
+    copy_path = path + 'Копия' + name
+    shutil.copyfile(file_path, copy_path)
+    change_outgoing_invoice(copy_path)
+    response = FileResponse(open(copy_path, 'rb'))
+    response['content_type'] = "application/octet-stream"
+    response['Content-Disposition'] = 'attachment; filename='
+
+    # asyncio.run(delete_file(copy_path))
+    return response
+
+
+@login_required()
+def change_product_attr(request):
+    product_number = int(request.POST.get('product.number'))
+    product_dict_dicts, product_list = None, None
+
+    if request.method == 'POST':
+        product_dict_dicts = request.session['product_objects_dict_for_view']
+        for product_key, product_value in product_dict_dicts.items():
+            if product_value['number'] == product_number:
+                product_value['name'] = request.POST.get('product.name')
+                product_value['metal'] = request.POST.get('product.metal')
+                product_value['weight'] = request.POST.get('product.weight')
+                product_value['vendor_code'] = request.POST.get('product.vendor_code')
+                product_value['barcode'] = request.POST.get('product.barcode')
+                product_value['uin'] = request.POST.get('product.uin')
+                break
+
+        RequestSession.save_product_dicts_dict_in_session(request, product_dict_dicts)
+
+    context = get_context_for_product_list(product_dict_dicts, page_num=None)
+
+    return render(request, 'product_guide\product_base_v2.html', context=context)
+
+
+@login_required()
+def delete_line(request):
+    product_number = int(request.POST.get('product.number'))
+    print('delete product_number = ', product_number)
+    product_dict_dicts, product_list = None, None
+
+    if request.method == 'POST':
+        product_dict_dicts = request.session['product_objects_dict_for_view']
+
+        for product_key, product_value in product_dict_dicts.items():
+
+            if product_value['number'] == product_number:
+                product_dict_dicts.pop(product_key)
+                break
+
+        request.session['product_objects_dict_for_view'] = product_dict_dicts
+
+    context = get_context_for_product_list(product_dict_dicts, page_num=None)
+
     return render(request, 'product_guide\product_base_v2.html', context=context)
