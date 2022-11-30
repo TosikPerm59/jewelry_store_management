@@ -1,0 +1,9 @@
+{% extends "product_guide\base.html" %}
+{% block main %}
+    <div class="exception_window">
+        <h1> Ошибка обработки запроса: </h1>
+        {% for string in exception_list  %}
+            <p>{{string}}</p>
+        {% endfor %}
+    </div>
+{% endblock %}
