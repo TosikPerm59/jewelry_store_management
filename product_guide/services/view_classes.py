@@ -14,9 +14,10 @@ class Request:
 class RequestSession(Request):
 
     @staticmethod
-    def delete_filtered_list_from_session(request):
-        if 'filtered_list' in request.session.keys():
-            request.session.pop('filtered_list')
+    def session_cleanup(request):
+        RequestSession.delete_filtered_list_from_session(request)
+        RequestSession.delete_products_dicts_dict_from_session(request)
+        RequestSession.delete_invoice_data_from_session(request)
 
     @staticmethod
     def save_filtered_list_in_session(request, product_dicts_dict):
@@ -27,16 +28,41 @@ class RequestSession(Request):
         return request.session['filtered_list']
 
     @staticmethod
-    def get_product_dicts_dict_from_session(request):
-        return request.session['product_objects_dict_for_view']
+    def delete_filtered_list_from_session(request):
+        if 'filtered_list' in request.session.keys():
+            request.session.pop('filtered_list')
 
     @staticmethod
     def save_product_dicts_dict_in_session(request, product_dicts_dict):
         request.session['product_objects_dict_for_view'] = product_dicts_dict
 
+    @staticmethod
+    def get_product_dicts_dict_from_session(request):
+        return request.session['product_objects_dict_for_view']
+
+    @staticmethod
+    def delete_products_dicts_dict_from_session(request):
+        if 'product_objects_dict_for_view' in request.session.keys():
+            request.session.pop('product_objects_dict_for_view')
+
+    @staticmethod
+    def save_invoice_data_in_session(request, invoice_data):
+        request.session['invoice'] = invoice_data
+
+    @staticmethod
+    def get_invoice_data_from_session(request):
+        return request.session['invoice']
+
+    @staticmethod
+    def delete_invoice_data_from_session(request):
+        if 'invoice' in request.session.keys():
+            request.session.pop('invoice')
+
 
 class RequestPost(Request):
-    pass
+    @staticmethod
+    def get_attr_from_POST(request, attr):
+        return request.POST.get(attr)
 
 
 class ShowProductsPost(RequestPost):
@@ -98,19 +124,23 @@ class UploadFilePost(RequestPost):
         try:
             file = request.FILES['file']
             if file:
+                print('Has a File')
                 self.file_name = set_correct_file_name(file.name)
                 form.title = self.file_name
                 if form.is_valid():
+                    print('Form is Valid')
                     save_form(form)
                     path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\'
                     self.file_path = path + self.file_name
                     self.context, self.products_dicts_dict, self.invoice_session_data, self.template_path = \
                         file_processing(self.file_name, self.file_path)
                     RequestSession.save_product_dicts_dict_in_session(request, self.products_dicts_dict)
-                    request.session['invoice'] = self.invoice_session_data
+                    RequestSession.save_invoice_data_in_session(request, self.invoice_session_data)
         except MultiValueDictKeyError:
+            print('EXCEPTIONS')
             pass
 
 
-
+class Save_Incoming_Invoice():
+    pass
 
