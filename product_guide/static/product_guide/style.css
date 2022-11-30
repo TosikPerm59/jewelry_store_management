@@ -6,7 +6,7 @@
 html, body, header, main, nav, article, aside,
 .filters, #filter_fieldset, select, .search, .search_form,
 .register_window, .register_form, .login_window, .login_form,
-.upload_files, #upload_files_form, #file_input_string {
+.upload_files, #upload_files_form, #file_input_string, .exception_window {
     display: flex;
 }
 
@@ -144,15 +144,16 @@ article {
     width: 2ch;
 }
 
-.register_window {
+.register_window, .exception_window {
     width: 100%;
     height: 100%;
     align-items: center;
+    text-align: center;
     justify-items: center;
     flex-direction: column;
 }
 
-.register_form {
+.register_form . {
     margin-top: 30px;
     flex-direction: column;
     width: fit-content;
@@ -278,3 +279,5 @@ article {
     display: flex;
     flex-direction: column;
 }
+
+.exception_window()
