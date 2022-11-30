@@ -155,7 +155,7 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
                         'price': round(float(prod_price), ndigits=2),
                         'number': counter
                         }
-        print(product_dict)
+        # print(product_dict)
         product_dicts_dict[counter] = product_dict
 
     invoice_type, provider_id, recipient_id = definition_of_invoice_type(string_with_provider, string_with_recipient)

@@ -55,8 +55,7 @@ def file_processing(file_name, file_path):
     file_type = determine_belonging_file(file_name)
     # Если тип файла Excel
     if file_type == 'msexcel':
-        # Чтение файла Excel
-        full_rows_list, sheet, file_type = read_excel_file(file_path)
+        full_rows_list, sheet, file_type = read_excel_file(file_path)  # Чтение файла Excel
         # Если файл является отчетом ГИИС
         if determine_giis_report(file_name) == 'giis_report':
             # Парсинг файла отчета ГИИС
