@@ -15,9 +15,10 @@ class Testing:
             print()
         if show_invoice is True:
             print('SessionData: InvoiceData:')
-            for key, value in request.session._session_cache['invoice'].items():
-                print(key, value)
-            print()
+            if 'invoice' in request.session._session_cache.keys():
+                for key, value in request.session._session_cache['invoice'].items():
+                    print(key, value)
+                print()
 
     @staticmethod
     def show_context_data(context, show_lists=False):

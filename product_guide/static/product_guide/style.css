@@ -144,6 +144,15 @@ article {
     width: 2ch;
 }
 
+.pages_list{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 1050px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
 .register_window, .exception_window {
     width: 100%;
     height: 100%;

@@ -18,7 +18,7 @@ from .services.upload_file_methods import set_correct_file_name, save_form, file
 from django.utils.datastructures import MultiValueDictKeyError
 import traceback
 from .services.validity import check_id, check_uin, isfloat, isinteger
-from .services.view_classes import RequestSession, ShowProductsPost, UploadFilePost
+from .services.view_classes import RequestSession, ShowProductsPost, UploadFilePost, Request
 
 
 def show_exeption(request, exception_text):
@@ -105,25 +105,13 @@ def show_products(request):
             При GET запросе, отображаются все изделия хранящиеся в базе. При POST запросе, отображаются изделия
             в соответствии с запросом. POST запрос может быть с указанием номера страницы, с запросом поисковой
             строки или с запросом фильтрации данных. """
-    print('SHOW PRODUCTS')
+
+    print()
+    print('Call Show Ppoducts')
     try:
-
-        if request.method == 'POST':
-            print('POST')
-            request_obj = ShowProductsPost(request)
-            product_dicts_dict = request_obj.product_dicts_dict
-            page_num = request_obj.page_num
-        else:
-            print('GET')
-            RequestSession.session_cleanup(request)
-            products_dicts_list = Jewelry.get_all_values()
-            product_dicts_dict = make_product_dict_from_dbqueryset(products_dicts_list)
-            RequestSession.save_product_dicts_dict_in_session(request, product_dicts_dict)
-            page_num = None
-
-        context = get_context_for_product_list(product_dicts_dict, page_num)
-        Testing.show_session_data(request)
-        return render(request, 'product_guide\product_base_v2.html', context=context)
+        request_obj = Request.createRequestObject(request, 'ShowProducts')
+        # Testing.show_session_data(request)
+        return render(request, 'product_guide\product_base_v2.html', context=request_obj)
 
     except Exception:
         print('EXCEPTION')
@@ -135,7 +123,7 @@ def show_products(request):
 def upload_file(request):
     """ Представление, которое обрабатывает загружаемый файл, формирует данные и загружает шаблон, в зависимости от типа
         загружаемого файла. """
-    print('UPLOAD FILE')
+    print('CALL UPLOAD FILE')
     try:
         RequestSession.session_cleanup(request)  # Очистить сессию от временных данных
         if request.method == 'POST':
@@ -143,9 +131,9 @@ def upload_file(request):
             request_obj = UploadFilePost(request)
 
             # Показать данные сессии
-            Testing.show_session_data(request, show_products=False, show_invoice=True)
+            # Testing.show_session_data(request, show_products=False, show_invoice=True)
             # Показать данные контекста
-            Testing.show_context_data(request_obj.context, show_lists=False)
+            # Testing.show_context_data(request_obj.context, show_lists=False)
 
             return render(request, request_obj.template_path, context=request_obj.context)
         else:

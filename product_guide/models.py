@@ -2,7 +2,6 @@ from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 
 
-
 class ExtendedModelsModel(models.Model):
 
     def __str__(self):
