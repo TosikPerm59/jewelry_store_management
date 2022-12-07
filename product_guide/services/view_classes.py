@@ -82,7 +82,7 @@ class RequestSession:
             request.session.pop('context')
 
 
-class Request:
+class Request(Print):
 
     @staticmethod
     def createRequestObject(request, func_name):
@@ -180,7 +180,7 @@ class Request:
         return filters_dict
 
 
-class ShowProductsPost(Request, Print):
+class ShowProductsPost(Request):
     def __init__(self, request):
         self.printCreateObject()
         self.request = request
@@ -188,7 +188,7 @@ class ShowProductsPost(Request, Print):
         self.products_dicts_dict = self.get_products_dicts_dict_from_request()
 
 
-class ShowProductsGet(Request, Print):
+class ShowProductsGet(Request):
     def __init__(self, request):
         self.printCreateObject()
         RequestSession.session_cleanup(request)
@@ -198,7 +198,7 @@ class ShowProductsGet(Request, Print):
         self.page_num = None
 
 
-class UploadFilePost(Request, Print):
+class UploadFilePost(Request):
     def __init__(self, request):
         self.request = request
         self.printCreateObject()
