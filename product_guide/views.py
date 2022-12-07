@@ -18,10 +18,10 @@ from .services.upload_file_methods import set_correct_file_name, save_form, file
 from django.utils.datastructures import MultiValueDictKeyError
 import traceback
 from .services.validity import check_id, check_uin, isfloat, isinteger
-from .services.view_classes import RequestSession, ShowProductsPost, UploadFilePost, Request
+from .services.view_classes import RequestSession, UploadFilePost, Request
 
 
-def show_exeption(request, exception_text):
+def show_exception(request, exception_text):
 
     splitted_exception_text = exception_text.split('\n')
     context = {'exception_list': splitted_exception_text}
@@ -106,8 +106,6 @@ def show_products(request):
             в соответствии с запросом. POST запрос может быть с указанием номера страницы, с запросом поисковой
             строки или с запросом фильтрации данных. """
 
-    print()
-    print('Call Show Ppoducts')
     try:
         request_obj = Request.createRequestObject(request, 'ShowProducts')
         # Testing.show_session_data(request)
@@ -116,14 +114,13 @@ def show_products(request):
     except Exception:
         print('EXCEPTION')
         print(traceback.format_exc())
-        return show_exeption(request, traceback.format_exc())
+        return show_exception(request, traceback.format_exc())
 
 
 @login_required()
 def upload_file(request):
     """ Представление, которое обрабатывает загружаемый файл, формирует данные и загружает шаблон, в зависимости от типа
         загружаемого файла. """
-    print('CALL UPLOAD FILE')
     try:
         RequestSession.session_cleanup(request)  # Очистить сессию от временных данных
         if request.method == 'POST':
@@ -142,7 +139,7 @@ def upload_file(request):
     except Exception:
         print('EXCEPTION')
         print(traceback.format_exc())
-        return show_exeption(request, traceback.format_exc())
+        return show_exception(request, traceback.format_exc())
 
 
 @login_required()

@@ -14,7 +14,9 @@ class Print:
 
     def printCreateObject(self):
         """ Выводит сообщение о создании нового обьекта, относящегося к классу. """
+        print()
         print(f'Create {self.__class__.__name__} object')
+        print()
 
 
 class RequestSession:
@@ -85,8 +87,8 @@ class Request:
     @staticmethod
     def createRequestObject(request, func_name):
         get_class = lambda x: globals()[x]
-        print(f'RequestMetod is {request.method.capitalize()}')
         request_obj = get_class(func_name + request.method.capitalize())(request)
+        print(hasattr(request_obj, 'products_dicts_dict'))
         context = request_obj.get_context()
         return context
 
@@ -114,48 +116,60 @@ class Request:
         }
         return context
 
-
-class ShowProductsPost(Request, Print):
-    def __init__(self, request):
-        self.printCreateObject()
-        self.request = request
-        self.page_num = self.get_attr_from_POST('page_num')
+    def get_products_dicts_dict_from_request(self):
         if self.page_num:
+
             print('PAGE_NUM = ', self.page_num)
-            if 'filtered_list' in request.session.keys():
-                print('Request has filtered list')
-                self.products_dicts_dict = RequestSession.get_filtered_list_from_session(request)
-            else:
-                print('Request not have filtered list')
-                self.products_dicts_dict = RequestSession.get_product_dicts_dict_from_session(request)
+            products_dicts_dict = self.get_products_dicts_dict_from_session()
+            return products_dicts_dict
 
-        else:
-            print('PAGE_NUM is None')
-            self.search_string = self.get_attr_from_POST('search_string')
-            if self.search_string:
-                print('Request has SearchString')
-                self.filters_dict = search_query_processing(self.search_string)
-            else:
-                print('Request not have SearchString')
-                self.filters_dict = self.create_filters_dict(request)
+        print('PAGE_NUM is None')
+        filters_dict = self.get_filters_dict()
+        products_dicts_dict = RequestSession.get_product_dicts_dict_from_session(self.request)
+        if has_filters_check(filters_dict) is False:
+            print('Request not have FILTERS')
+            RequestSession.delete_filtered_list_from_session(self.request)
+            return products_dicts_dict
 
-            self.products_dicts_dict = RequestSession.get_product_dicts_dict_from_session(request)
-            if has_filters_check(self.filters_dict) is False:
-                print('Request not have FILTERS')
-                RequestSession.delete_filtered_list_from_session(request)
-            else:
-                print('Request has FILTERS')
-                product_list = make_product_queryset_from_dict_dicts(self.products_dicts_dict)
-                for key, value in self.filters_dict.items():
-                    if value != 'all':
-                        value = float(value) if isfloat(value) else value
-                        value = int(value) if isinteger(value) else value
-                        product_list = [p for p in product_list if p[key] == value]
-                self.products_dicts_dict = make_product_dict_from_dbqueryset(product_list)
-                RequestSession.save_filtered_list_in_session(request, self.products_dicts_dict)
+        print('Request has FILTERS')
+        products_dicts_dict = self.get_filtered_products_dicts_dict(products_dicts_dict, filters_dict)
+        RequestSession.save_filtered_list_in_session(self.request, products_dicts_dict)
+        return products_dicts_dict
 
     @staticmethod
-    def create_filters_dict(request, ):
+    def get_filtered_products_dicts_dict(products_dicts_dict, filters_dict):
+        product_list = make_product_queryset_from_dict_dicts(products_dicts_dict)
+        for key, value in filters_dict.items():
+            if value != 'all':
+                value = float(value) if isfloat(value) else value
+                value = int(value) if isinteger(value) else value
+                product_list = [p for p in product_list if p[key] == value]
+        filtered_products_dicts_dict = make_product_dict_from_dbqueryset(product_list)
+        return filtered_products_dicts_dict
+
+    def get_products_dicts_dict_from_session(self):
+        """ Функция получения словаря словарей продуктов из сессии. Возвращает
+        filtered list, если он есть в сессии или products_dicts_dict из сессии"""
+        if 'filtered_list' in self.request.session.keys():
+            print('Request has filtered list')
+            product_dicts_dict = RequestSession.get_filtered_list_from_session(self.request)
+            return product_dicts_dict
+        print('Request not have filtered list')
+        products_dicts_dict = RequestSession.get_product_dicts_dict_from_session(self.request)
+        return products_dicts_dict
+
+    def get_filters_dict(self):
+        self.search_string = self.get_attr_from_POST('search_string')
+        if self.search_string:
+            print('Request has SearchString')
+            filters_dict = search_query_processing(self.search_string)
+            return filters_dict
+        print('Request not have SearchString')
+        filters_dict = self.create_filters_dict(self.request)
+        return filters_dict
+
+    @staticmethod
+    def create_filters_dict(request):
         filters_dict = {
             'name': request.POST.get('name') if request.POST.get('name') else 'all',
             'metal': request.POST.get('metal') if request.POST.get('metal') else 'all',
@@ -164,6 +178,14 @@ class ShowProductsPost(Request, Print):
             'giis_status': request.POST.get('giis_status') if request.POST.get('giis_status') else 'all'
         }
         return filters_dict
+
+
+class ShowProductsPost(Request, Print):
+    def __init__(self, request):
+        self.printCreateObject()
+        self.request = request
+        self.page_num = self.get_attr_from_POST('page_num')
+        self.products_dicts_dict = self.get_products_dicts_dict_from_request()
 
 
 class ShowProductsGet(Request, Print):
@@ -178,8 +200,9 @@ class ShowProductsGet(Request, Print):
 
 class UploadFilePost(Request, Print):
     def __init__(self, request):
-        UploadFilePost.printCreateObject()
-        page_num = Request.get_attr_from_POST(request, 'page_num')
+        self.request = request
+        self.printCreateObject()
+        page_num = self.get_attr_from_POST('page_num')
         if page_num:
             print('PAGE_NUM = ', page_num)
             request_obj = UploadFileHasPageNum(request, page_num)
