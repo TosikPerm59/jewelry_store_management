@@ -109,7 +109,7 @@ def show_products(request):
     try:
         request_obj = Request.createRequestObject(request, 'ShowProducts')
         # Testing.show_session_data(request)
-        return render(request, 'product_guide\product_base_v2.html', context=request_obj)
+        return render(request, 'product_guide\product_base_v2.html', context=request_obj.context)
 
     except Exception:
         print('EXCEPTION')
@@ -122,20 +122,15 @@ def upload_file(request):
     """ Представление, которое обрабатывает загружаемый файл, формирует данные и загружает шаблон, в зависимости от типа
         загружаемого файла. """
     try:
-        RequestSession.session_cleanup(request)  # Очистить сессию от временных данных
-        if request.method == 'POST':
-            print('POST')
-            request_obj = UploadFilePost(request)
+        request_obj = Request.createRequestObject(request, 'UploadFile')
 
-            # Показать данные сессии
-            # Testing.show_session_data(request, show_products=False, show_invoice=True)
-            # Показать данные контекста
-            # Testing.show_context_data(request_obj.context, show_lists=False)
+        # Показать данные сессии
+        # Testing.show_session_data(request, show_products=False, show_invoice=True)
+        # Показать данные контекста
+        # Testing.show_context_data(request_obj.context, show_lists=True)
 
-            return render(request, request_obj.template_path, context=request_obj.context)
-        else:
-            print('GET')
-            return index(request)
+        return render(request, request_obj.template_path, context=request_obj.context)
+
     except Exception:
         print('EXCEPTION')
         print(traceback.format_exc())

@@ -87,7 +87,7 @@ def file_processing(file_name, file_path):
             context['file_path'] = file_path
             context['invoice_date'] = invoice_requisites['arrival_date']
             context['invoice_number'] = invoice_requisites['invoice_number']
-            context['provider'] = Counterparties.get_object('id', invoice_requisites['provider_id'])
+            context['provider_surname'] = Counterparties.get_object('id', invoice_requisites['provider_id']).surname
             template_path = 'product_guide\show_incoming_invoice.html'
 
 

@@ -77,13 +77,13 @@ def get_context_for_product_list(products_dicts_dict, page_num):
     product_queryset = make_product_queryset_from_dict_dicts(products_dicts_dict)
     product_list = []
     # Разбиение всех изделий из products_dicts_dict постранично по 50 штук
-    paginator = Paginator(product_queryset, 50)
+    paginator = Paginator(product_queryset, 15)
     # Получение списка изделий для выбранной пользователем страницы
     page = paginator.get_page(page_num)
     # Создание dict с контекстом
     context = {
         'product_list': page.object_list,
-        'position_list': [x for x in range(number_of_products)],  # Список номеров позиций
+        'position_list': [x + 1 for x in range(number_of_products)],  # Список номеров позиций
         'num_pages': [x for x in range(paginator.num_pages + 1)][1:], # Список номеров страниц
         'total_weight': round(total_weight, ndigits=2),  # Общий вес изделий в списке
         'len_products': number_of_products  # Количество изделий в списке
@@ -223,7 +223,7 @@ def find_products_in_db(products_dicts_dict):
         new_product_dicts_dict[number] = []
         for obj in funded_object:
             del obj._state
-            obj.number = number
+            obj.number = int(number)
             new_product_dicts_dict[number].append(obj.__dict__)
         return new_product_dicts_dict
 
@@ -235,7 +235,7 @@ def find_products_in_db(products_dicts_dict):
             funded_object = Jewelry.get_object('barcode', product_dict['barcode'])
             if funded_object:
                 del funded_object._state
-                funded_object.number = number
+                funded_object.number = int(number)
                 new_product_dicts_dict[number] = funded_object.__dict__
         if number not in new_product_dicts_dict.keys():
             if product_dict['vendor_code']:
