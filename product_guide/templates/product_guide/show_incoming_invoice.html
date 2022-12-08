@@ -10,7 +10,7 @@
             </form>
         </div>
         <div class="filters">
-            <form action="{% url 'product_base' %}" method="post">
+            <form action="{% url 'upload_file' %}" method="post">
                 {% csrf_token %}
                 <fieldset id="filter_fieldset">
                     <legend><h4>Фильтр</h4></legend>
@@ -44,7 +44,7 @@
             <p>Накладная: {{ invoice_title }}</p>
             <p>Дата поступления: {{ invoice_date }}</p>
             <p>Номер накладной: {{ invoice_number }}</p>
-            <p>Постащик: {{ provider }}</p>
+            <p>Постащик: {{ provider_surname }}</p>
             <p>Всего {{len_products}} изделий, общим весом {{total_weight}} грамм</p>
         </h3>
 
@@ -52,6 +52,17 @@
         <form method="post" action="{% url 'save_incoming_invoice' %}" id="save_products">
             {% csrf_token %}
         </form>
+        {% if num_pages|length > 1 %}
+            <div class="pages_list">
+                {% for num in num_pages %}
+                    <form action="{% url 'upload_file' %}" method="post">
+                        {% csrf_token%}
+                        <input type="text" value="{{num}}" name="page_num" hidden>
+                        <button type="submit">{{ num }}</button>
+                    </form>
+                {% endfor %}
+            </div>
+        {% endif %}
 
 
         <table class="table">
@@ -104,44 +115,44 @@
 
                 </tr>
                 {% for prod in prod_list %}
-                {% if prod.number == product.number%}
-                <tr class="table_row">
-                    <td></td>
-                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.name"
-                                      value="{{prod.name}}" form="save_products">
-                        {{prod.name}}</td>
+                    {% if prod.number == product.number%}
+                    <tr class="table_row">
+                        <td></td>
+                        <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.name"
+                                          value="{{prod.name}}" form="save_products">
+                            {{prod.name}}</td>
 
-                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.metal"
-                                      value="{{prod.metal}}" form="save_products">
-                        {{ prod.metal }}</td>
+                        <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.metal"
+                                          value="{{prod.metal}}" form="save_products">
+                            {{ prod.metal }}</td>
 
-                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.vendor_code"
-                                      value="{{prod.vendor_code}}" form="save_products">
-                        {{ prod.vendor_code }}</td>
+                        <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.vendor_code"
+                                          value="{{prod.vendor_code}}" form="save_products">
+                            {{ prod.vendor_code }}</td>
 
-                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.barcode"
-                                      value="{{prod.barcode}}" form="save_products">
-                        {{ prod.barcode }}</td>
+                        <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.barcode"
+                                          value="{{prod.barcode}}" form="save_products">
+                            {{ prod.barcode }}</td>
 
-                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.uin"
-                                      value="{{prod.uin}}" form="save_products">
-                        {{ prod.uin }}</td>
+                        <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.uin"
+                                          value="{{prod.uin}}" form="save_products">
+                            {{ prod.uin }}</td>
 
-                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.weight"
-                                      value="{{prod.weight}}" form="save_products">
-                        {{ prod.weight }}</td>
+                        <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.weight"
+                                          value="{{prod.weight}}" form="save_products">
+                            {{ prod.weight }}</td>
 
-                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.size"
-                                      value="{{prod.size}}" form="save_products">
-                        {{ prod.size }}</td>
+                        <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.size"
+                                          value="{{prod.size}}" form="save_products">
+                            {{ prod.size }}</td>
 
-                    <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.price"
-                                      value="{{prod.price}}" form="save_products">
-                        {{ prod.price }}</td>
+                        <td nowrap><input class="choice_variant" type="radio" name="{{product.number}}.price"
+                                          value="{{prod.price}}" form="save_products">
+                            {{ prod.price }}</td>
 
 
 
-                {% endif %}
+                    {% endif %}
                 {% endfor%}
                     </tr>
                 <tr>
@@ -164,13 +175,17 @@
                 </tr>
             {% endfor %}
         </table>
-        {% for num in num_pages %}
-            <form action="{% url 'product_base' %}" method="post">
-                {% csrf_token%}
-                <input type="text" value="{{num}}" name="page" hidden>
-                <button type="submit">{{ num }}</button>
-            </form>
-        {% endfor %}
+        {% if num_pages|length > 1 %}
+            <div class="pages_list">
+                {% for num in num_pages %}
+                    <form action="{% url 'upload_file' %}" method="post">
+                        {% csrf_token%}
+                        <input type="text" value="{{num}}" name="page_num" hidden>
+                        <button type="submit">{{ num }}</button>
+                    </form>
+                {% endfor %}
+            </div>
+        {% endif %}
         <button type="submit" form="save_products">Сохранить</button>
     </article>
 

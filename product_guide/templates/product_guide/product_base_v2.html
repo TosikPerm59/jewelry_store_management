@@ -46,16 +46,17 @@
 
     <article>
         <h5> Всего {{len_products}} изделий общим весом {{total_weight}} грамм</h5>
-
-        <div class="pages_list">
-        {% for num in num_pages %}
-            <form action="{% url 'product_base' %}" method="post">
-                {% csrf_token%}
-                <input type="text" value="{{num}}" name="page_num" hidden>
-                <button type="submit">{{ num }}</button>
-            </form>
-        {% endfor %}
-        </div>
+        {% if num_pages|length > 1 %}
+            <div class="pages_list">
+                {% for num in num_pages %}
+                    <form action="{% url 'product_base' %}" method="post">
+                        {% csrf_token%}
+                        <input type="text" value="{{num}}" name="page_num" hidden>
+                        <button type="submit">{{ num }}</button>
+                    </form>
+                {% endfor %}
+            </div>
+        {% endif %}
 
         <table class="table">
             <tr class="table_header">
@@ -135,14 +136,16 @@
                 </script>
             {% endfor %}
         </table>
-        <div class="pages_list">
-        {% for num in num_pages %}
-            <form action="{% url 'product_base' %}" method="post">
-                {% csrf_token%}
-                <input type="text" value="{{num}}" name="page_num" hidden>
-                <button type="submit">{{ num }}</button>
-            </form>
-        {% endfor %}
-        </div>
+        {% if num_pages|length > 1 %}
+            <div class="pages_list">
+                {% for num in num_pages %}
+                    <form action="{% url 'product_base' %}" method="post">
+                        {% csrf_token%}
+                        <input type="text" value="{{num}}" name="page_num" hidden>
+                        <button type="submit">{{ num }}</button>
+                    </form>
+                {% endfor %}
+            </div>
+        {% endif %}
     </article>
 {% endblock %}
