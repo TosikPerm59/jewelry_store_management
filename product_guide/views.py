@@ -18,7 +18,7 @@ from .services.upload_file_methods import set_correct_file_name, save_form, file
 from django.utils.datastructures import MultiValueDictKeyError
 import traceback
 from .services.validity import check_id, check_uin, isfloat, isinteger
-from .services.view_classes import RequestSession, UploadFilePost, Request
+from .services.view_classes import RequestSession, UploadFilePost, Request, createRequestObject
 
 
 def show_exception(request, exception_text):
@@ -107,7 +107,7 @@ def show_products(request):
             строки или с запросом фильтрации данных. """
 
     try:
-        request_obj = Request.createRequestObject(request, 'ShowProducts')
+        request_obj = createRequestObject(request, 'ShowProducts')
         # Testing.show_session_data(request)
         return render(request, 'product_guide\product_base_v2.html', context=request_obj.context)
 
@@ -122,7 +122,7 @@ def upload_file(request):
     """ Представление, которое обрабатывает загружаемый файл, формирует данные и загружает шаблон, в зависимости от типа
         загружаемого файла. """
     try:
-        request_obj = Request.createRequestObject(request, 'UploadFile')
+        request_obj = createRequestObject(request, 'UploadFile')
 
         # Показать данные сессии
         # Testing.show_session_data(request, show_products=False, show_invoice=True)

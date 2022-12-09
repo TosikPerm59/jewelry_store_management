@@ -60,7 +60,7 @@ def file_processing(file_name, file_path):
         if determine_giis_report(file_name) == 'giis_report':
             # Парсинг файла отчета ГИИС
             products_dicts_dict = giis_file_parsing(full_rows_list, sheet)
-            invoice_session_data = {'giis_report': True}
+            invoice_data = {'giis_report': True}
             invoice_requisites['invoice_type'] = 'giis_report'
 
         else:
@@ -68,7 +68,7 @@ def file_processing(file_name, file_path):
             products_dicts_dict, invoice_requisites = invoice_parsing(full_rows_list, sheet, file_type,
                                                                       file_name)
             #  Данные для сохранения в сесии
-            invoice_session_data = {
+            invoice_data = {
                 'giis_report': False,
                 'arrival_date': invoice_requisites['arrival_date'],
                 'invoice_number': invoice_requisites['invoice_number'],
@@ -93,7 +93,7 @@ def file_processing(file_name, file_path):
 
         # print(products_dicts_dict)
         # print(context)
-        return context, products_dicts_dict, invoice_session_data, template_path
+        return context, products_dicts_dict, invoice_data, template_path
 
     elif file_type == 'msword':
         # print('WORD')
@@ -119,9 +119,9 @@ def file_processing(file_name, file_path):
         context['invoice_title'] = file_name.split('.')[0]
         context['file_path'] = file_path
         context['file_name'] = file_name
-        invoice_session_data = invoice_requisites
+        invoice_data = invoice_requisites
         template_path = 'product_guide\show_outgoing_invoice.html'
 
         # print(products_dicts_dict)
         # print(context)
-        return context, products_dicts_dict, invoice_session_data, template_path
+        return context, products_dicts_dict, invoice_data, template_path
