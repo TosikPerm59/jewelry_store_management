@@ -7,20 +7,6 @@ from product_guide.services.invoice_parser import invoice_parsing, word_invoice_
 from product_guide.services.readers import read_excel_file, read_msword_file
 
 
-def set_correct_file_name(file_name):
-
-    if ' ' in file_name:
-        file_name = file_name.replace(' ', '_')
-    if '№' in file_name:
-        file_name = file_name.replace('№', '')
-    if '(' in file_name:
-        file_name = file_name.replace('(', '')
-    if ')' in file_name:
-        file_name = file_name.replace(')', '')
-
-    return file_name
-
-
 def determine_belonging_file(file_name):
     """Определение типа файла.
     Функция принимает имя файла, возвращает строку 'msexcel' или 'msword'."""
@@ -29,21 +15,6 @@ def determine_belonging_file(file_name):
         return 'msexcel'
     elif file_name.endswith('.doc') or file_name.endswith('.docx'):
         return 'msword'
-
-
-def save_form(form):
-    file_object = None
-    try:
-        file_object = File.get_object('title', form.title)
-    except ObjectDoesNotExist:
-        pass
-    if file_object:
-        file_object.delete()
-
-    form.save()
-    file_object = File.objects.latest('id')
-    file_object.title = form.title
-    file_object.save()
 
 
 def file_processing(file_name, file_path):

@@ -3,7 +3,7 @@ from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.models import Jewelry, File
 from product_guide.services.anover_functions import make_product_dict_from_dbqueryset
 from product_guide.services.request_classes import Request, Context
-from product_guide.services.upload_file_methods import save_form, file_processing
+from product_guide.services.upload_file_methods import file_processing
 
 
 def createRequestObject(request, func_name):

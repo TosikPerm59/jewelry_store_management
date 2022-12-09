@@ -14,8 +14,6 @@ from product_guide.services.anover_functions import search_query_processing, \
 from django.contrib.auth.decorators import login_required
 from .services.outgoing_invoice_changer import change_outgoing_invoice
 from .services.testing_classes import Testing
-from .services.upload_file_methods import set_correct_file_name, save_form, file_processing
-from django.utils.datastructures import MultiValueDictKeyError
 import traceback
 from .services.validity import check_id, check_uin, isfloat, isinteger
 from .services.view_classes import createRequestObject
