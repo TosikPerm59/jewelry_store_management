@@ -2,7 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.models import Jewelry, File
 from product_guide.services.anover_functions import make_product_dict_from_dbqueryset
-from product_guide.services.request_classes import Request, RequestSession
+from product_guide.services.request_classes import Request, Context
 from product_guide.services.upload_file_methods import save_form, file_processing
 
 
@@ -18,31 +18,31 @@ class ShowProductsPost(Request):
     def __init__(self, request):
         self.printCreateObject()
         self.request = request
-        self.numbers_of_products_per_page = 50
+        self.numbers_of_items_per_page = 30
         self.page_num = self.get_attr_from_POST('page_num')
         self.get_products_dicts_dict_from_request()
-        self.context = self.get_context()
+        self.context = Context.get_context(self)
 
 
 class ShowProductsGet(Request):
     def __init__(self, request):
         self.printCreateObject()
         self.request = request
-        self.numbers_of_products_per_page = 50
+        self.numbers_of_items_per_page = 30
         self.session_cleanup()
         print('Получение словаря словарей продуктов из Jewelry')
         products_dicts_list = Jewelry.get_all_values()
         self.products_dicts_dict = make_product_dict_from_dbqueryset(products_dicts_list)
         self.save_products_dicts_dict_in_session()
         self.page_num = None
-        self.context = self.get_context()
+        self.context = Context.get_context(self)
 
 
 class UploadFilePost(Request):
     def __init__(self, request):
         self.printCreateObject()
         self.request = request
-        self.numbers_of_products_per_page = 15
+        self.numbers_of_items_per_page = 15
 
         if 'file' in request.FILES.keys():
             print('Has a File')
@@ -61,7 +61,7 @@ class UploadFilePost(Request):
         self.page_num = self.get_attr_from_POST('page_num')
         self.get_products_dicts_dict_from_request()
         self.template_path = 'product_guide\show_incoming_invoice.html'
-        self.context = self.get_context()
+        self.context = Context.get_context(self)
 
     def check_and_save_form(self):
         file = self.request.FILES['file']

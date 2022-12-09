@@ -1,4 +1,8 @@
+import traceback
+
 from django.core.paginator import Paginator
+from django.shortcuts import render
+
 from product_guide.models import Counterparties
 from product_guide.services.anover_functions import calculate_weight_number_price, \
     make_product_queryset_from_dict_dicts, find_products_in_db, has_filters_check, make_product_dict_from_dbqueryset, \
@@ -96,34 +100,6 @@ class Request(RequestSession):
     def get_attr_from_POST(self, attr):
         return self.request.POST.get(attr)
 
-    def get_context(self):
-        print('Getting context')
-        # Определение общего веса и количества изделий из products_dicts_dict
-        total_weight, number_of_products = calculate_weight_number_price(self.products_dicts_dict)
-        # Конвертация dict в list
-        product_queryset = make_product_queryset_from_dict_dicts(self.products_dicts_dict)
-        # Разбиение всех изделий из products_dicts_dict постранично по 15 штук
-        paginator = Paginator(product_queryset, self.numbers_of_products_per_page)
-        # Получение списка изделий для выбранной пользователем страницы
-        page = paginator.get_page(self.page_num)
-        # Создание dict с контекстом
-        context = {
-            'product_list': page.object_list,
-            'position_list': [x + 1 for x in range(number_of_products)],  # Список номеров позиций
-            'num_pages': [x for x in range(paginator.num_pages + 1)][1:],  # Список номеров страниц
-            'total_weight': round(total_weight, ndigits=2),  # Общий вес изделий в списке
-            'len_products': number_of_products  # Количество изделий в списке
-        }
-        if self.__class__.__name__ == 'UploadFilePost':
-            print('Append additional data')
-            invoice_data = self.get_invoice_data_from_session()
-            context['prod_list'] = find_products_in_db(self.products_dicts_dict)
-            context['invoice_title'] = invoice_data['title']
-            context['invoice_date'] = invoice_data['arrival_date']
-            context['invoice_number'] = invoice_data['invoice_number']
-            context['provider_surname'] = Counterparties.get_object('id', invoice_data['provider_id']).surname
-        return context
-
     def get_products_dicts_dict_from_request(self):
         print('Getting product_dicts_dict')
         if self.page_num:
@@ -175,4 +151,58 @@ class Request(RequestSession):
             filters_dict[attr] = self.get_attr_from_POST(attr) if self.get_attr_from_POST(attr) else 'all'
         return filters_dict
 
+    def show_exception(self, exception_text):
+        splitted_exception_text = exception_text.split('\n')
+        context = {'exception_list': splitted_exception_text}
+        return render(self.request, 'product_guide/show_exception.html', context=context)
+
+
+class Context:
+
+    def __init__(self, request_obj):
+        self.request_obj = request_obj
+        self.products_dicts_dict = request_obj.products_dicts_dict
+        self.total_weight = self.calculate_total_weight()
+        self.number_of_products = len(self.products_dicts_dict.keys())
+        product_queryset = make_product_queryset_from_dict_dicts(self.products_dicts_dict)
+        self.paginator_obj = Paginator(product_queryset, request_obj.numbers_of_items_per_page)
+        self.page = self.paginator_obj.get_page(request_obj.page_num)
+        self.context = self.get_default_context()
+        if request_obj.__class__.__name__ == 'UploadFilePost':
+            self.get_context_for_UploadFilePost()
+
+    @staticmethod
+    def get_context(request_obj):
+        context_obj = Context(request_obj)
+        return context_obj.context
+
+    def calculate_total_weight(self):
+        total_weight = 0
+        for key, product in self.products_dicts_dict.items():
+            try:
+                if isfloat(product['weight']):
+                    total_weight += float(product['weight'])
+                return total_weight
+            except Exception:
+                print('EXCEPTION')
+                print(traceback.format_exc())
+                return self.request_obj.show_exception(self.request_obj.request, traceback.format_exc())
+
+    def get_default_context(self):
+        return {
+                'product_list': self.page.object_list,
+                'position_list': [x + 1 for x in range(self.number_of_products)],  # Список номеров позиций
+                'num_pages': [x for x in range(self.paginator_obj.num_pages + 1)][1:],  # Список номеров страниц
+                'total_weight': round(self.total_weight, ndigits=2),  # Общий вес изделий в списке
+                'len_products': self.number_of_products  # Количество изделий в списке
+            }
+
+    def get_context_for_UploadFilePost(self):
+        print('Append additional data in context for UploadFilePost')
+        invoice_data = self.request_obj.get_invoice_data_from_session()
+        self.context['prod_list'] = find_products_in_db(self.products_dicts_dict)
+        self.context['invoice_title'] = invoice_data['title']
+        self.context['invoice_date'] = invoice_data['arrival_date']
+        self.context['invoice_number'] = invoice_data['invoice_number']
+        self.context['provider_surname'] = Counterparties.get_object('id', invoice_data['provider_id']).surname
 

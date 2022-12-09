@@ -18,7 +18,7 @@ from .services.upload_file_methods import set_correct_file_name, save_form, file
 from django.utils.datastructures import MultiValueDictKeyError
 import traceback
 from .services.validity import check_id, check_uin, isfloat, isinteger
-from .services.view_classes import RequestSession, UploadFilePost, Request, createRequestObject
+from .services.view_classes import createRequestObject
 
 
 def show_exception(request, exception_text):
@@ -201,48 +201,49 @@ def save_products(request):
 
 @login_required()
 def save_incoming_invoice(request):
-    attr_list = ['name', 'metal', 'vendor_code', 'barcode', 'uin', 'weight', 'size', 'price']
-    product_dict = {}
-    product_dict_dicts_from_session = RequestSession.get_product_dicts_dict_from_session(request)
-    product_dict_dicts = {}
-    invoice_data = RequestSession.get_invoice_from_session(request)
-
-    provider_obj = get_or_save_provider(invoice_data)
-
-    input_invoice_obj = get_or_save_input_invoice_obj(invoice_data, provider_obj)
-
-    for number, product in product_dict_dicts_from_session.items():
-        print(number, product)
-        prod_obj = None
-        for attr in attr_list:
-            product_dict[attr] = request.POST.get(str(number) + '.' + attr)
-            # print('product_dict[attr] = ', product_dict[attr])
-        if product['uin'] != 'None' and product['uin'] is not None:
-            # print(product['uin'])
-            prod_obj = Jewelry.get_object('uin', product_dict['uin'])
-            if prod_obj:
-                for attr in attr_list:
-
-                    if product_dict[attr] is not None and product_dict[attr] != 'None' and attr != 'uin':
-                        print(attr)
-                        value = product_dict[attr]
-                        if isinstance(value, str):
-                            value = value.replace(',', '.') if ',' in value else value
-                        setattr(prod_obj, attr, value)
-
-                prod_obj.arrival_date = invoice_data['arrival_date']
-                prod_obj.input_invoice_id = input_invoice_obj.id
-                prod_obj.provider_id = provider_obj.id
-                print(prod_obj.__dict__)
-                prod_obj.save()
-                if '_state' in prod_obj.__dict__:
-                    delattr(prod_obj, '_state')
-                    prod_obj.number = number
-
-        product_dict_dicts[number] = prod_obj.__dict__
-    request.session['product_objects_dict_for_view'] = product_dict_dicts
-    context = get_context_for_product_list(product_dict_dicts, page_num=None)
-    return render(request, 'product_guide\product_base_v2.html', context=context)
+    pass
+#     attr_list = ['name', 'metal', 'vendor_code', 'barcode', 'uin', 'weight', 'size', 'price']
+#     product_dict = {}
+#     # product_dict_dicts_from_session = RequestSession.get_product_dicts_dict_from_session(request)
+#     product_dict_dicts = {}
+#     # invoice_data = RequestSession.get_invoice_from_session(request)
+#
+#     provider_obj = get_or_save_provider(invoice_data)
+#
+#     input_invoice_obj = get_or_save_input_invoice_obj(invoice_data, provider_obj)
+#
+#     for number, product in product_dict_dicts_from_session.items():
+#         print(number, product)
+#         prod_obj = None
+#         for attr in attr_list:
+#             product_dict[attr] = request.POST.get(str(number) + '.' + attr)
+#             # print('product_dict[attr] = ', product_dict[attr])
+#         if product['uin'] != 'None' and product['uin'] is not None:
+#             # print(product['uin'])
+#             prod_obj = Jewelry.get_object('uin', product_dict['uin'])
+#             if prod_obj:
+#                 for attr in attr_list:
+#
+#                     if product_dict[attr] is not None and product_dict[attr] != 'None' and attr != 'uin':
+#                         print(attr)
+#                         value = product_dict[attr]
+#                         if isinstance(value, str):
+#                             value = value.replace(',', '.') if ',' in value else value
+#                         setattr(prod_obj, attr, value)
+#
+#                 prod_obj.arrival_date = invoice_data['arrival_date']
+#                 prod_obj.input_invoice_id = input_invoice_obj.id
+#                 prod_obj.provider_id = provider_obj.id
+#                 print(prod_obj.__dict__)
+#                 prod_obj.save()
+#                 if '_state' in prod_obj.__dict__:
+#                     delattr(prod_obj, '_state')
+#                     prod_obj.number = number
+#
+#         product_dict_dicts[number] = prod_obj.__dict__
+#     request.session['product_objects_dict_for_view'] = product_dict_dicts
+#     context = get_context_for_product_list(product_dict_dicts, page_num=None)
+#     return render(request, 'product_guide\product_base_v2.html', context=context)
 
 
 def download_nomenclature(request):
@@ -296,7 +297,7 @@ def change_product_attr(request):
                 product_value['uin'] = request.POST.get('product.uin')
                 break
 
-        RequestSession.save_product_dicts_dict_in_session(request, product_dict_dicts)
+        # RequestSession.save_product_dicts_dict_in_session(request, product_dict_dicts)
 
     context = get_context_for_product_list(product_dict_dicts, page_num=None)
 
