@@ -70,6 +70,23 @@ class RequestSession:
 
 class Request(RequestSession):
 
+    @staticmethod
+    def set_correct_file_name(file_name):
+        for simbol in [' ', '№', '(', ')']:
+            file_name = file_name.replace(simbol, '_') if simbol in file_name else file_name
+        return file_name
+
+    @staticmethod
+    def get_filtered_products_dicts_dict(products_dicts_dict, filters_dict):
+        product_list = make_product_queryset_from_dict_dicts(products_dicts_dict)
+        for key, value in filters_dict.items():
+            if value != 'all':
+                value = float(value) if isfloat(value) else value
+                value = int(value) if isinteger(value) else value
+                product_list = [p for p in product_list if key in p.keys() and p[key] == value]
+        filtered_products_dicts_dict = make_product_dict_from_dbqueryset(product_list)
+        return filtered_products_dicts_dict
+
     def printCreateObject(self):
         """ Выводит сообщение о создании нового обьекта, относящегося к классу. """
 
@@ -126,17 +143,6 @@ class Request(RequestSession):
         self.products_dicts_dict = self.get_filtered_products_dicts_dict(products_dicts_dict, filters_dict)
         self.save_filtered_list_in_session()
 
-    @staticmethod
-    def get_filtered_products_dicts_dict(products_dicts_dict, filters_dict):
-        product_list = make_product_queryset_from_dict_dicts(products_dicts_dict)
-        for key, value in filters_dict.items():
-            if value != 'all':
-                value = float(value) if isfloat(value) else value
-                value = int(value) if isinteger(value) else value
-                product_list = [p for p in product_list if key in p.keys() and p[key] == value]
-        filtered_products_dicts_dict = make_product_dict_from_dbqueryset(product_list)
-        return filtered_products_dicts_dict
-
     def get_products_dicts_dict_or_filtered_list_from_session(self):
         """ Функция получения словаря словарей продуктов из сессии. Возвращает
         filtered list, если он есть в сессии или products_dicts_dict из сессии"""
@@ -169,8 +175,4 @@ class Request(RequestSession):
             filters_dict[attr] = self.get_attr_from_POST(attr) if self.get_attr_from_POST(attr) else 'all'
         return filters_dict
 
-    @staticmethod
-    def set_correct_file_name(file_name):
-        for simbol in [' ', '№', '(', ')']:
-            file_name = file_name.replace(simbol, '_') if simbol in file_name else file_name
-        return file_name
+
