@@ -5,7 +5,7 @@ from ..models import Jewelry, Manufacturer
 warnings.simplefilter("ignore")
 
 
-def giis_file_parsing(rows_list, sheet):
+def giis_file_parsing(giis_report_parser_obj):
     """ Функция анализа файла Excel сформированного платформой ГИИС ДМДК.
       На вход функция принимает путь к файлу, который необходимо обработать. Так как, данные из портала ГИИС ДМДК
     заполняются разными людьми, то и формат записи и порядок заполнения не имеет четкой последовательности. Для того
@@ -16,16 +16,15 @@ def giis_file_parsing(rows_list, sheet):
 
     giis_dicts_dict = {}
     group = 'excel'
-    rows_list = rows_list[4:]
-    counter = 0
+    rows_list = giis_report_parser_obj.file_handler_obj.file_data_obj.rows_list[4:]
+    manufacturers_list = giis_report_parser_obj.manufacturers_list
+    sheet = giis_report_parser_obj.file_handler_obj.file_data_obj.sheet
     kits_dict = {}
     uin_list = []
-    products_queryset = Jewelry.get_all_obj()
-    manufacturers = Manufacturer.get_all_values_list('inn')
-
-    for product in products_queryset:
-        uin_list.append(product.uin)
+    counter = 0
+    uin2_counter = 0
     # Выполняется построчный проход по таблице
+
     for row in rows_list:
         manufacturer_id = None
         description, size, barcode, vendor_code, weight, giis_status = None, None, None, None, None, None
@@ -35,13 +34,13 @@ def giis_file_parsing(rows_list, sheet):
         giis_status = sheet[row][6].value if sheet[row][6].value else None
         if giis_status == 'Терминальная стадия':
             giis_status = 'Выведено'
-            availability_status = 'Продано'
-        else:
-            availability_status = 'В наличии'
+        #     availability_status = 'Продано'
+        # else:
+        #     availability_status = 'В наличии'
         manufacturer_inn = sheet[row][9].value if sheet[row][9].value != '0000000000' else None
         if manufacturer_inn:
-            if manufacturer_inn not in manufacturers:
-                manufacturers.append(manufacturer_inn)
+            if manufacturer_inn not in manufacturers_list:
+                manufacturers_list.append(manufacturer_inn)
                 manufacturer = Manufacturer(inn=manufacturer_inn)
                 manufacturer.save()
             manufacturer = Manufacturer.get_object('inn', str(manufacturer_inn))
@@ -50,7 +49,8 @@ def giis_file_parsing(rows_list, sheet):
         counter += 1
         if uin2:
             if uin2 not in kits_dict.keys():
-                kits_dict[uin2] = {'weight': find_weight([sheet[row][12].value]), 'uin1': uin}
+                uin2_counter += 1
+                kits_dict[uin2] = {'weight': find_weight([sheet[row][13].value]), 'uin1': uin}
                 continue
         if uin:
             if int(uin) not in uin_list:
@@ -61,13 +61,12 @@ def giis_file_parsing(rows_list, sheet):
                 vendor_code = find_art(sheet[row][10].value, sheet[row][11].value, group=group) if find_art(
                     sheet[row][10].value, sheet[row][11].value, group=group) else None
                 size = description['size'] if description['size'] else None
-                coating = None
+                weight = find_weight([sheet[row][13].value])
+
                 if uin2 in kits_dict.keys():
-                    weight = float(find_weight([sheet[row][12].value])) + float(kits_dict[uin2]['weight'])
+                    weight = float(weight) + float(kits_dict[uin2]['weight'])
                     uins = [uin, kits_dict[uin2]['uin1']]
                     uin = uin2
-                else:
-                    weight = find_weight([sheet[row][12].value])
             else:
                 obj = Jewelry.get_object('uin', int(uin))
                 description = {
@@ -89,7 +88,7 @@ def giis_file_parsing(rows_list, sheet):
                         'number': counter,
                         'uins': uins,
                         'giis_status': giis_status,
-                        'availability_status': availability_status,
+                        # 'availability_status': availability_status,
                         'manufacturer_id': manufacturer_id
                         }
 
@@ -97,4 +96,6 @@ def giis_file_parsing(rows_list, sheet):
         print(counter, product_dict)
 
     print(f'Сформирован список изделии файла ГИИС из {counter} позиций')
+    print('Количество комплектов =  ', uin2_counter)
+
     return giis_dicts_dict
