@@ -39,9 +39,6 @@ def check_uin(uin):
         return
     if len(str(uin)) == 16 and str(uin).isdigit():
         return True
-    else:
-        return
-
 
 def isinteger(value):
 

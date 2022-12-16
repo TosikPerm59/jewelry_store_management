@@ -1,8 +1,13 @@
+import os
 from django.core.exceptions import ObjectDoesNotExist
+from django.template.context_processors import media
+import tempfile
+from jewelry_store_management.settings import BASE_DIR
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.models import Jewelry, File
 from product_guide.services.anover_functions import make_product_dict_from_dbqueryset
-from product_guide.services.request_classes import Request, Context
+from product_guide.services.file_handling_classes import FileHandler
+from product_guide.services.request_classes import Request, Context, clear_media_folder
 from product_guide.services.upload_file_methods import file_processing
 
 
@@ -30,7 +35,6 @@ class ShowProductsGet(Request):
         self.request = request
         self.numbers_of_items_per_page = 30
         self.session_cleanup()
-        print('Получение словаря словарей продуктов из Jewelry')
         products_dicts_list = Jewelry.get_all_values()
         self.products_dicts_dict = make_product_dict_from_dbqueryset(products_dicts_list)
         self.save_products_dicts_dict_in_session()
@@ -42,25 +46,30 @@ class UploadFilePost(Request):
     def __init__(self, request):
         self.printCreateObject()
         self.request = request
-        self.numbers_of_items_per_page = 15
+        self.numbers_of_items_per_page = 30
 
         if 'file' in request.FILES.keys():
             print('Has a File')
             self.session_cleanup()
             if self.check_and_save_form():
-                path = 'C:\Python\Python_3.10.4\Django\jewelry_store_management\media\product_guide\documents\\'
+                self.file_path = f'{BASE_DIR}\media\product_guide\documents\\{self.file_name}'
+                print('file_path = ', self.file_path)
                 self.page_num = None
-                self.context, self.products_dicts_dict, self.invoice_data, self.template_path = \
-                    file_processing(self.file_name, path + self.file_name)
+                self.file_handler_obj = FileHandler(self)
+                self.products_dicts_dict = self.file_handler_obj.products_dicts_dict
+                self.invoice_data = self.file_handler_obj.invoice_type
+                self.save_template_path_in_session()
                 self.save_products_dicts_dict_in_session()
                 self.save_invoice_data_in_session()
+                self.context = Context.get_context(self)
                 self.save_context_in_session()
+                clear_media_folder()
                 return
 
         print('Not have a File')
         self.page_num = self.get_attr_from_POST('page_num')
         self.get_products_dicts_dict_from_request()
-        self.template_path = 'product_guide\show_incoming_invoice.html'
+        self.template_path = self.get_template_path_from_session()
         self.context = Context.get_context(self)
 
     def check_and_save_form(self):
@@ -70,7 +79,7 @@ class UploadFilePost(Request):
         form.title = self.file_name
         if form.is_valid():
             print('Form is Valid')
-            save_form(form)
+            self.save_form(form)
             return True
 
     @staticmethod

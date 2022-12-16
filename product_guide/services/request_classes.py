@@ -1,8 +1,9 @@
 import traceback
-
+import os
 from django.core.paginator import Paginator
 from django.shortcuts import render
 
+from jewelry_store_management.settings import BASE_DIR
 from product_guide.models import Counterparties
 from product_guide.services.anover_functions import calculate_weight_number_price, \
     make_product_queryset_from_dict_dicts, find_products_in_db, has_filters_check, make_product_dict_from_dbqueryset, \
@@ -18,6 +19,7 @@ class RequestSession:
         self.delete_products_dicts_dict_from_session()
         self.delete_invoice_data_from_session()
         self.delete_context_from_session()
+        self.delete_template_path_from_session()
 
     def save_filtered_list_in_session(self):
         print('Сохранение отфильтрованного списка продуктов в сессии')
@@ -71,13 +73,30 @@ class RequestSession:
             print('Удаление контекста из сессии')
             self.request.session.pop('context')
 
+    def save_template_path_in_session(self):
+        print('Сохранение контекста в сессии')
+        print('self.template_path = ', self.template_path)
+        self.request.session['template_path'] = self.template_path
+        print('self.request.session[template_path]', self.request.session['template_path'])
+
+    def get_template_path_from_session(self):
+        print('Получение контекста из сессии')
+        return self.request.session['template_path']
+
+    def delete_template_path_from_session(self):
+        if 'context' in self.request.session.keys():
+            print('Удаление контекста из сессии')
+            self.request.session.pop('template_path')
+
 
 class Request(RequestSession):
 
     @staticmethod
     def set_correct_file_name(file_name):
-        for simbol in [' ', '№', '(', ')']:
+        for simbol in [' ', '№']:
             file_name = file_name.replace(simbol, '_') if simbol in file_name else file_name
+            file_name = file_name.replace('(', '') if '(' in file_name else file_name
+            file_name = file_name.replace(')', '') if ')' in file_name else file_name
         return file_name
 
     @staticmethod
@@ -131,8 +150,10 @@ class Request(RequestSession):
         return products_dicts_dict
 
     def get_filters_dict(self):
+        print('Выполняется получение фильтров')
         self.search_string = self.get_attr_from_POST('search_string')
         if self.search_string:
+            print('search_string = ', self.search_string)
             print('Request has SearchString')
             filters_dict = search_query_processing(self.search_string)
             return filters_dict
@@ -154,7 +175,7 @@ class Request(RequestSession):
     def show_exception(self, exception_text):
         splitted_exception_text = exception_text.split('\n')
         context = {'exception_list': splitted_exception_text}
-        return render(self.request, 'product_guide/show_exception.html', context=context)
+        return render(self.request_obj.request, 'product_guide/show_exception.html', context=context)
 
 
 class Context:
@@ -164,12 +185,17 @@ class Context:
         self.products_dicts_dict = request_obj.products_dicts_dict
         self.total_weight = self.calculate_total_weight()
         self.number_of_products = len(self.products_dicts_dict.keys())
-        product_queryset = make_product_queryset_from_dict_dicts(self.products_dicts_dict)
-        self.paginator_obj = Paginator(product_queryset, request_obj.numbers_of_items_per_page)
-        self.page = self.paginator_obj.get_page(request_obj.page_num)
-        self.context = self.get_default_context()
-        if request_obj.__class__.__name__ == 'UploadFilePost':
-            self.get_context_for_UploadFilePost()
+        if self.number_of_products > 0:
+            product_queryset = make_product_queryset_from_dict_dicts(self.products_dicts_dict)
+            self.paginator_obj = Paginator(product_queryset, request_obj.numbers_of_items_per_page)
+            self.page = self.paginator_obj.get_page(request_obj.page_num)
+            self.context = self.get_default_context()
+            if request_obj.__class__.__name__ == 'UploadFilePost':
+                if request_obj.request.session['invoice'] != 'giis_report' and \
+                request_obj.file_handler_obj.invoice_type == 'incoming':
+                    self.get_context_for_UploadFilePost()
+            return
+        self.context = None
 
     @staticmethod
     def get_context(request_obj):
@@ -178,22 +204,20 @@ class Context:
 
     def calculate_total_weight(self):
         total_weight = 0
-        for key, product in self.products_dicts_dict.items():
-            try:
+        try:
+            for product in self.products_dicts_dict.values():
                 if isfloat(product['weight']):
                     total_weight += float(product['weight'])
-                return total_weight
-            except Exception:
-                print('EXCEPTION')
-                print(traceback.format_exc())
-                return self.request_obj.show_exception(self.request_obj.request, traceback.format_exc())
+            return total_weight
+        except Exception:
+            return self.request_obj.show_exception(traceback.format_exc())
 
     def get_default_context(self):
         return {
                 'product_list': self.page.object_list,
                 'position_list': [x + 1 for x in range(self.number_of_products)],  # Список номеров позиций
                 'num_pages': [x for x in range(self.paginator_obj.num_pages + 1)][1:],  # Список номеров страниц
-                'total_weight': round(self.total_weight, ndigits=2),  # Общий вес изделий в списке
+                'total_weight': round(self.total_weight, ndigits=2) if self.total_weight else '',  # Общий вес изделий в списке
                 'len_products': self.number_of_products  # Количество изделий в списке
             }
 
@@ -205,4 +229,15 @@ class Context:
         self.context['invoice_date'] = invoice_data['arrival_date']
         self.context['invoice_number'] = invoice_data['invoice_number']
         self.context['provider_surname'] = Counterparties.get_object('id', invoice_data['provider_id']).surname
+
+
+def clear_media_folder():
+    print('Run clear_media_folder')
+    folder = f'{BASE_DIR}\media\product_guide\documents'
+    for files in os.walk(folder):
+        for name in files[2]:
+            path = f'{folder}\\{name}'
+            os.remove(path)
+
+
 

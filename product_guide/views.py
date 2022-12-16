@@ -94,7 +94,7 @@ def user_logout(request):
 
 def index(request):
     form = UploadFileForm
-    return render(request, 'product_guide\index.html', {'form': form})
+    return render(request, 'product_guide/index.html', {'form': form})
 
 
 @login_required()
@@ -107,7 +107,8 @@ def show_products(request):
     try:
         request_obj = createRequestObject(request, 'ShowProducts')
         # Testing.show_session_data(request)
-        return render(request, 'product_guide\product_base_v2.html', context=request_obj.context)
+        print(len(Jewelry.objects.all()))
+        return render(request, 'product_guide/product_base_v2.html', context=request_obj.context)
 
     except Exception:
         print('EXCEPTION')
@@ -126,7 +127,7 @@ def upload_file(request):
         # Testing.show_session_data(request, show_products=False, show_invoice=True)
         # Показать данные контекста
         # Testing.show_context_data(request_obj.context, show_lists=True)
-
+        print('RENDERING')
         return render(request, request_obj.template_path, context=request_obj.context)
 
     except Exception:
@@ -137,47 +138,53 @@ def upload_file(request):
 
 @login_required()
 def save_products(request):
+    print('Сохранение изделий в базе данных')
+    # print('request.session.__dir__() = ', request.session.__dir__())
     products_queryset_from_bd = Jewelry.get_all_values()
+    # print(request.session['products_objects_dict_for_view'])
     repeating_product = False
-    product_dict_dicts_from_session = request.session['product_objects_dict_for_view']
-    invoice_dict = request.session['invoice']
+    product_dict_dicts_from_session = request.session['products_objects_dict_for_view']
+    # print('product_dict_dicts_from_session = ', product_dict_dicts_from_session)
+    invoice_dict_from_session = request.session['invoice']
     previous_barcode, repeating_counter = None, 0
-    uins_list = Jewelry.get_all_values_list('uin')
-    barcodes_list = Jewelry.get_all_values_list('barcode')
-
-    if 'giis_report' not in invoice_dict:
-        invoice_object = InputInvoice.get_object('title', invoice_dict['title'])
+    uins_list_from_db = Jewelry.get_all_values_list('uin')
+    print('len(uins_list_from_db) = ', len(uins_list_from_db))
+    # print('uins_list_from_db = ', uins_list_from_db)
+    barcodes_list_from_db = Jewelry.get_all_values_list('barcode')
+    counter = 0
+    if 'giis_report' not in invoice_dict_from_session:
+        invoice_object = InputInvoice.get_object('title', invoice_dict_from_session['title'])
 
         if invoice_object is None:
             invoice_object = InputInvoice(
-                title=invoice_dict['title'],
-                invoice_number=invoice_dict['invoice_number'],
-                recipient=invoice_dict['recipient_id'],
-                arrival_date=invoice_dict['arrival_date']
+                title=invoice_dict_from_session['title'],
+                invoice_number=invoice_dict_from_session['invoice_number'],
+                recipient=invoice_dict_from_session['recipient_id'],
+                arrival_date=invoice_dict_from_session['arrival_date']
             )
             invoice_object.save()
 
     for product_from_sessions_key, product_from_sessions_dict in product_dict_dicts_from_session.items():
-        barcode = product_from_sessions_dict['barcode']
-        if barcode is not None or barcode != 'None':
-            if check_id(barcode):
-                if barcode in barcodes_list:
-                    prod_obj = Jewelry.get_object('barcode', int(barcode))
+        barcode_from_session_product = product_from_sessions_dict['barcode']
+        if barcode_from_session_product is not None or barcode_from_session_product != 'None':
+            if check_id(barcode_from_session_product):
+                if int(barcode_from_session_product) in barcodes_list_from_db:
+                    prod_obj = Jewelry.get_object('barcode', int(barcode_from_session_product))
                     if prod_obj.uin is None or prod_obj.uin == 'None':
                         prod_obj.uin = product_from_sessions_dict['uin']
                         prod_obj.save()
                     repeating_product = True
                 else:
-                    barcodes_list.append(product_from_sessions_dict['barcode'])
-            if check_uin(product_from_sessions_dict['uin']):
-                if product_from_sessions_dict['uin'] in uins_list:
-                    repeating_product = True
-                else:
-                    uins_list.append(product_from_sessions_dict['uin'])
+                    barcodes_list_from_db.append(int(product_from_sessions_dict['barcode']))
+        if check_uin(product_from_sessions_dict['uin']):
+            if int(product_from_sessions_dict['uin']) in uins_list_from_db:
+                repeating_product = True
+            else:
+                uins_list_from_db.append(int(product_from_sessions_dict['uin']))
 
         if repeating_product is False:
             new_object = Jewelry()
-
+            print(product_from_sessions_dict.items())
             for key, value in product_from_sessions_dict.items():
                 if product_from_sessions_dict[key] is not None and key != 'number':
                     if key != 'manufacturer_id':
@@ -185,16 +192,17 @@ def save_products(request):
                     else:
                         obj = Manufacturer.get_object('id', product_from_sessions_dict[key])
                         new_object.__setattr__('manufacturer', obj)
-
+            print('New object = ', new_object.__dict__)
             try:
                 new_object.save()
             except:
+                print('EXCEPTION new_object_save')
                 pass
         repeating_product = False
 
     context = get_context_for_product_list(product_dict_dicts_from_session, page_num=None)
 
-    return render(request, 'product_guide\product_base_v2.html', context=context)
+    return render(request, 'product_guide/product_base_v2.html', context=context)
 
 
 @login_required()
@@ -241,7 +249,7 @@ def save_incoming_invoice(request):
 #         product_dict_dicts[number] = prod_obj.__dict__
 #     request.session['product_objects_dict_for_view'] = product_dict_dicts
 #     context = get_context_for_product_list(product_dict_dicts, page_num=None)
-#     return render(request, 'product_guide\product_base_v2.html', context=context)
+#     return render(request, 'product_guide/product_base_v2.html', context=context)
 
 
 def download_nomenclature(request):
@@ -299,7 +307,7 @@ def change_product_attr(request):
 
     context = get_context_for_product_list(product_dict_dicts, page_num=None)
 
-    return render(request, 'product_guide\product_base_v2.html', context=context)
+    return render(request, 'product_guide/product_base_v2.html', context=context)
 
 
 @login_required()
@@ -321,4 +329,4 @@ def delete_line(request):
 
     context = get_context_for_product_list(product_dict_dicts, page_num=None)
 
-    return render(request, 'product_guide\product_base_v2.html', context=context)
+    return render(request, 'product_guide/show_giis_report.html', context=context)

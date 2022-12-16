@@ -115,7 +115,6 @@ def find_weight(split_string):
     elif '585' in split_string or '925' in split_string:
         index = split_string.index('585') if '585' in split_string else split_string.index('925')
         split_string = split_string[index + 1:]
-    print(type(split_string))
     for elem in split_string:
         elem = elem.strip()
         try:

@@ -1,0 +1,154 @@
+{% extends "product_guide\base.html" %}
+{% block main %}
+
+    <aside>
+        <div class="search">
+            <form class="search_form" action="" method="post">
+                {% csrf_token%}
+                <input id="search_string" type="text" placeholder="Поиск изделий..." name="search_string">
+                <button type="submit">Найти</button>
+            </form>
+        </div>
+        <div class="filters">
+            <form action="{% url 'upload_file' %}" method="post">
+                {% csrf_token %}
+                <fieldset id="filter_fieldset">
+                    <legend><h4>Фильтр</h4></legend>
+                    <select name="name" id="name" >
+                        <option value="all">Изделие</option>
+                        <option value="Кольцо">Кольца</option>
+                        <option value="Серьги">Серьги</option>
+                        <option value="Цепь">Цепи</option>
+                        <option value="Браслет">Браслеты</option>
+                    </select>
+                    <select name="metal" id="metal">
+                        <option value="all">Металл</option>
+                        <option value="Золото 585">Золото 585</option>
+                        <option value="Серебро 925">Серебро 925</option>
+                    </select>
+                    <select name="availability_status" id="availability_status">
+                        <option value="all">Статус наличия</option>
+                        <option value="В наличии">В наличии</option>
+                        <option value="Продано">Продано</option>
+                        <option value="Передано">Передано</option>
+                        <option value="В договоре">В договоре</option>
+                    </select>
+                    <select name="giis_status" id="giis_status">
+                        <option value="all">Статус ГИИС</option>
+                        <option value="На хранении">На хранении</option>
+                        <option value="Выведено">Выведено</option>
+                    </select>
+                    <button id="filter_button" type="submit">Показать</button>
+                </fieldset>
+            </form>
+        </div>
+    </aside>
+
+    <article>
+        <h5> Всего {{len_products}} изделий общим весом {{total_weight}} грамм</h5>
+        {% if num_pages|length > 1 %}
+            <div class="pages_list">
+                {% for num in num_pages %}
+                    <form action="{% url 'upload_file' %}" method="post">
+                        {% csrf_token%}
+                        <input type="text" value="{{num}}" name="page_num" hidden>
+                        <button type="submit">{{ num }}</button>
+                    </form>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <table class="table">
+            <tr class="table_header">
+                <th>№</th>
+                <th>Изделие</th>
+                <th>Металл</th>
+                <th>Вес</th>
+                <th>Артикул</th>
+                <th>Штрихкод</th>
+                <th>УИН</th>
+                <th>Статус ГИИС</th>
+                <th>Цена</th>
+            </tr>
+
+            {% for product in product_list %}
+
+                <tr class="table_row">
+                    <td>{{product.number}}</td>
+                    <td><input disabled type="text" value="{{ product.name }}" name="product.name"> </td>
+                    <td><input disabled type="text" value="{{ product.metal }}" name="product.metal" style="width: 11ch"> </td>
+                    <td><input disabled type="text" value="{{ product.weight }}" name="product.weight"> </td>
+                    <td><input disabled type="text" value="{{ product.vendor_code }}" name="product.vendor_code" style="width: 20ch"> </td>
+                    <td><input disabled type="text" value="{{ product.barcode }}" name="product.barcode" style="width: 14ch"> </td>
+                    <td><input disabled type="text" value="{{ product.uin }}" name="product.uin" style="width: 17ch"> </td>
+                    <td><input disabled type="text" value="{{ product.giis_status }}" name="product.giis_status" style="width: 12ch"> </td>
+                    <td><input disabled type="text" value="{{ product.price }}" name="product.price"> </td>
+                    <td><button class="openModal_{{product.number}}">Показать</button></td>
+                </tr>
+
+                <dialog class="modal modal_{{product.number}}">
+                    <div class="wrapper">
+                        <div class="modalWindow">
+                            <button class="closeModal closeModal_{{product.number}}">X</button>
+                            <div class="modal_title">
+                                <h1>Подробное описание товара.</h1>
+                            </div>
+                            <div class="modal_descr">
+                                <div class="attr_name">
+                                    <p>Изделие</p>
+                                    <p>Металл</p>
+                                    <p>Артикул</p>
+                                    <p>Штриxкод</p>
+                                    <p>Уин</p>
+                                    <p>Вес</p>
+                                    <p>Размер</p>
+                                    <p>Цена</p>
+                                    <p>Статус наличия</p>
+                                    <p>Статус ГИИС</p>
+                                    <p>Производитель</p>
+                                    <p></p>
+                                </div>
+                                <div class="attr_value">
+                                    <p>{{product.name}}</p>
+                                    <p>{{product.metal}}</p>
+                                    <p>{{product.vendor_code}}</p>
+                                    <p>{{product.barcode}}</p>
+                                    <p>{{product.uin}}</p>
+                                    <p>{{product.weight}} грамм</p>
+                                    <p>{{product.size}} размер</p>
+                                    <p>{{product.price}} рублей</p>
+                                    <p>{{product.availability_status}}</p>
+                                    <p>{{product.giis_status}}</p>
+                                    <p>{{product.manufacturer}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </dialog>
+                <script>
+                    const openModal_{{product.number}} = document.querySelector('.openModal_{{product.number}}');
+                    const modal_{{product.number}} = document.querySelector('.modal_{{product.number}}');
+                    const closeModal_{{product.number}} = document.querySelector('.closeModal_{{product.number}}')
+
+                    openModal_{{product.number}}.addEventListener('click', () => {modal_{{product.number}}.showModal()})
+                    closeModal_{{product.number}}.addEventListener('click', () => {modal_{{product.number}}.close()})
+                    modal_{{product.number}}.addEventListener('click', (e) => {if(e.target === modal_{{product.number}}) modal_{{product.number}}.close()})
+                </script>
+            {% endfor %}
+        </table>
+        {% if num_pages|length > 1 %}
+            <div class="pages_list">
+                {% for num in num_pages %}
+                    <form action="{% url 'upload_file' %}" method="post">
+                        {% csrf_token%}
+                        <input type="text" value="{{num}}" name="page_num" hidden>
+                        <button type="submit">{{ num }}</button>
+                    </form>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <form method="get" action="{% url 'save_products' %}">
+        <button type="submit">Сохранить изделия в базе данных</button>
+        </form>
+    </article>
+{% endblock %}
