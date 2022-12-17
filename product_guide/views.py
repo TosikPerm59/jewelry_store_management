@@ -1,21 +1,17 @@
 import os.path
 import shutil
 from django.contrib.auth.models import User
-from django.db.models import Model
 from django.http import HttpResponse, FileResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from .models import Jewelry, InputInvoice, Manufacturer, Provider, Counterparties, File
+from .models import Jewelry, InputInvoice, Manufacturer
 from product_guide.forms.product_guide.forms import UploadFileForm
-from product_guide.services.anover_functions import search_query_processing, \
-    make_product_dict_from_dbqueryset, get_context_for_product_list, \
-    make_product_queryset_from_dict_dicts, has_filters_check, create_nomenclature_file, get_or_save_provider, \
-    get_or_save_input_invoice_obj
+from product_guide.services.anover_functions import create_nomenclature_file
 from django.contrib.auth.decorators import login_required
 from .services.outgoing_invoice_changer import change_outgoing_invoice
 from .services.testing_classes import Testing
 import traceback
-from .services.validity import check_id, check_uin, isfloat, isinteger
+from .services.validity import check_id, check_uin
 from .services.view_classes import createRequestObject
 
 
@@ -145,7 +141,7 @@ def save_products(request):
     repeating_product = False
     product_dict_dicts_from_session = request.session['products_objects_dict_for_view']
     # print('product_dict_dicts_from_session = ', product_dict_dicts_from_session)
-    invoice_dict_from_session = request.session['invoice']
+    invoice_dict_from_session = request.session['invoice_requisites']
     previous_barcode, repeating_counter = None, 0
     uins_list_from_db = Jewelry.get_all_values_list('uin')
     print('len(uins_list_from_db) = ', len(uins_list_from_db))
@@ -190,8 +186,8 @@ def save_products(request):
                     if key != 'manufacturer_id':
                         new_object.__setattr__(key, value)
                     else:
-                        obj = Manufacturer.get_object('id', product_from_sessions_dict[key])
-                        new_object.__setattr__('manufacturer', obj)
+                        manufacturer_obj = Manufacturer.get_object('id', product_from_sessions_dict[key])
+                        new_object.__setattr__('manufacturer', manufacturer_obj)
             print('New object = ', new_object.__dict__)
             try:
                 new_object.save()

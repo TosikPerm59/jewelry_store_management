@@ -48,49 +48,6 @@ def search_query_processing(search_string):
     return filters_dict
 
 
-def calculate_weight_number_price(products_dicts_dict):
-    counter = 0
-    total_weight = 0
-
-    for key, product in products_dicts_dict.items():
-
-        counter += 1
-        try:
-            if isfloat(product['weight']):
-                total_weight += float(product['weight'])
-        except:
-            pass
-
-    return total_weight, counter
-
-
-def get_context_for_product_list(products_dicts_dict, page_num):
-    """Функция создания контекста для рэндэринга. Определяет общий вес и количесво изделий,
-     разделяет все изделия постранично по 50 штук на странице, определяет выбранную пользователем
-     страницу, создает dict контекста, по умолчанию выбирается первая страница.
-    Принимает dict с изделиями и номер страницы, возвращает dict с контекстом для выбранной
-    пользователем страницы. """
-
-    # Определение общего веса и количества изделий из products_dicts_dict
-    total_weight, number_of_products = calculate_weight_number_price(products_dicts_dict)
-    # Конвертация dict в list
-    product_queryset = make_product_queryset_from_dict_dicts(products_dicts_dict)
-    product_list = []
-    # Разбиение всех изделий из products_dicts_dict постранично по 50 штук
-    paginator = Paginator(product_queryset, 15)
-    # Получение списка изделий для выбранной пользователем страницы
-    page = paginator.get_page(page_num)
-    # Создание dict с контекстом
-    context = {
-        'product_list': page.object_list,
-        'position_list': [x + 1 for x in range(number_of_products)],  # Список номеров позиций
-        'num_pages': [x for x in range(paginator.num_pages + 1)][1:], # Список номеров страниц
-        'total_weight': round(total_weight, ndigits=2),  # Общий вес изделий в списке
-        'len_products': number_of_products  # Количество изделий в списке
-    }
-    return context
-
-
 def save_invoice(form, file_name):
     file = File.get_object('title', file_name)
     file.delete()
@@ -98,12 +55,6 @@ def save_invoice(form, file_name):
     file_object = File.objects.latest('id')
     file_object.title = file_name
     file_object.save()
-
-
-def determine_giis_report(file_name):
-    if file_name.startswith('4_BATCH_LIST_PRINT'):
-        return 'giis_report'
-
 
 def make_product_dict_from_paginator(paginator):
     product_dict = {}

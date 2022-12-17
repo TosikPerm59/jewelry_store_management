@@ -5,8 +5,8 @@ from django.shortcuts import render
 
 from jewelry_store_management.settings import BASE_DIR
 from product_guide.models import Counterparties
-from product_guide.services.anover_functions import calculate_weight_number_price, \
-    make_product_queryset_from_dict_dicts, find_products_in_db, has_filters_check, make_product_dict_from_dbqueryset, \
+from product_guide.services.anover_functions import make_product_queryset_from_dict_dicts, \
+    find_products_in_db, has_filters_check, make_product_dict_from_dbqueryset, \
     search_query_processing
 from product_guide.services.validity import isfloat, isinteger
 
@@ -17,7 +17,7 @@ class RequestSession:
     def session_cleanup(self):
         self.delete_filtered_list_from_session()
         self.delete_products_dicts_dict_from_session()
-        self.delete_invoice_data_from_session()
+        self.delete_invoice_requisites_from_session()
         self.delete_context_from_session()
         self.delete_template_path_from_session()
 
@@ -47,18 +47,18 @@ class RequestSession:
             print('Удаление словаря словарей продуктов из сессии')
             self.request.session.pop('products_objects_dict_for_view')
 
-    def save_invoice_data_in_session(self):
+    def save_invoice_requisites_in_session(self):
         print('Сохранение данных накладной в сессии')
-        self.request.session['invoice'] = self.invoice_data
+        self.request.session['invoice_requisites'] = self.invoice_requisites
 
-    def get_invoice_data_from_session(self):
+    def get_invoice_requisites_from_session(self):
         print('Получение данных накладной из сессии')
-        return self.request.session['invoice']
+        return self.request.session['invoice_requisites']
 
-    def delete_invoice_data_from_session(self):
+    def delete_invoice_requisites_from_session(self):
         if 'invoice' in self.request.session.keys():
             print('Удаление данных накладной из сессии')
-            self.request.session.pop('invoice')
+            self.request.session.pop('invoice_requisites')
 
     def save_context_in_session(self):
         print('Сохранение контекста в сессии')
@@ -93,10 +93,12 @@ class Request(RequestSession):
 
     @staticmethod
     def set_correct_file_name(file_name):
+        print(file_name)
         for simbol in [' ', '№']:
             file_name = file_name.replace(simbol, '_') if simbol in file_name else file_name
             file_name = file_name.replace('(', '') if '(' in file_name else file_name
             file_name = file_name.replace(')', '') if ')' in file_name else file_name
+            file_name = file_name.replace('__', '_') if '__' in file_name else file_name
         return file_name
 
     @staticmethod
@@ -191,9 +193,7 @@ class Context:
             self.page = self.paginator_obj.get_page(request_obj.page_num)
             self.context = self.get_default_context()
             if request_obj.__class__.__name__ == 'UploadFilePost':
-                if request_obj.request.session['invoice'] != 'giis_report' and \
-                request_obj.file_handler_obj.invoice_type == 'incoming':
-                    self.get_context_for_UploadFilePost()
+                self.set_context_for_UploadFilePost()
             return
         self.context = None
 
@@ -221,15 +221,17 @@ class Context:
                 'len_products': self.number_of_products  # Количество изделий в списке
             }
 
-    def get_context_for_UploadFilePost(self):
+    def set_context_for_UploadFilePost(self):
         print('Append additional data in context for UploadFilePost')
-        invoice_data = self.request_obj.get_invoice_data_from_session()
+        invoice_data = self.request_obj.get_invoice_requisites_from_session()
         self.context['prod_list'] = find_products_in_db(self.products_dicts_dict)
         self.context['invoice_title'] = invoice_data['title']
-        self.context['invoice_date'] = invoice_data['arrival_date']
-        self.context['invoice_number'] = invoice_data['invoice_number']
-        self.context['provider_surname'] = Counterparties.get_object('id', invoice_data['provider_id']).surname
 
+        if self.request_obj.invoice_requisites['invoice_type'] != 'giis_report':
+            self.context['recipient_surname'] = Counterparties.get_object('id', invoice_data['recipient_id']).surname
+            self.context['invoice_date'] = invoice_data['invoice_date']
+            self.context['invoice_number'] = invoice_data['invoice_number']
+            self.context['provider_surname'] = Counterparties.get_object('id', invoice_data['provider_id']).surname
 
 def clear_media_folder():
     print('Run clear_media_folder')

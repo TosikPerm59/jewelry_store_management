@@ -1,7 +1,5 @@
 from product_guide.models import File, OutgoingInvoice, Counterparties
-from django.core.exceptions import ObjectDoesNotExist
-from product_guide.services.anover_functions import determine_giis_report, get_outgoing_invoice_title_list, \
-    get_context_for_product_list, find_products_in_db
+from product_guide.services.anover_functions import get_outgoing_invoice_title_list, find_products_in_db
 from product_guide.services.giis_parser import giis_file_parsing
 from product_guide.services.invoice_parser import invoice_parsing, word_invoice_parsing
 from product_guide.services.readers import read_excel_file, read_msword_file

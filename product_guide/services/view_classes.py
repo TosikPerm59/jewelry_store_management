@@ -53,14 +53,14 @@ class UploadFilePost(Request):
             self.session_cleanup()
             if self.check_and_save_form():
                 self.file_path = f'{BASE_DIR}\media\product_guide\documents\\{self.file_name}'
-                print('file_path = ', self.file_path)
                 self.page_num = None
                 self.file_handler_obj = FileHandler(self)
                 self.products_dicts_dict = self.file_handler_obj.products_dicts_dict
-                self.invoice_data = self.file_handler_obj.invoice_type
+                self.invoice_requisites = self.file_handler_obj.invoice_requisites
+                self.invoice_requisites['title'] = self.file_name
                 self.save_template_path_in_session()
                 self.save_products_dicts_dict_in_session()
-                self.save_invoice_data_in_session()
+                self.save_invoice_requisites_in_session()
                 self.context = Context.get_context(self)
                 self.save_context_in_session()
                 clear_media_folder()
@@ -94,4 +94,5 @@ class UploadFilePost(Request):
         file_object = File.objects.latest('id')
         file_object.title = form.title
         file_object.save()
+        print('Файл сохранен успешно')
 

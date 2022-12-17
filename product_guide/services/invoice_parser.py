@@ -162,7 +162,7 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
 
     invoice_requisites['provider_id'] = provider_id
     invoice_requisites['recipient_id'] = recipient_id
-    invoice_requisites['arrival_date'] = invoice_date
+    invoice_requisites['invoice_date'] = invoice_date
     invoice_requisites['invoice_number'] = invoice_number
     invoice_requisites['invoice_type'] = invoice_type
     return product_dicts_dict, invoice_requisites
@@ -208,7 +208,7 @@ def word_invoice_parsing(header_table, product_table):
 
     invoice_requisites['provider_id'] = provider_id
     invoice_requisites['recipient_id'] = recipient_id
-    invoice_requisites['departure_date'] = part_list[-2]
+    invoice_requisites['invoice_date'] = part_list[-2]
     invoice_requisites['invoice_number'] = part_list[-3]
 
     # print(invoice_requisites)
