@@ -72,6 +72,18 @@ class ExtendedModelsModel(models.Model):
         abstract = True
 
 
+    @classmethod
+    def find_product(cls, product):
+        """ Функция поиска позиций в таблицах базы данных. На вход подается словарь"""
+        try:
+            if product['uin'] != 'None' or product['uin'] is not None:
+                return cls.get_object('uin', int(product['uin']))
+
+            elif product['barcode'] != 'None' or product['barcode'] is not None:
+                return cls.get_object('barcode', int(product['barcode']))
+        except:
+            pass
+
 class Jewelry(ExtendedModelsModel):
     metals = (
         ('Золото 585', 'Золото 585'),
@@ -105,15 +117,17 @@ class Jewelry(ExtendedModelsModel):
     uin = models.IntegerField(verbose_name='УИН', blank=True, null=True, unique=True)
     coating = models.CharField(max_length=20, verbose_name='Покрытие', blank=True, null=True, choices=coatings)
     inserts = models.CharField(max_length=50, verbose_name='Вставки', blank=True, null=True)
+    purchase_price = models.FloatField(null=True, blank=True, verbose_name='Закупочная цена')
+    arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
+    provider = models.ForeignKey('Provider', null=True, blank=True, verbose_name='Поставщик', on_delete=models.PROTECT)
+    input_invoice = models.ForeignKey('InputInvoice', null=True, blank=True, on_delete=models.PROTECT,
+                                      verbose_name='Входящая накладная')
     availability_status = models.CharField(max_length=50, verbose_name='Статус наличия')
     giis_status = models.CharField(max_length=20, null=True, blank=True, verbose_name='Статус ГИИС',
                                    choices=giis_statuses)
-    price = models.FloatField(null=True, blank=True, verbose_name='Цена')
-    provider = models.ForeignKey('Provider', null=True, blank=True, verbose_name='Поставщик', on_delete=models.PROTECT)
-    arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
-    input_invoice = models.ForeignKey('InputInvoice', null=True, blank=True, on_delete=models.PROTECT,
-                                      verbose_name='Входящая накладная')
-    recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT,
+    departure_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата отгрузки')
+    selling_price = models.FloatField(null=True, blank=True, verbose_name='Отпускная цена')
+    recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, default=None,
                                   verbose_name='Получатель')
     outgoing_invoice = models.ForeignKey('OutgoingInvoice', null=True, blank=True, on_delete=models.PROTECT,
                                          verbose_name='Исходящая накладная')
@@ -153,7 +167,7 @@ class Invoice(ExtendedModelsModel):
 
 
 class InputInvoice(Invoice, ExtendedModelsModel):
-    provider = models.ForeignKey('Provider', null=True, blank=True, on_delete=models.PROTECT,
+    provider = models.ForeignKey('Provider', null=True, blank=True, on_delete=models.PROTECT, default=None,
                                  verbose_name='Поставщик')
     arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
 
@@ -163,7 +177,7 @@ class InputInvoice(Invoice, ExtendedModelsModel):
 
 
 class OutgoingInvoice(Invoice, ExtendedModelsModel):
-    recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT,
+    recipient = models.ForeignKey('Recipient', null=True, blank=True, on_delete=models.PROTECT, default=None,
                                   verbose_name='Получатель')
     departure_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата отгрузки')
 
@@ -193,7 +207,7 @@ class Counterparties(ExtendedModelsModel):
 
 class Provider(ExtendedModelsModel):
     title = models.CharField(max_length=50, blank=True, null=True, verbose_name='Поставщик')
-    counterparties = models.ForeignKey('Counterparties', null=True, blank=True, on_delete=models.PROTECT,
+    counterparties = models.ForeignKey('Counterparties', null=True, blank=True, on_delete=models.PROTECT, default=None,
                                        verbose_name='Контрагент')
 
     class Meta:
@@ -203,6 +217,8 @@ class Provider(ExtendedModelsModel):
 
 class Recipient(ExtendedModelsModel):
     title = models.CharField(max_length=50, blank=True, null=True, verbose_name='Получатель')
+    counterparties = models.ForeignKey('Counterparties', null=True, blank=True, on_delete=models.PROTECT, default=None,
+                                       verbose_name='Контрагент')
 
     class Meta:
         verbose_name = 'Грузополучателя'

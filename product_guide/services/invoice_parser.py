@@ -1,4 +1,4 @@
-from product_guide.models import Counterparties
+from product_guide.models import Counterparties, Provider, Recipient
 from product_guide.services.anover_functions import definition_of_invoice_type
 from product_guide.services.finders import *
 invoice_requisites = {}
@@ -169,7 +169,9 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
 
 
 def word_invoice_parsing(header_table, product_table):
-    counterparties_queryset = Counterparties.get_all_values()
+    counterparties_objs = Counterparties.get_all_obj()
+    providers_objs = Provider.get_all_obj()
+    recipient_objs = Recipient.get_all_obj()
     max_row_product_table = len(product_table.rows)
     max_row_header_table = len(header_table.rows)
     products_dicts_dict = {}
@@ -192,26 +194,40 @@ def word_invoice_parsing(header_table, product_table):
             provider_index = part_list.index(elem) + 1
             provider_string = part_list[provider_index]
 
-            for counterparty in counterparties_queryset:
-                # print(provider_string)
-                # print(counterparty['full_name'])
-                if counterparty['full_name'] in provider_string:
-                    provider_id = counterparty['id']
-                    break
+            for counterparty in counterparties_objs:
+                if counterparty.surname in provider_string:
+                    for provider_obj in providers_objs:
+                        if provider_obj.counterparties == counterparty:
+                            provider_id = provider_obj.id
+                            break
+                    else:
+                        provider_obj = Provider()
+                        provider_obj.title = counterparty.surname
+                        provider_obj.counterparties = counterparty
+                        provider_obj.save()
+                        provider_id = provider_obj.id
+
         elif elem == 'Грузополучатель':
             recipient_index = part_list.index(elem) + 1
             recipient_string = part_list[recipient_index]
-            for counterparty in counterparties_queryset:
-                if counterparty['full_name'] in recipient_string:
-                    recipient_id = counterparty['id']
-                    break
+            for counterparty in counterparties_objs:
+                if counterparty.surname in recipient_string:
+                    for recipient_obj in recipient_objs:
+                        if recipient_obj.counterparties == counterparty:
+                            recipient_id = recipient_obj.id
+                            break
+                    else:
+                        recipient_obj = Recipient()
+                        recipient_obj.title = counterparty.surname
+                        recipient_obj.counterparties = counterparty
+                        recipient_obj.save()
+                        recipient_id = recipient_obj.id
+
 
     invoice_requisites['provider_id'] = provider_id
     invoice_requisites['recipient_id'] = recipient_id
     invoice_requisites['invoice_date'] = part_list[-2]
     invoice_requisites['invoice_number'] = part_list[-3]
-
-    # print(invoice_requisites)
 
     for row in range(3, max_row_product_table - 21):
         counter += 1
@@ -220,7 +236,10 @@ def word_invoice_parsing(header_table, product_table):
         string = string.replace('(', '') if '(' in string else string
         string = string.replace(')', '') if ')' in string else string
         split_string = string.split(' ')
-        # print(f'Парсинг строки  ({string})')
+        price = product_table.rows[row].cells[45].text.lower()
+        price = price.replace(',', '.') if ',' in price else price
+        price = price.replace(' ', '') if ' ' in price else price
+        price = price.replace('\xa0', '') if '\xa0' in price else price
         products_dicts_dict[counter] = {
             'weight': find_weight(split_string),
             'size': find_size(split_string, group='word'),
@@ -229,7 +248,8 @@ def word_invoice_parsing(header_table, product_table):
             'uin': find_uin_in_string(split_string),
             'vendor_code': find_art(split_string, group=None),
             'number': counter,
-            'barcode': None
+            'barcode': None,
+            'price': float(price) if isfloat(price) else ''
         }
     # print(products_dicts_dict)
     return products_dicts_dict, invoice_requisites

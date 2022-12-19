@@ -1,7 +1,8 @@
 from django.urls import path, include
 from .views import index, register, user_login, user_logout, upload_file, change_product_attr, \
-    delete_line, save_products, download_changed_file, download_nomenclature, save_incoming_invoice, show_products
-from django.contrib.auth.views import LoginView
+    delete_line, save_products, download_changed_file, download_nomenclature, save_incoming_invoice, show_products, \
+    save_changes
+
 urlpatterns = [
     path('', index, name='index'),
     path('product_base', show_products, name='product_base'),
@@ -14,5 +15,6 @@ urlpatterns = [
     path('save_products', save_products, name='save_products'),
     path('download_changed_file', download_changed_file, name='download_changed_file'),
     path('download_nomenclature', download_nomenclature, name='download_nomenclature'),
-    path('save_incoming_invoice', save_incoming_invoice, name='save_incoming_invoice')
+    path('save_incoming_invoice', save_incoming_invoice, name='save_incoming_invoice'),
+    path('save_changes', save_changes, name='save_changes')
 ]

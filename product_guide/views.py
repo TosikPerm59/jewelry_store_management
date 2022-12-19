@@ -118,11 +118,9 @@ def upload_file(request):
         загружаемого файла. """
     try:
         request_obj = createRequestObject(request, 'UploadFile')
-
-        # Показать данные сессии
         # Testing.show_session_data(request, show_products=False, show_invoice=True)
-        # Показать данные контекста
         # Testing.show_context_data(request_obj.context, show_lists=True)
+        request.session.save()
         print('RENDERING')
         return render(request, request_obj.template_path, context=request_obj.context)
 
@@ -135,28 +133,28 @@ def upload_file(request):
 @login_required()
 def save_products(request):
     print('Сохранение изделий в базе данных')
-    # print('request.session.__dir__() = ', request.session.__dir__())
+    print('request.session.__dir__() = ', request.session._session_cache)
     products_queryset_from_bd = Jewelry.get_all_values()
     # print(request.session['products_objects_dict_for_view'])
     repeating_product = False
     product_dict_dicts_from_session = request.session['products_objects_dict_for_view']
     # print('product_dict_dicts_from_session = ', product_dict_dicts_from_session)
-    invoice_dict_from_session = request.session['invoice_requisites']
+    invoice_requisites_from_session = request.session['invoice_requisites']
     previous_barcode, repeating_counter = None, 0
     uins_list_from_db = Jewelry.get_all_values_list('uin')
     print('len(uins_list_from_db) = ', len(uins_list_from_db))
     # print('uins_list_from_db = ', uins_list_from_db)
     barcodes_list_from_db = Jewelry.get_all_values_list('barcode')
     counter = 0
-    if 'giis_report' not in invoice_dict_from_session:
-        invoice_object = InputInvoice.get_object('title', invoice_dict_from_session['title'])
+    if invoice_requisites_from_session['invoice_type'] != 'giis_report':
+        invoice_object = InputInvoice.get_object('title', invoice_requisites_from_session['title'])
 
         if invoice_object is None:
             invoice_object = InputInvoice(
-                title=invoice_dict_from_session['title'],
-                invoice_number=invoice_dict_from_session['invoice_number'],
-                recipient=invoice_dict_from_session['recipient_id'],
-                arrival_date=invoice_dict_from_session['arrival_date']
+                title=invoice_requisites_from_session['title'],
+                invoice_number=invoice_requisites_from_session['invoice_number'],
+                recipient=invoice_requisites_from_session['recipient_id'],
+                arrival_date=invoice_requisites_from_session['arrival_date']
             )
             invoice_object.save()
 
@@ -269,6 +267,7 @@ def download_changed_file(request):
     #     return HttpResponse('Скачивание выполнено успешно')
 
     file_path = request.GET.get('file_path')
+    print('file_path = ', file_path)
     path = os.path.split(file_path)[0] + '/media/'
     name = os.path.split(file_path)[1]
     copy_path = path + 'Копия' + name
@@ -326,3 +325,9 @@ def delete_line(request):
     context = get_context_for_product_list(product_dict_dicts, page_num=None)
 
     return render(request, 'product_guide/show_giis_report.html', context=context)
+
+
+def save_changes(request):
+    request_obj = createRequestObject(request, 'SaveChanges')
+    # Testing.show_context_data(request_obj.context, show_lists=True)
+    return render(request, 'product_guide/product_base_v2.html', context=request_obj.context)

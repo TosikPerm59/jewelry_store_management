@@ -34,9 +34,9 @@ def giis_file_parsing(giis_report_parser_obj):
         giis_status = sheet[row][6].value if sheet[row][6].value else None
         if giis_status == 'Терминальная стадия':
             giis_status = 'Выведено'
-        #     availability_status = 'Продано'
-        # else:
-        #     availability_status = 'В наличии'
+            # availability_status = 'Продано'
+        else:
+            availability_status = 'В наличии'
         manufacturer_inn = sheet[row][9].value if sheet[row][9].value != '0000000000' else None
         if manufacturer_inn:
             if manufacturer_inn not in manufacturers_list:
@@ -88,7 +88,7 @@ def giis_file_parsing(giis_report_parser_obj):
                         'number': counter,
                         'uins': uins,
                         'giis_status': giis_status,
-                        # 'availability_status': availability_status,
+                        'availability_status': availability_status,
                         'manufacturer_id': manufacturer_id
                         }
 

@@ -15,8 +15,8 @@ class Testing:
             print()
         if show_invoice is True:
             print('SessionData: InvoiceData:')
-            if 'invoice' in request.session._session_cache.keys():
-                for key, value in request.session._session_cache['invoice'].items():
+            if 'invoice_requisites' in request.session._session_cache.keys():
+                for key, value in request.session._session_cache['invoice_requisites'].items():
                     print(key, value)
                 print()
 
@@ -26,7 +26,7 @@ class Testing:
         for key, value in context.items():
             if show_lists is True:
                 if isinstance(value, list):
-                    print('Ключ =', key)
+                    print(key, end='=')
                     for item in value:
                         print(item)
                 else:

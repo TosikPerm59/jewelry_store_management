@@ -87,8 +87,8 @@
             {% endfor %}
         {% endif %}
         Изменить статус наличия для {{len_products}} позиций на "Передано" <br> и установить получателем {{ recipient_surname }}
-        <form method="get" action="{% url 'save_products' %}">
-            <button type="submit" id="button_change_and_save">Изменить и установить</button>
+        <form method="get" action="{% url 'save_changes' %}">
+            <button type="submit" id="button_change_and_save">Изменить и сохранить</button>
         </form>
         <form method="get" action="{% url 'download_changed_file' %}">
             <input type="text" value="{{ file_path }}" name="file_path" hidden>

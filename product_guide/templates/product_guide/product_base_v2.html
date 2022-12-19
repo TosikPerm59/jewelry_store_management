@@ -68,7 +68,7 @@
                 <th>Штрихкод</th>
                 <th>УИН</th>
                 <th>Статус ГИИС</th>
-                <th>Цена</th>
+                <th>Отпускная цена</th>
             </tr>
 
             {% for product in product_list %}
@@ -82,7 +82,7 @@
                     <td><input disabled type="text" value="{{ product.barcode }}" name="product.barcode" style="width: 14ch"> </td>
                     <td><input disabled type="text" value="{{ product.uin }}" name="product.uin" style="width: 17ch"> </td>
                     <td><input disabled type="text" value="{{ product.giis_status }}" name="product.giis_status" style="width: 12ch"> </td>
-                    <td><input disabled type="text" value="{{ product.price }}" name="product.price"> </td>
+                    <td><input disabled type="text" value="{{ product.selling_price }}" name="product.price"> </td>
                     <td><button class="openModal_{{product.number}}">Показать</button></td>
                 </tr>
 
@@ -102,7 +102,7 @@
                                     <p>Уин</p>
                                     <p>Вес</p>
                                     <p>Размер</p>
-                                    <p>Цена</p>
+                                    <p>Отпускная цена</p>
                                     <p>Статус наличия</p>
                                     <p>Статус ГИИС</p>
                                     <p>Производитель</p>
@@ -116,7 +116,7 @@
                                     <p>{{product.uin}}</p>
                                     <p>{{product.weight}} грамм</p>
                                     <p>{{product.size}} размер</p>
-                                    <p>{{product.price}} рублей</p>
+                                    <p>{{product.selling_price}} рублей</p>
                                     <p>{{product.availability_status}}</p>
                                     <p>{{product.giis_status}}</p>
                                     <p>{{product.manufacturer}}</p>

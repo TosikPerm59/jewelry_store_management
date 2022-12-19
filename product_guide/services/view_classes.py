@@ -4,7 +4,7 @@ from django.template.context_processors import media
 import tempfile
 from jewelry_store_management.settings import BASE_DIR
 from product_guide.forms.product_guide.forms import UploadFileForm
-from product_guide.models import Jewelry, File
+from product_guide.models import Jewelry, File, Counterparties, Recipient, OutgoingInvoice
 from product_guide.services.anover_functions import make_product_dict_from_dbqueryset
 from product_guide.services.file_handling_classes import FileHandler
 from product_guide.services.request_classes import Request, Context, clear_media_folder
@@ -95,4 +95,32 @@ class UploadFilePost(Request):
         file_object.title = form.title
         file_object.save()
         print('Файл сохранен успешно')
+
+
+class SaveChangesGet(Request):
+    def __init__(self, request):
+        self.printCreateObject()
+        self.request = request
+        self.numbers_of_items_per_page = 30
+        self.page_num = None
+        self.products_dicts_dict = self.get_products_dicts_dict_from_session()
+        invoice_requisites = self.get_invoice_requisites_from_session()
+        recipient_id = invoice_requisites['recipient_id']
+        products_dicts_queryset = []
+        for key, product in self.products_dicts_dict.items():
+            product_obj = Jewelry.find_product(product)
+            if product_obj:
+                product_obj.availability_status = 'Передано'
+                product_obj.recipient = Recipient.get_object('id', recipient_id)
+                product_obj.selling_price = product['price']
+                product_obj.departure_date = invoice_requisites['invoice_date']
+                product_obj.outgoing_invoice = OutgoingInvoice.get_object('title', invoice_requisites['title'])
+                product_obj.save()
+                products_dicts_queryset.append(product_obj.__dict__)
+                self.products_dicts_dict = make_product_dict_from_dbqueryset(products_dicts_queryset)
+
+        self.context = Context.get_context(self)
+
+
+
 
