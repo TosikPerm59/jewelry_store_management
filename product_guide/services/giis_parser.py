@@ -26,7 +26,7 @@ def giis_file_parsing(giis_report_parser_obj):
     # Выполняется построчный проход по таблице
 
     for row in rows_list:
-        manufacturer_id = None
+        manufacturer_id, availability_status = None, None
         description, size, barcode, vendor_code, weight, giis_status = None, None, None, None, None, None
         uin = sheet[row][1].value if sheet[row][1].value else None
         uin2 = sheet[row][2].value if sheet[row][2].value else None
