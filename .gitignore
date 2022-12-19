@@ -42,4 +42,3 @@ venv/
 # Secrets
 secrets.json
 # Mirgrations
-product_guide/migrations/
