@@ -15,6 +15,7 @@ class FileHandler:
         self.file_path = request_obj.file_path
         self.file_extension = self.file_name.split('.')[1]
         self.file_data_obj = self.extract_data_from_file()
+        self.invoice_requisites = {}
         self.products_dicts_dict = self.parsing_data_object()
 
 
