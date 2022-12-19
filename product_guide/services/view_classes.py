@@ -52,7 +52,7 @@ class UploadFilePost(Request):
             print('Has a File')
             self.session_cleanup()
             if self.check_and_save_form():
-                self.file_path = f'{BASE_DIR}\media\product_guide\documents\\{self.file_name}'
+                self.file_path = f'{BASE_DIR}/media/product_guide/documents/{self.file_name}'
                 self.page_num = None
                 self.file_handler_obj = FileHandler(self)
                 self.products_dicts_dict = self.file_handler_obj.products_dicts_dict
