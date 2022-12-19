@@ -54,8 +54,8 @@ def giis_file_parsing(giis_report_parser_obj):
                 continue
         if uin:
             if int(uin) not in uin_list:
-                description = find_description(sheet[row][10].value, sheet[row][11].value, sheet[row][14].value,
-                                               sheet[row][23].value, group=group)
+                description = find_description(sheet[row][10].value, sheet[row][11].value, sheet[row][15].value,
+                                               sheet[row][24].value, group=group)
                 barcode = find_id(sheet[row][10].value, sheet[row][11].value) if find_id(sheet[row][10].value,
                                                                                          sheet[row][11].value) else None
                 vendor_code = find_art(sheet[row][10].value, sheet[row][11].value, group=group) if find_art(

@@ -9,6 +9,7 @@ from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import create_nomenclature_file
 from django.contrib.auth.decorators import login_required
 from .services.outgoing_invoice_changer import change_outgoing_invoice
+from .services.request_classes import Request
 from .services.testing_classes import Testing
 import traceback
 from .services.validity import check_id, check_uin
@@ -194,9 +195,7 @@ def save_products(request):
                 pass
         repeating_product = False
 
-    context = get_context_for_product_list(product_dict_dicts_from_session, page_num=None)
-
-    return render(request, 'product_guide/product_base_v2.html', context=context)
+    return show_products(request)
 
 
 @login_required()

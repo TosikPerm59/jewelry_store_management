@@ -24,7 +24,6 @@ coverage.xml
 *.pot
 # Django stuff:
 *.log
-db.sqlite3
 # Sphinx documentation
 docs/_build/
 # IPython
