@@ -40,4 +40,5 @@ venv/
 !/static/.gitkeep
 # Secrets
 secrets.json
-# Mirgrations
+# DataBase
+db.sqlite3

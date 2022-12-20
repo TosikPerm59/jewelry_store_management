@@ -104,8 +104,12 @@ class Request(RequestSession):
         product_list = make_product_queryset_from_dict_dicts(products_dicts_dict)
         for key, value in filters_dict.items():
             if value != 'all':
-                value = float(value) if isfloat(value) else value
-                value = int(value) if isinteger(value) else value
+                if isinteger(value):
+                    value = int(value)
+                else:
+                    value = float(value) if isfloat(value) else value
+                print(type(value))
+                print(value)
                 product_list = [p for p in product_list if key in p.keys() and p[key] == value]
         filtered_products_dicts_dict = make_product_dict_from_dbqueryset(product_list)
         return filtered_products_dicts_dict
@@ -154,7 +158,6 @@ class Request(RequestSession):
         print('Выполняется получение фильтров')
         self.search_string = self.get_attr_from_POST('search_string')
         if self.search_string:
-            print('search_string = ', self.search_string)
             print('Request has SearchString')
             filters_dict = search_query_processing(self.search_string)
             return filters_dict

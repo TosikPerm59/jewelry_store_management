@@ -44,7 +44,7 @@ def search_query_processing(search_string):
         'weight': weight
 
     }
-    print(filters_dict)
+    print('filters_dict = ', filters_dict)
     return filters_dict
 
 
