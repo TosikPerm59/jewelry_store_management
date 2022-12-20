@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import render
 
 from jewelry_store_management.settings import BASE_DIR
-from product_guide.models import Counterparties, Recipient, Provider
+from product_guide.models import Counterparties, Recipient, Provider, Jewelry
 from product_guide.services.anover_functions import make_product_queryset_from_dict_dicts, \
     find_products_in_db, has_filters_check, make_product_dict_from_dbqueryset, \
     search_query_processing

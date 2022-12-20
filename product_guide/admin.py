@@ -6,6 +6,7 @@ from .models import *
 
 class JewelryAdmin(admin.ModelAdmin):
     list_display = ('name', 'metal', 'weight')
+    list_display_links = ('name', 'metal')
 
 
 class OutgoingInvoiceAdmin(admin.ModelAdmin):
