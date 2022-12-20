@@ -134,17 +134,11 @@ def upload_file(request):
 @login_required()
 def save_products(request):
     print('Сохранение изделий в базе данных')
-    print('request.session.__dir__() = ', request.session._session_cache)
     products_queryset_from_bd = Jewelry.get_all_values()
-    # print(request.session['products_objects_dict_for_view'])
     repeating_product = False
     product_dict_dicts_from_session = request.session['products_objects_dict_for_view']
-    # print('product_dict_dicts_from_session = ', product_dict_dicts_from_session)
     invoice_requisites_from_session = request.session['invoice_requisites']
-    previous_barcode, repeating_counter = None, 0
     uins_list_from_db = Jewelry.get_all_values_list('uin')
-    print('len(uins_list_from_db) = ', len(uins_list_from_db))
-    # print('uins_list_from_db = ', uins_list_from_db)
     barcodes_list_from_db = Jewelry.get_all_values_list('barcode')
     counter = 0
     if invoice_requisites_from_session['invoice_type'] != 'giis_report':
