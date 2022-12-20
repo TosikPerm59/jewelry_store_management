@@ -105,7 +105,7 @@ class Jewelry(ExtendedModelsModel):
         ('В наличии', 'В наличии'),
         ('Продано', 'Продано'),
         ('Передано', 'Передано'),
-        ('В договоре', 'В договоре')
+        ('Передано по договору', 'Передано по договору')
     )
 
     name = models.CharField(max_length=20, verbose_name='Вид изделия')
@@ -122,7 +122,7 @@ class Jewelry(ExtendedModelsModel):
     provider = models.ForeignKey('Provider', null=True, blank=True, verbose_name='Поставщик', on_delete=models.PROTECT)
     input_invoice = models.ForeignKey('InputInvoice', null=True, blank=True, on_delete=models.PROTECT,
                                       verbose_name='Входящая накладная')
-    availability_status = models.CharField(max_length=50, verbose_name='Статус наличия')
+    availability_status = models.CharField(max_length=50, choices=availability_statuses, verbose_name='Статус наличия')
     giis_status = models.CharField(max_length=20, null=True, blank=True, verbose_name='Статус ГИИС',
                                    choices=giis_statuses)
     departure_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата отгрузки')
