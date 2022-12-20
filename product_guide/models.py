@@ -199,7 +199,7 @@ class Counterparties(ExtendedModelsModel):
     bank = models.CharField(max_length=50, blank=True, null=True, verbose_name='Банк')
     bik = models.IntegerField(blank=True, null=True, verbose_name='БИК')
     passport_number = models.CharField(max_length=30, blank=True, null=True, verbose_name='Серия и номер паспорта')
-    passport_info = models.CharField(max_length=30, blank=True, null=True, verbose_name='Информация о выдаче пасспорта')
+    passport_info = models.CharField(max_length=100, blank=True, null=True, verbose_name='Информация о выдаче паспорта')
     address = models.CharField(max_length=100, blank=True, null=True, verbose_name='Адрес')
 
     class Meta:
