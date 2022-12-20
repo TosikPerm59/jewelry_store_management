@@ -90,6 +90,7 @@
                 <dialog class="modal modal_{{product.number}}">
                     <div class="wrapper">
                         <div class="modalWindow">
+                            <a href="/admin/product_guide/jewelry/{{product.id}}/change/" target="_blank">Изменить</a>
                             <button class="closeModal closeModal_{{product.number}}">X</button>
                             <div class="modal_title">
                                 <h1>Подробное описание товара.</h1>
@@ -108,7 +109,11 @@
                                     {% for attr_name, value in product.items %}
                                         {% if attr_name != 'number' %}
                                         {% if attr_name != 'id' %}
+                                        {% if value and value != None  %}
                                             <p>{{value}}</p>
+                                        {% else %}
+                                            <p>Не известно</p>
+                                        {% endif %}
                                         {% endif %}
                                         {% endif %}
                                     {% endfor %}
