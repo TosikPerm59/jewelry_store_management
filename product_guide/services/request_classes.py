@@ -244,7 +244,7 @@ def clear_media_folder():
     folder = f'{BASE_DIR}/media/product_guide/documents'
     for files in os.walk(folder):
         for name in files[2]:
-            path = f'{folder}\\{name}'
+            path = f'{folder}/{name}'
             os.remove(path)
 
 
