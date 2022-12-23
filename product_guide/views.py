@@ -1,17 +1,17 @@
 import os.path
 import shutil
 from django.contrib.auth.models import User
-from django.http import HttpResponse, FileResponse
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import FileResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from .models import Jewelry, InputInvoice, Manufacturer
+from .models import Jewelry, Manufacturer, InputInvoice
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import create_nomenclature_file
 from django.contrib.auth.decorators import login_required
 from .services.outgoing_invoice_changer import change_outgoing_invoice
-from .services.request_classes import Request
-from .services.testing_classes import Testing
 import traceback
+
 from .services.validity import check_id, check_uin
 from .services.view_classes import createRequestObject
 
@@ -134,8 +134,8 @@ def upload_file(request):
 @login_required()
 def save_products(request):
     print('Сохранение изделий в базе данных')
-    products_queryset_from_bd = Jewelry.get_all_values()
-    repeating_product = False
+    # request_obj = createRequestObject(request, 'ProductsSaver')
+    products_obj_list_from_bd = Jewelry.get_all_obj()
     product_dict_dicts_from_session = request.session['products_objects_dict_for_view']
     invoice_requisites_from_session = request.session['invoice_requisites']
     uins_list_from_db = Jewelry.get_all_values_list('uin')
@@ -143,7 +143,6 @@ def save_products(request):
     counter = 0
     if invoice_requisites_from_session['invoice_type'] != 'giis_report':
         invoice_object = InputInvoice.get_object('title', invoice_requisites_from_session['title'])
-
         if invoice_object is None:
             invoice_object = InputInvoice(
                 title=invoice_requisites_from_session['title'],
@@ -154,19 +153,22 @@ def save_products(request):
             invoice_object.save()
 
     for product_from_sessions_key, product_from_sessions_dict in product_dict_dicts_from_session.items():
+        repeating_product = False
         barcode_from_session_product = product_from_sessions_dict['barcode']
-        if barcode_from_session_product is not None or barcode_from_session_product != 'None':
-            if check_id(barcode_from_session_product):
-                if int(barcode_from_session_product) in barcodes_list_from_db:
-                    prod_obj = Jewelry.get_object('barcode', int(barcode_from_session_product))
-                    if prod_obj.uin is None or prod_obj.uin == 'None':
+        if barcode_from_session_product not in [None, 'None', ''] and check_id(barcode_from_session_product):
+            if int(barcode_from_session_product) in barcodes_list_from_db:
+                prod_obj = Jewelry.get_object('barcode', int(barcode_from_session_product))
+                if prod_obj.uin is None or prod_obj.uin == 'None':
+                    if product_from_sessions_dict['uin'] not in [None, 'None', '']:
                         prod_obj.uin = product_from_sessions_dict['uin']
                         prod_obj.save()
-                    repeating_product = True
-                else:
-                    barcodes_list_from_db.append(int(product_from_sessions_dict['barcode']))
+                repeating_product = True
+            else:
+                barcodes_list_from_db.append(int(product_from_sessions_dict['barcode']))
+
         if check_uin(product_from_sessions_dict['uin']):
             if int(product_from_sessions_dict['uin']) in uins_list_from_db:
+
                 repeating_product = True
             else:
                 uins_list_from_db.append(int(product_from_sessions_dict['uin']))
@@ -181,13 +183,41 @@ def save_products(request):
                     else:
                         manufacturer_obj = Manufacturer.get_object('id', product_from_sessions_dict[key])
                         new_object.__setattr__('manufacturer', manufacturer_obj)
-            print('New object = ', new_object.__dict__)
             try:
                 new_object.save()
+                print('Successful save new product')
             except:
-                print('EXCEPTION new_object_save')
+                print('EXCEPTION new object not save')
                 pass
-        repeating_product = False
+
+        else:
+            try:
+                print(product_from_sessions_dict['uin'])
+                product_obj = products_obj_list_from_bd.get(uin=product_from_sessions_dict['uin'])
+                for attr in product_obj.__dict__.keys():
+
+                    if getattr(product_obj, attr) in [None, 'None', '']:
+                        if attr == 'availability_status':
+                            print('attr = ', attr)
+                            print('product_from_sessions_dict[attr] = ', product_from_sessions_dict[attr])
+                            print('product_obj.availability_status = ', product_obj.availability_status)
+
+                        if attr in product_from_sessions_dict.keys():
+                            if product_from_sessions_dict[attr] not in [None, 'None', '']:
+                                    setattr(product_obj, attr, product_from_sessions_dict[attr])
+                    else:
+                        if attr in product_from_sessions_dict.keys():
+                            if attr == 'availability_status':
+                                if product_obj.availability_status == 'В наличии':
+                                    product_obj.availability_status = product_from_sessions_dict['availability_status']
+                            if attr == 'giis_status':
+                                product_obj.giis_status = product_from_sessions_dict['giis_status']
+                product_obj.save()
+
+            except ObjectDoesNotExist:
+                print('EXCEPTION')
+                print(traceback.format_exc())
+
 
     return show_products(request)
 

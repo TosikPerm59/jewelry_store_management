@@ -32,7 +32,7 @@
                         <option value="В наличии">В наличии</option>
                         <option value="Продано">Продано</option>
                         <option value="Передано">Передано</option>
-                        <option value="В договоре">В договоре</option>
+                        <option value="Передано по договору">Передано по договору</option>
                     </select>
                     <select name="giis_status" id="giis_status">
                         <option value="all">Статус ГИИС</option>
@@ -69,7 +69,7 @@
                 <th>Штрихкод</th>
                 <th>УИН</th>
                 <th>Статус ГИИС</th>
-                <th>Отпускная цена</th>
+                <th>Статус нал-я</th>
             </tr>
 
             {% for product in product_list %}
@@ -77,13 +77,13 @@
                 <tr class="table_row">
                     <td>{{product.number}}</td>
                     <td><input disabled type="text" value="{{ product.name }}" name="product.name"> </td>
-                    <td><input disabled type="text" value="{{ product.metal }}" name="product.metal" style="width: 11ch"> </td>
+                    <td><input disabled type="text" value="{{ product.metal }}" name="product.metal" style="width: 7ch"> </td>
                     <td><input disabled type="text" value="{{ product.weight }}" name="product.weight"> </td>
-                    <td><input disabled type="text" value="{{ product.vendor_code }}" name="product.vendor_code" style="width: 20ch"> </td>
+                    <td><input disabled type="text" value="{{ product.vendor_code }}" name="product.vendor_code" style="width: 10ch"> </td>
                     <td><input disabled type="text" value="{{ product.barcode }}" name="product.barcode" style="width: 14ch"> </td>
                     <td><input disabled type="text" value="{{ product.uin }}" name="product.uin" style="width: 17ch"> </td>
                     <td><input disabled type="text" value="{{ product.giis_status }}" name="product.giis_status" style="width: 12ch"> </td>
-                    <td><input disabled type="text" value="{{ product.selling_price }}" name="product.price"> </td>
+                    <td><input disabled type="text" value="{{ product.availability_status }}" name="product.availability_status" style="width: 12ch"> </td>
                     <td><button class="openModal_{{product.number}}">Показать</button></td>
                 </tr>
 

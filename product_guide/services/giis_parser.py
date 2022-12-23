@@ -34,7 +34,7 @@ def giis_file_parsing(giis_report_parser_obj):
         giis_status = sheet[row][6].value if sheet[row][6].value else None
         if giis_status == 'Терминальная стадия':
             giis_status = 'Выведено'
-            # availability_status = 'Продано'
+            availability_status = 'Продано'
         else:
             availability_status = 'В наличии'
         manufacturer_inn = sheet[row][9].value if sheet[row][9].value != '0000000000' else None
@@ -93,7 +93,7 @@ def giis_file_parsing(giis_report_parser_obj):
                         }
 
         giis_dicts_dict[counter] = product_dict
-        print(counter, product_dict)
+        # print(counter, product_dict)
 
     print(f'Сформирован список изделии файла ГИИС из {counter} позиций')
     print('Количество комплектов =  ', uin2_counter)
