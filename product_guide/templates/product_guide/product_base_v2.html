@@ -21,6 +21,7 @@
                         <option value="Серьги">Серьги</option>
                         <option value="Цепь">Цепи</option>
                         <option value="Браслет">Браслеты</option>
+                        <option value="Колье">Колье</option>
                     </select>
                     <select name="metal" id="metal">
                         <option value="all">Металл</option>
@@ -100,7 +101,11 @@
                                     {% for attr_name in product.keys %}
                                         {% if attr_name != 'number' %}
                                         {% if attr_name != 'id' %}
+                                        {% if attr_name != 'recipient_surname' %}
+                                        {% if attr_name != 'outgoing_invoice_number' %}
                                             <p>{% field_name attr_name %}</p>
+                                        {% endif %}
+                                        {% endif %}
                                         {% endif %}
                                         {% endif %}
                                     {% endfor %}
@@ -110,12 +115,26 @@
                                         {% if attr_name != 'number' %}
                                         {% if attr_name != 'id' %}
                                         {% if value and value != None  %}
+                                        {% if attr_name != 'recipient_surname' %}
+                                        {% if attr_name != 'outgoing_invoice_number' %}
+                                        {% if attr_name == 'recipient_id' %}
+                                            <p>{{product.recipient_surname}}</p>
+                                        {% else %}
+                                        {% if attr_name == 'outgoing_invoice_id' %}
+                                        <p>{{product.outgoing_invoice_number}}</p>
+                                        {% else %}
                                             <p>{{value}}</p>
+                                        {% endif %}
+                                        {% endif %}
+                                        {% endif %}
+                                        {% endif %}
                                         {% else %}
                                             <p>---</p>
                                         {% endif %}
                                         {% endif %}
                                         {% endif %}
+
+
                                     {% endfor %}
                                 </div>
                             </div>

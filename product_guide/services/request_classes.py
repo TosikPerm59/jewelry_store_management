@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import render
 
 from jewelry_store_management.settings import BASE_DIR
-from product_guide.models import Counterparties, Recipient, Provider, Jewelry
+from product_guide.models import Counterparties, Recipient, Provider, Jewelry, OutgoingInvoice
 from product_guide.services.anover_functions import make_product_queryset_from_dict_dicts, \
     find_products_in_db, has_filters_check, make_product_dict_from_dbqueryset, \
     search_query_processing
@@ -189,10 +189,14 @@ class Context:
         self.products_dicts_dict = request_obj.products_dicts_dict
         self.total_weight = self.calculate_total_weight()
         self.number_of_products = len(self.products_dicts_dict.keys())
+        self.recipient_obj_queryset = Recipient.get_all_obj()
+        self.outgoing_invoices_obj_queryset = OutgoingInvoice.get_all_obj()
         if self.number_of_products > 0:
             product_queryset = make_product_queryset_from_dict_dicts(self.products_dicts_dict)
             self.paginator_obj = Paginator(product_queryset, request_obj.numbers_of_items_per_page)
             self.page = self.paginator_obj.get_page(request_obj.page_num)
+            self.set_recipient_surname_for_products()
+            self.set_outgoing_invoice_number_for_product()
             self.context = self.get_default_context()
             if request_obj.__class__.__name__ == 'UploadFilePost':
                 self.set_context_for_UploadFilePost()
@@ -220,7 +224,8 @@ class Context:
                 'position_list': [x + 1 for x in range(self.number_of_products)],  # Список номеров позиций
                 'num_pages': [x for x in range(self.paginator_obj.num_pages + 1)][1:],  # Список номеров страниц
                 'total_weight': round(self.total_weight, ndigits=2) if self.total_weight else '',  # Общий вес изделий в списке
-                'len_products': self.number_of_products  # Количество изделий в списке
+                'len_products': self.number_of_products,  # Количество изделий в списке
+
             }
 
     def set_context_for_UploadFilePost(self):
@@ -237,6 +242,22 @@ class Context:
         if invoice_requisites['invoice_type'] == 'incoming_invoice':
             print('Добавление prod_list в контекст')
             self.context['prod_list'] = find_products_in_db(self.products_dicts_dict)
+
+    def set_recipient_surname_for_products(self):
+        for count, product in enumerate(self.page):
+            if 'recipient_id' in product.keys():
+                if isinteger(product['recipient_id']):
+                    if self.recipient_obj_queryset.filter(id=product['recipient_id']):
+                        recipient_surname = self.recipient_obj_queryset.get(id=product['recipient_id']).title
+                        self.page[count]['recipient_surname'] = recipient_surname
+
+    def set_outgoing_invoice_number_for_product(self):
+        for count, product in enumerate(self.page):
+            if 'outgoing_invoice_id' in product.keys():
+                if isinteger(product['outgoing_invoice_id']):
+                    if self.outgoing_invoices_obj_queryset.filter(id=product['outgoing_invoice_id']):
+                        outgoing_invoice_number = self.outgoing_invoices_obj_queryset.get(id=product['outgoing_invoice_id']).invoice_number
+                        self.page[count]['outgoing_invoice_number'] = outgoing_invoice_number
 
 
 def clear_media_folder():
