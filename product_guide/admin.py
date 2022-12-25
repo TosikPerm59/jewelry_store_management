@@ -10,8 +10,8 @@ class JewelryAdmin(admin.ModelAdmin):
 
 
 class OutgoingInvoiceAdmin(admin.ModelAdmin):
-    list_display = ('title', 'recipient')
-
+    list_display = ('invoice_number', 'departure_date', 'recipient')
+    list_display_links = ('invoice_number', 'departure_date')
 
 class ManufacturerAdmin(admin.ModelAdmin):
     list_display = ('title', 'inn')

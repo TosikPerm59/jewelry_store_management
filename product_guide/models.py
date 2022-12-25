@@ -166,6 +166,7 @@ class Invoice(ExtendedModelsModel):
         abstract = True
 
 
+
 class InputInvoice(Invoice, ExtendedModelsModel):
     provider = models.ForeignKey('Provider', null=True, blank=True, on_delete=models.PROTECT, default=None,
                                  verbose_name='Поставщик')
@@ -184,6 +185,7 @@ class OutgoingInvoice(Invoice, ExtendedModelsModel):
     class Meta:
         verbose_name = 'Исходящую накладную'
         verbose_name_plural = 'Исходящие накладные'
+        ordering = ['invoice_number']
 
 
 class Counterparties(ExtendedModelsModel):
