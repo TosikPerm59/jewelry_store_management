@@ -1,3 +1,4 @@
+from product_guide.models import Jewelry
 from product_guide.services.validity import *
 
 # Варианты возможных размеров изделий
@@ -15,7 +16,7 @@ keywords_weaving = {'перлина': ['шариковая', 'перлина'], 
 
 # Варианты имен изделий
 keywords_name = ['кольцо', 'цепь', 'серьги', 'подвеска', 'пусеты', 'браслет', 'крест', 'икона', 'колье', 'пирсинг',
-                 'моно-серьга', 'ложка', 'пуссеты', 'ложка', 'сувенир', 'бусы', 'ожерелье', 'серьга']
+                 'моно-серьга', 'ложка', 'пуссеты', 'ложка', 'сувенир', 'бусы', 'ожерелье', 'серьга', 'брошь']
 
 # Варианты вставок в изделия
 keywords_inserts = {'аметистом': ['аметистом', 'аметист'], 'топазом': ['топазом', 'топаз'],
@@ -188,10 +189,11 @@ def find_art(*args, group):
 def find_name(split_string):
     """ Метод поиска наименования изделия, сопоставляет содержимое строки со списком вариантов имен.
     Возвращает имя или None ."""
+    names_set = set(Jewelry.get_all_values_list('name') + keywords_name)
 
-    for name in keywords_name:
+    for name in names_set:
 
-        if name in split_string:
+        if name.lower() in split_string:
             return name.capitalize()
 
     for keywords_key, keywords_values in keywords.items():
