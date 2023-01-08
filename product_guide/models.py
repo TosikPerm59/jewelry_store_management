@@ -120,7 +120,7 @@ class Jewelry(ExtendedModelsModel):
     purchase_price = models.FloatField(null=True, blank=True, verbose_name='Закупочная цена')
     arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
     provider = models.ForeignKey('Provider', null=True, blank=True, verbose_name='Поставщик', on_delete=models.PROTECT)
-    input_invoice = models.ForeignKey('InputInvoice', null=True, blank=True, on_delete=models.PROTECT,
+    input_invoice = models.ForeignKey('IncomingInvoice', null=True, blank=True, on_delete=models.PROTECT,
                                       verbose_name='Входящая накладная')
     availability_status = models.CharField(max_length=50, choices=availability_statuses, verbose_name='Статус наличия')
     giis_status = models.CharField(max_length=20, null=True, blank=True, verbose_name='Статус ГИИС',
@@ -134,7 +134,6 @@ class Jewelry(ExtendedModelsModel):
     manufacturer = models.ForeignKey('Manufacturer', null=True, blank=True, verbose_name='Производитель',
                                      on_delete=models.PROTECT)
     comment = models.TextField(null=True, blank=True, verbose_name='Пояснения')
-
 
     class Meta:
         verbose_name = 'Изделие'
@@ -167,8 +166,7 @@ class Invoice(ExtendedModelsModel):
         abstract = True
 
 
-
-class InputInvoice(Invoice, ExtendedModelsModel):
+class IncomingInvoice(Invoice, ExtendedModelsModel):
     provider = models.ForeignKey('Provider', null=True, blank=True, on_delete=models.PROTECT, default=None,
                                  verbose_name='Поставщик')
     arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')

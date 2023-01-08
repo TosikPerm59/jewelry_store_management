@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import FileResponse
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-from .models import Jewelry, Manufacturer, InputInvoice
+from .models import Jewelry, Manufacturer, IncomingInvoice
 from product_guide.forms.product_guide.forms import UploadFileForm
 from product_guide.services.anover_functions import create_nomenclature_file
 from django.contrib.auth.decorators import login_required
@@ -142,9 +142,9 @@ def save_products(request):
     barcodes_list_from_db = Jewelry.get_all_values_list('barcode')
     counter = 0
     if invoice_requisites_from_session['invoice_type'] != 'giis_report':
-        invoice_object = InputInvoice.get_object('title', invoice_requisites_from_session['title'])
+        invoice_object = IncomingInvoice.get_object('title', invoice_requisites_from_session['title'])
         if invoice_object is None:
-            invoice_object = InputInvoice(
+            invoice_object = IncomingInvoice(
                 title=invoice_requisites_from_session['title'],
                 invoice_number=invoice_requisites_from_session['invoice_number'],
                 recipient=invoice_requisites_from_session['recipient_id'],

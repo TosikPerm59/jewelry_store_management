@@ -2,7 +2,7 @@ import os
 from django.core.paginator import Paginator
 
 from jewelry_store_management.settings import BASE_DIR
-from product_guide.models import File, Counterparties, Jewelry, Provider, InputInvoice
+from product_guide.models import File, Counterparties, Jewelry, Provider, IncomingInvoice
 from product_guide.services.finders import find_name, find_metal, find_art, find_weight
 from product_guide.services.validity import isfloat, check_weight, check_id, check_uin
 from openpyxl import Workbook

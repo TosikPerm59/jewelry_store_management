@@ -13,13 +13,14 @@ class OutgoingInvoiceAdmin(admin.ModelAdmin):
     list_display = ('invoice_number', 'departure_date', 'recipient')
     list_display_links = ('invoice_number', 'departure_date')
 
+
 class ManufacturerAdmin(admin.ModelAdmin):
     list_display = ('title', 'inn')
 
 
 admin.site.register(Jewelry, JewelryAdmin)
 admin.site.register(Metal)
-admin.site.register(InputInvoice)
+admin.site.register(IncomingInvoice)
 admin.site.register(OutgoingInvoice, OutgoingInvoiceAdmin)
 admin.site.register(Provider)
 admin.site.register(Recipient)
