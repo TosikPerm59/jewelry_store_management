@@ -49,6 +49,8 @@ class ReadExcelFile:
                 cell_text = sheet[row][col].value
                 if isinstance(cell_text, str):
                     cell_text = cell_text.replace('\n', '').lower() if '\n' in cell_text else cell_text.lower()
+                elif cell_text is None:
+                    cell_text = ''
                 row_lst.append(cell_text)
             str_rows_lst.append(row_lst)
         return str_rows_lst

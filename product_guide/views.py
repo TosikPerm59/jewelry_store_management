@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from .services.outgoing_invoice_changer import change_outgoing_invoice
 import traceback
 
+from .services.testing_classes import Testing
 from .services.validity import check_id, check_uin
 from .services.view_classes import createRequestObject
 
@@ -120,7 +121,7 @@ def upload_file(request):
     try:
         request_obj = createRequestObject(request, 'UploadFile')
         # Testing.show_session_data(request, show_products=False, show_invoice=True)
-        # Testing.show_context_data(request_obj.context, show_lists=True)
+        Testing.show_context_data(request_obj.context, show_lists=True)
         request.session.save()
         print('RENDERING')
         return render(request, request_obj.template_path, context=request_obj.context)

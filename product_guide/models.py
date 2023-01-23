@@ -162,7 +162,7 @@ class File(ExtendedModelsModel):
 
 class Invoice(ExtendedModelsModel):
     title = models.CharField(max_length=30, null=True, blank=True, verbose_name='Накладная')
-    invoice_number = models.IntegerField(null=True, blank=True, verbose_name='Номер накладной')
+    invoice_number = models.CharField(max_length=10, null=True, blank=True, verbose_name='Номер накладной')
 
     class Meta:
         abstract = True

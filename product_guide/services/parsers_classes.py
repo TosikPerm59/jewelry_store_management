@@ -192,7 +192,7 @@ class TableParser:
         return column_indexes_dict
 
     def get_product_list(self):
-        print('Выполняется функция table_prepare')
+        print('Выполняется функция get_product_list')
         index_number, product_list = 1, []
         for row in self.torg12_excel_parser.table_body_block:
 
@@ -227,7 +227,7 @@ class TableParser:
 
     def get_products_dicts_dict(self):
         product_dicts_dict = {}
-        for counter, product in enumerate(self.product_list):
+        for counter, product in enumerate(self.product_list, 1):
             description_string = product[self.column_indexes_dict['product_ind']].lower()
             description_string = Torg12ExcelParser.get_filtered_string(description_string)
             split_description_string = description_string.split(' ')
@@ -239,7 +239,7 @@ class TableParser:
             prod_art = find_art(description_string, group='excel')
             prod_barcode = find_barcode(description_string)
             prod_price = product[self.column_indexes_dict['price_ind']]
-            prod_uin = product[self.column_indexes_dict['uin_ind']]
+            prod_uin = product[self.column_indexes_dict['uin_ind']] if 'uin_ind' in self.column_indexes_dict.keys() else None
 
             if prod_uin is None:
                 prod_uin = find_uin_in_string(description_string)

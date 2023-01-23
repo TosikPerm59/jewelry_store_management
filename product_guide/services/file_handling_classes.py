@@ -34,6 +34,7 @@ class FileHandler:
         print('Выполняется функция parsing_data_object')
         if self.file_app == 'MS Excel':
             print('MS Excel')
+            print(''.join(self.file_data_obj.rows_list[0]))
 
             if self.request_obj.file_name.startswith('4_BATCH_LIST_PRINT'):
                 self.invoice_requisites['invoice_type'] = 'giis_report'
