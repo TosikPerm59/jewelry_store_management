@@ -44,7 +44,7 @@ class FileHandler:
             elif ''.join(self.file_data_obj.rows_list[0]).find('торг-12'):
                 torg12_excel_parser = Torg12ExcelParser(self)
                 self.invoice_requisites = torg12_excel_parser.invoice_requisites
-                self.request_obj.template_path = 'product_guide/show_incoming_invoice_v2.html'
+                self.request_obj.template_path = 'product_guide/show_incoming_invoice.html'
                 return torg12_excel_parser.products_dicts_dict
 
             # products_dicts_dict, self.invoice_requisites = invoice_parsing(self.file_data_obj.rows_list, self.file_data_obj.sheet, self.file_extension)

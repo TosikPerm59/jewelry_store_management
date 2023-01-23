@@ -106,7 +106,7 @@ def show_products(request):
         request_obj = createRequestObject(request, 'ShowProducts')
         # Testing.show_session_data(request)
         print(len(Jewelry.objects.all()))
-        return render(request, 'product_guide/product_base.html', context=request_obj.context)
+        return render(request, 'product_guide/show_product_base.html', context=request_obj.context)
 
     except Exception:
         print('EXCEPTION')
@@ -267,7 +267,7 @@ def save_incoming_invoice(request):
 #         product_dict_dicts[number] = prod_obj.__dict__
 #     request.session['product_objects_dict_for_view'] = product_dict_dicts
 #     context = get_context_for_product_list(product_dict_dicts, page_num=None)
-#     return render(request, 'product_guide/product_base.html', context=context)
+#     return render(request, 'product_guide/show_product_base.html', context=context)
 
 
 def download_nomenclature(request):
@@ -326,7 +326,7 @@ def change_product_attr(request):
 
     context = get_context_for_product_list(product_dict_dicts, page_num=None)
 
-    return render(request, 'product_guide/product_base.html', context=context)
+    return render(request, 'product_guide/show_product_base.html', context=context)
 
 
 @login_required()
@@ -354,4 +354,4 @@ def delete_line(request):
 def save_changes(request):
     request_obj = createRequestObject(request, 'SaveChanges')
     # Testing.show_context_data(request_obj.context, show_lists=True)
-    return render(request, 'product_guide/product_base.html', context=request_obj.context)
+    return render(request, 'product_guide/show_product_base.html', context=request_obj.context)
