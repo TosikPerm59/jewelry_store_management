@@ -48,6 +48,8 @@ class ExtendedModelsModel(models.Model):
                     obj = cls.objects.get(vendor_code=value)
                 if attr == 'inn':
                     obj = cls.objects.get(inn=value)
+                if attr == 'counterparties_id':
+                    obj = cls.objects.get(counterparties_id=value)
             return obj
         except ObjectDoesNotExist:
             pass
