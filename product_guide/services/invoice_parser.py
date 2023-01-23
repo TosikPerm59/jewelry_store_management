@@ -4,7 +4,8 @@ from product_guide.services.finders import *
 invoice_requisites = {}
 
 
-def invoice_parsing(full_rows_list, sheet, file_type, file_name):
+def invoice_parsing(full_rows_list, sheet, file_type):
+    print('Выполняется функция invoice_parsing')
     uin_ind = product_ind = weight_ind = price_ind = prod_uin = price_per_gram_ind = start = finish \
         = provider = row_with_date_index = invoice_number = invoice_date = col_with_number \
         = col_with_date = code_ind = prod_barcode_from_giis = prod_weight = prod_name = prod_barcode = prod_art \
@@ -12,7 +13,7 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
     counter = 0
     product_list, product_dicts_dict = [], {}
     string_with_provider = string_with_recipient = ''
-    if file_type == '.xlsx':
+    if file_type == 'xlsx':
         cols = sheet.max_column
         rows_lst = []
         for row in full_rows_list:
@@ -32,9 +33,11 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
                 if isinstance(elem, str) and elem != '' and elem is not None:
                     string_with_provider += elem + ' '
         if 'грузополучатель' in row or 'плательщик' in row:
+            # print('row = ', row)
             for elem in row:
                 if isinstance(elem, str) and elem != '' and elem is not None:
                     string_with_recipient += elem + ' '
+            # print('string_with_recipient = ', string_with_recipient)
         if 'товарная накладная  ' in row or 'товарная накладная ' in row:
             # print(row)
             invoice_date = row[15]
@@ -99,7 +102,7 @@ def invoice_parsing(full_rows_list, sheet, file_type, file_name):
                     break
 
             for row_3 in full_rows_list[row_start_index: row_finish_index]:
-                if file_type == '.xls':
+                if file_type == 'xls':
                     descr += (row_3[2] + ' ' + row_3[12] + ' ').lower()
                 else:
                     descr += (row_3[2] + ' ' + row_3[6] + ' ').lower() if row_3[6] is not None else ''

@@ -118,10 +118,14 @@ def get_files_title_list(files_queryset):
 
 
 def definition_of_invoice_type(provider, recipient):
+    print('Выполняется функция definition_of_invoice_type')
     provider_id, invoice_type, recipient_id = None, None, None
     counterparties_queryset = Counterparties.get_all_obj()
-
+    # print(provider)
+    # print(recipient)
     for counterparties_object in counterparties_queryset:
+        # print(provider.find(counterparties_object.surname.lower()) != -1)
+        # print(recipient.find(counterparties_object.surname.lower()) != -1)
         if provider.find(counterparties_object.surname.lower()) != -1:
             provider_id = counterparties_object.id
         if recipient.find(counterparties_object.surname.lower()) != -1:
