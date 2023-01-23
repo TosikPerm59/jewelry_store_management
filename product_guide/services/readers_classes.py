@@ -14,14 +14,11 @@ class ReadExcelFile:
         self.file_handler_obj = file_handler_obj
         if file_handler_obj.file_extension == 'xls':
             self.rows_list, self.sheet = self.read_old_excel_file()
-            print('rows_list = ', self.rows_list)
-            return
-
-        self.rows_list, self.sheet = self.read_excel_file()
+        else:
+            self.rows_list, self.sheet = self.read_excel_file()
 
     def read_old_excel_file(self):
         print('Выполняется функция read_old_excel_file из класса ReadExcelFile')
-
         excel_file = xlrd.open_workbook(self.file_handler_obj.file_path)
         sheet = excel_file.sheet_by_index(0)
         rows_list = [sheet.row_values(rownum) for rownum in range(sheet.nrows)]
@@ -32,7 +29,6 @@ class ReadExcelFile:
                     elem_ind = row.index(elem)
                     row.remove(elem)
                     row.insert(elem_ind, elem_low)
-
         return rows_list, sheet
 
     def read_excel_file(self):
@@ -40,7 +36,22 @@ class ReadExcelFile:
         excel_file = openpyxl.load_workbook(self.file_handler_obj.file_path)
         sheet = excel_file.active
         rows_list = [row for row in range(1, sheet.max_row + 1)]
-        return rows_list, sheet
+        str_rows_list = self.create_string_rows_list(rows_list, sheet)
+        return str_rows_list, sheet
+
+    @staticmethod
+    def create_string_rows_list(rows_list, sheet):
+        cols = sheet.max_column
+        str_rows_lst = []
+        for row in rows_list:
+            row_lst = []
+            for col in range(cols):
+                cell_text = sheet[row][col].value
+                if isinstance(cell_text, str):
+                    cell_text = cell_text.replace('\n', '').lower() if '\n' in cell_text else cell_text.lower()
+                row_lst.append(cell_text)
+            str_rows_lst.append(row_lst)
+        return str_rows_lst
 
 
 class ReadWordFile:
