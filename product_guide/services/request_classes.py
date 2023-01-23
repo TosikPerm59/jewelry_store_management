@@ -75,7 +75,7 @@ class RequestSession:
             self.request.session.pop('context')
 
     def save_template_path_in_session(self):
-        print('Сохранение контекста в сессии')
+        print('Сохранение пути к шаблону в сессии')
         self.request.session['template_path'] = self.template_path
 
     def get_template_path_from_session(self):
