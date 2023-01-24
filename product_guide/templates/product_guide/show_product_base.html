@@ -1,54 +1,6 @@
-{% extends "product_guide/base.html" %}
+{% extends "product_guide/a-side.html" %}
 {% load product_guide_tags %}
 {% block main %}
-
-    <aside>
-        <div class="search">
-            <form class="search_form" action="" method="post">
-                {% csrf_token%}
-                <input id="search_string" type="text" placeholder="Поиск изделий..." name="search_string">
-                <button type="submit">Найти</button>
-            </form>
-        </div>
-        <div class="filters">
-            <form action="{% url 'product_base' %}" method="post">
-                {% csrf_token %}
-                <fieldset id="filter_fieldset">
-                    <legend><h4>Фильтр</h4></legend>
-                    <select name="name" id="name" >
-                        <option value="all">Изделие</option>
-                        <option value="Браслет">Браслеты</option>
-                        <option value="Колье">Колье</option>
-                        <option value="Кольцо">Кольца</option>
-                        <option value="Крест">Кресты</option>
-                        <option value="Подвеска">Подвески</option>
-                        <option value="Серьги">Серьги</option>
-                        <option value="Цепь">Цепи</option>
-
-
-                    </select>
-                    <select name="metal" id="metal">
-                        <option value="all">Металл</option>
-                        <option value="Золото 585">Золото 585</option>
-                        <option value="Серебро 925">Серебро 925</option>
-                    </select>
-                    <select name="availability_status" id="availability_status">
-                        <option value="all">Статус наличия</option>
-                        <option value="В наличии">В наличии</option>
-                        <option value="Продано">Продано</option>
-                        <option value="Передано">Передано</option>
-                        <option value="Передано по договору">Передано по договору</option>
-                    </select>
-                    <select name="giis_status" id="giis_status">
-                        <option value="all">Статус ГИИС</option>
-                        <option value="На хранении">На хранении</option>
-                        <option value="Выведено">Выведено</option>
-                    </select>
-                    <button id="filter_button" type="submit">Показать</button>
-                </fieldset>
-            </form>
-        </div>
-    </aside>
 
     <article>
         <h5> Всего {{len_products}} изделий общим весом {{total_weight}} грамм</h5>
