@@ -1,50 +1,84 @@
-{% extends "product_guide/a-side.html" %}
+{% extends "product_guide/base.html" %}
 {% block main %}
 
     <article>
+        <div class="article_header">
+            <h1>Приходная накладная: {{ invoice_title }}</h1>
+        </div>
+        <div class="invoice_requisites_block">
+            <h3>
+                <p>Дата поступления:  {{ invoice_date }}</p>
+                <p>Номер накладной:  {{ invoice_number }}</p>
+                <p>Постащик:  {{ provider_surname }}</p>
+                <p>Всего {{len_products}} изделий, общим весом {{total_weight}} грамм, на сумму {{total_amount}} рублей.</p>
+            </h3>
+        </div>
+        <div class="table_shell">
+            <div class="table_area">
+                    <table class="table">
+                        <tr class="table_header">
+                            <th>№</th>
+                            <th>Изделие</th>
+                            <th>Металл</th>
+                            <th>Вес (гр.)</th>
+                            <th>Артикул</th>
+                            <th>Штрихкод</th>
+                            <th>Уин</th>
+                            <th>Размер</th>
+                            <th>Цена (р/г)</th>
+                            <th>Цена (руб.)</th>
+                            <th></th>
+                        </tr>
 
-        <h3>
-            <p>Накладная: {{ invoice_title }}</p>
-            <p>Дата поступления: {{ invoice_date }}</p>
-            <p>Номер накладной: {{ invoice_number }}</p>
-            <p>Постащик: {{ provider }}</p>
-            <p>Всего {{len_products}} изделий, общим весом {{total_weight}} грамм</p>
-        </h3>
+                        {% for product in product_list %}
+                            <form action="./save_product_properties" method="post" name="save_product_properties">
+                                {% csrf_token %}
+                            <input class="data_input" hidden type="text" value="{{ product.number }}" name="number">
+                            <tr class="table_row">
+                                <td>{{ product.number }}</td>
+                                <td><input class="data_input" type="text" value="{{ product.name }}" name="name" style="width: 10ch"> </td>
+                                <td><input class="data_input" type="text" value="{{ product.metal }}" name="metal" style="width: 12ch"> </td>
+                                <td><input class="data_input" type="text" value="{{ product.weight }}" name="weight"> </td>
+                                <td><input class="data_input" type="text" value="{{ product.vendor_code }}" name="vendor_code" style="width: 14ch"> </td>
+                                <td><input class="data_input" type="text" value="{{ product.barcode }}" name="barcode" style="width: 16ch"> </td>
+                                <td><input class="data_input" type="text" value="{{ product.uin }}" name="uin" style="width: 18ch"> </td>
+                                <td><input class="data_input" type="text" value="{{ product.size }}" name="size" style="width: 7ch"> </td>
+                                <td><input class="data_input" type="text" value="{{ product.price_per_gram }}" name="price_per_gram" style="width: 7ch"> </td>
+                                <td><input class="data_input" type="text" value="{{ product.price }}" name="price" style="width: 7ch"> </td>
+                                <td><button type="submit">V</button></td>
 
-        {% for product in product_list %}
-            <form method="post" action="{% url 'change_attr' %}" id="change{{product.number}}">
-                {% csrf_token %}
-            </form>
-            <form method="post" action="{% url 'delete_line' %}" id="delete{{product.number}}">
-                {% csrf_token %}
-            </form>
-        {% endfor %}
+                            </tr>
+                            </form>
+                        {% endfor %}
+                    </table>
+            </div>
+        </div>
+            <div class="lower_buttons_block">
+                <div class="left_buttons_block">
+                    {% if num_pages|length > 1 %}
+                        {% for num in num_pages %}
+                            <form action="{% url 'product_base' %}" method="post">
+                                {% csrf_token%}
+                                <input type="text" value="{{num}}" name="page" hidden>
+                                <button type="submit">{{ num }}</button>
+                            </form>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div class="right_buttons_block">
+                    <div class="buttons">
+                        <a href="save_incoming_invoice"><button>Сохранить накладную</button></a>
+                    </div>
+                    <div class="buttons">
+                        <form method="get" action="{% url 'download_nomenclature' %}">
+                            <input type="text" value="{{ file_path }}" name="file_path" hidden>
+                            <button type="submit">Скачать файл</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
-        <table class="table">
-            <tr class="table_header">
-                <th>№</th>
-                <th>Изделие</th>
-                <th>Металл</th>
-                <th>Артикул</th>
-                <th>Штрихкод</th>
-                <th>УИН</th>
-                <th>Вес</th>
-                <th>Размер</th>
-                <th>Цена</th>
-            </tr>
-            {{my_string}}
-        </table>
-        {% for num in num_pages %}
-            <form action="{% url 'product_base' %}" method="post">
-                {% csrf_token%}
-                <input type="text" value="{{num}}" name="page" hidden>
-                <button type="submit">{{ num }}</button>
-            </form>
-        {% endfor %}
-        <form method="get" action="{% url 'download_nomenclature' %}">
-            <input type="text" value="{{ file_path }}" name="file_path" hidden>
-            <button type="submit">Скачать файл</button>
-        </form>
+
     </article>
 
 {% endblock %}
