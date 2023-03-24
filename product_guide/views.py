@@ -133,6 +133,18 @@ def upload_file(request):
 
 
 @login_required()
+def save_product_properties(request):
+    request_obj = createRequestObject(request, 'SaveProductProperties')
+    return render(request, 'product_guide/show_incoming_invoice.html', context=request_obj.context)
+
+
+@login_required()
+def save_incoming_invoice(request):
+    request_obj = createRequestObject(request, 'SaveIncomingInvoice')
+    return render(request, 'product_guide/show_incoming_invoice.html', context=request_obj.context)
+
+
+@login_required()
 def save_products(request):
     print('Сохранение изделий в базе данных')
     # request_obj = createRequestObject(request, 'ProductsSaver')
@@ -223,14 +235,11 @@ def save_products(request):
     return show_products(request)
 
 
-@login_required()
-def save_incoming_invoice(request):
-    pass
-#     attr_list = ['name', 'metal', 'vendor_code', 'barcode', 'uin', 'weight', 'size', 'price']
-#     product_dict = {}
+# @login_required()
+# def save_incoming_invoice(request):
+#     pass
 #     # product_dict_dicts_from_session = RequestSession.get_product_dicts_dict_from_session(request)
-#     product_dict_dicts = {}
-#     # invoice_data = RequestSession.get_invoice_from_session(request)
+    # invoice_data = RequestSession.get_invoice_from_session(request)
 #
 #     provider_obj = get_or_save_provider(invoice_data)
 #
@@ -355,3 +364,7 @@ def save_changes(request):
     request_obj = createRequestObject(request, 'SaveChanges')
     # Testing.show_context_data(request_obj.context, show_lists=True)
     return render(request, 'product_guide/show_product_base.html', context=request_obj.context)
+
+
+
+
