@@ -1,7 +1,7 @@
 from django.urls import path, include
 from .views import index, register, user_login, user_logout, upload_file, change_product_attr, \
     delete_line, save_products, download_changed_file, download_nomenclature, save_incoming_invoice, show_products, \
-    save_changes
+    save_changes, save_product_properties
 
 urlpatterns = [
     path('', index, name='index'),
@@ -16,5 +16,6 @@ urlpatterns = [
     path('download_changed_file', download_changed_file, name='download_changed_file'),
     path('download_nomenclature', download_nomenclature, name='download_nomenclature'),
     path('save_incoming_invoice', save_incoming_invoice, name='save_incoming_invoice'),
-    path('save_changes', save_changes, name='save_changes')
+    path('save_changes', save_changes, name='save_changes'),
+    path('save_product_properties', save_product_properties, name='save_product_properties')
 ]
