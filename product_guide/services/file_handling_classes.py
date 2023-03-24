@@ -39,12 +39,14 @@ class FileHandler:
             if self.request_obj.file_name.startswith('4_BATCH_LIST_PRINT'):
                 self.invoice_requisites['invoice_type'] = 'giis_report'
                 self.request_obj.template_path = 'product_guide/show_giis_report.html'
+                self.numbers_of_items_per_page = 50
                 return GiisReportParser(self).products_dicts_dict
 
             elif ''.join(self.file_data_obj.rows_list[0]).find('торг-12'):
                 torg12_excel_parser = Torg12ExcelParser(self)
                 self.invoice_requisites = torg12_excel_parser.invoice_requisites
                 self.request_obj.template_path = 'product_guide/show_incoming_invoice.html'
+                self.numbers_of_items_per_page = 300
                 return torg12_excel_parser.products_dicts_dict
 
             # products_dicts_dict, self.invoice_requisites = invoice_parsing(self.file_data_obj.rows_list, self.file_data_obj.sheet, self.file_extension)
@@ -61,6 +63,7 @@ class FileHandler:
 
         elif self.file_app == 'MS Word':
             print('MS Word')
+            self.numbers_of_items_per_page = 50
             products_dicts_dict, self.invoice_requisites = word_invoice_parsing(self.file_data_obj.header_table, self.file_data_obj.product_table)
             self.provider_obj = Provider.get_object('id', self.invoice_requisites['provider_id'])
             self.recipient_obj = Recipient.get_object('id', self.invoice_requisites['recipient_id'])
