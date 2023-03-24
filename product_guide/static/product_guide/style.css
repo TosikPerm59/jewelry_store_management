@@ -108,32 +108,62 @@ select {
 article {
     flex-direction: column;
     height: 100%;
-    padding: 5px 5px 5px 10px;
+    width: 100%;
+    padding: 5px;
+
 
 }
 
-.table {
-    border-top: 0;
-    margin: 0;
-    padding: 0;
-    border-spacing: 0;
-    width: 100%;
+.article_header {
+    display: flex;
+    justify-content: center;
+    border: 2px solid grey;
+    border-radius: 5px;
+}
+
+.invoice_requisites_block {
+    border: 2px solid grey;
+    border-radius: 5px;
+    padding-left: 20px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.table_shell {
+    border: 2px solid grey;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+}
+
+.table_area {
+    width: fit-content;
+}
+
+.table_header {
+    border: none;
 }
 
 .table  tr  td{
- /*   border: 1px grey dotted;*/
     margin: 0;
-    /*padding: 5px;*/
     border-spacing: 0;
     text-align: center;
 }
 
 .table tr th {
-    border: 2px grey solid;
     margin: 0;
-    padding: 5px;
+    padding: 10px;
     border-spacing: 0;
     text-align: center;
+}
+
+.data_input {
+    border: none;
+    text-align: center;
+    margin-bottom: 5px;
+}
+.table_row {
+    border: 1px solid black;
 }
 
 .table_row td input{
@@ -151,6 +181,30 @@ article {
     width: 1050px;
     padding-top: 15px;
     padding-bottom: 15px;
+}
+
+.lower_buttons_block {
+    height: 100px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.left_buttons_block {
+    display: flex;
+
+}
+
+.right_buttons_block {
+    display: flex;
+    flex-direction: column;
+    justify-content: inherit;
+    width: fit-content;
+    align-items: flex-end;
+}
+.buttons {
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .register_window, .exception_window {
