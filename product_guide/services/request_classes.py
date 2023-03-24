@@ -75,11 +75,11 @@ class RequestSession:
             self.request.session.pop('context')
 
     def save_template_path_in_session(self):
-        print('Сохранение пути к шаблону в сессии')
+        print('Сохранение template_path в сессии')
         self.request.session['template_path'] = self.template_path
 
     def get_template_path_from_session(self):
-        print('Получение контекста из сессии')
+        print('Получение template_path из сессии')
         return self.request.session['template_path']
 
     def delete_template_path_from_session(self):
@@ -218,6 +218,15 @@ class Context:
         except Exception:
             return self.request_obj.show_exception(traceback.format_exc())
 
+    def calculate_total_amount(self):
+        total_amount = 0
+        for product in self.products_dicts_dict.values():
+            print(product)
+            if product['price'] and isfloat(product['price']):
+                total_amount += float(product['price'])
+        print('total_amount = ', total_amount)
+        return total_amount
+
     def get_default_context(self):
         return {
                 'product_list': self.page.object_list,
@@ -232,6 +241,7 @@ class Context:
         print('Добавление данных в контекст UploadFilePost')
         invoice_requisites = self.request_obj.get_invoice_requisites_from_session()
         self.context['invoice_title'] = invoice_requisites['title']
+        self.context['total_amount'] = self.calculate_total_amount()
 
         if self.request_obj.invoice_requisites['invoice_type'] != 'giis_report':
             self.context['recipient_surname'] = Recipient.get_object('id', invoice_requisites['recipient_id']).counterparties.surname
