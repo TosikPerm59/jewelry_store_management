@@ -43,6 +43,10 @@ class Torg12ExcelParser:
         self.requisites_block, self.table_header_block, self.table_body_block = self.blocks_definition()
         self.invoice_requisites = RequisitesParser(self.requisites_block).requisites_dict
         self.products_dicts_dict = TableParser(self).products_dicts_dict
+        if self.invoice_requisites['invoice_type'] == 'incoming':
+            self.products_from_db = Jewelry.get_all_obj()
+            print('invoice_type == incoming')
+            self.product_match_search()
 
     def blocks_definition(self):
         print('Выполняется функция blocks_definition')
@@ -54,6 +58,8 @@ class Torg12ExcelParser:
             if start and finish:
                 return rows_list[:start], rows_list[start + 1: start + 3], rows_list[start + 4: finish]
 
+
+
     @staticmethod
     def get_filtered_string(insert_string):
         filterable_items = ['"', '(', ')', ';']
@@ -61,6 +67,31 @@ class Torg12ExcelParser:
             insert_string = insert_string.replace(item, '', insert_string.count(item))
 
         return insert_string
+
+    def product_match_search(self):
+        for key, product in self.products_dicts_dict.items():
+            if product['uin'] is None:
+                product['related_products_ids'] = []
+                if product['barcode']:
+                    filtered_products_from_db = self.products_from_db.filter(barcode=product['barcode'])
+                    if filtered_products_from_db:
+                        for filtered_product in filtered_products_from_db:
+                            if filtered_product.input_invoice is None:
+                                product['related_products_ids'].append(filtered_product.id)
+                if len(product['related_products_ids']) == 0:
+                    filtered_products_from_db = self.products_from_db.filter(name=product['name'], metal=product['metal'],
+                                                                             weight=product['weight'])
+                    if len(filtered_products_from_db) == 0:
+                        filtered_products_from_db = self.products_from_db.filter(metal=product['metal'],
+                                                                                 weight=product['weight'])
+                    if product['vendor_code']:
+                        hard_filtered_products_from_db = filtered_products_from_db.filter(vendor_code=product['vendor_code'])
+                        if len(hard_filtered_products_from_db) > 0:
+                            filtered_products_from_db = hard_filtered_products_from_db
+                    if filtered_products_from_db:
+                        for filtered_product in filtered_products_from_db:
+                            if filtered_product.input_invoice is None:
+                                product['related_products_ids'].append(filtered_product.id)
 
 
 class RequisitesParser:
@@ -173,6 +204,7 @@ class TableParser:
         self.product_list = self.get_product_list()
         self.products_dicts_dict = self.get_products_dicts_dict()
 
+
     def column_indexes_definition(self):
         print('Выполняется функция column_indexes_definition')
         column_indexes_dict = {}
@@ -243,12 +275,22 @@ class TableParser:
 
             if prod_uin is None:
                 prod_uin = find_uin_in_string(description_string)
+                if prod_uin is None:
+                    if prod_barcode:
+                        prod_obj = Jewelry.get_object('barcode', prod_barcode)
+                        if prod_obj:
+                            prod_uin = prod_obj.uin
+                    else:
+                        pass
+
             if prod_metal is None:
                 price_per_gram = prod_price / prod_weight
                 if price_per_gram > 2500:
                     prod_metal = 'Золото 585'
                 else:
                     prod_metal = 'Серебро 925'
+
+            price_per_gram = lambda x, y: x/y
 
             product_dict = {'name': prod_name,
                             'metal': prod_metal,
@@ -257,9 +299,13 @@ class TableParser:
                             'weight': round(float(prod_weight), ndigits=2),
                             'vendor_code': prod_art,
                             'size': round(float(prod_size), ndigits=2) if isfloat(prod_size) else None,
+                            'price_per_gram': round(price_per_gram(round(float(prod_price)), float(prod_weight)), ndigits=2),
                             'price': round(float(prod_price), ndigits=2),
                             'number': counter
                             }
             product_dicts_dict[counter] = product_dict
 
         return product_dicts_dict
+
+
+
