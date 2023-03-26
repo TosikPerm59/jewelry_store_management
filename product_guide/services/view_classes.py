@@ -175,6 +175,7 @@ class SaveIncomingInvoiceGet(Request):
             return product_obj
 
         for product in self.products_dicts_dict_from_session.values():
+            product_obj = None
             if product['uin'] and check_uin(product['uin']) and len(
                     self.all_products_from_db.filter(uin=product['uin'])) > 0:
                 product_obj = Jewelry.get_object('uin', product['uin'])
@@ -194,9 +195,9 @@ class SaveIncomingInvoiceGet(Request):
                 for prod_obj in product_objs_queryset:
                     if not prod_obj.input_invoice:
                         product_obj = prod_obj
-                else:
-                    product_obj = Jewelry()
-            else:
+                        print('PRODUCT_OBJ FINDED ON PARAMETERS')
+
+            if product_obj is None:
                 product_obj = Jewelry()
                 print('CREATE NEW PRODUCT_OBJ')
 
