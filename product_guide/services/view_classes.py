@@ -9,7 +9,7 @@ from product_guide.services.anover_functions import make_product_dict_from_dbque
 from product_guide.services.file_handling_classes import FileHandler
 from product_guide.services.request_classes import Request, Context, clear_media_folder
 from product_guide.services.upload_file_methods import file_processing
-from product_guide.services.validity import check_uin
+from product_guide.services.validity import check_uin, isfloat, isinteger, check_id
 
 
 def createRequestObject(request, func_name):
@@ -163,7 +163,7 @@ class SaveIncomingInvoiceGet(Request):
                 if key in sinonims_dict.keys():
                     key = sinonims_dict[key]
                 print('key = ', key, ',', 'value = ', value)
-                if key in product_obj.__dict__.keys():
+                if key in product_obj.__dict__.keys() and value is not None:
                     product_obj.__setattr__(key, value)
             return product_obj
 
@@ -171,13 +171,18 @@ class SaveIncomingInvoiceGet(Request):
             if product['uin'] and check_uin(product['uin']) and len(
                     self.all_products_from_db.filter(uin=product['uin'])) > 0:
                 product_obj = Jewelry.get_object('uin', product['uin'])
+                print('PRODUCT_OBJ FINDED ON UIN')
+            elif product['barcode'] and isinteger(product['barcode']) and len(self.all_products_from_db.filter(barcode=product['barcode'])) > 0:
+                product_obj = Jewelry.get_object('barcode', int(product['barcode']))
+                print('PRODUCT_OBJ FINDED ON BARCODE')
             else:
                 product_obj = Jewelry()
+                print('CREATE NEW PRODUCT_OBJ')
 
             product_obj = save_properties(product_obj, product)
             product_obj = save_properties(product_obj, self.invoice_requisites)
             product_obj.input_invoice = IncomingInvoice.get_object('id', self.invoice_id)
-
+            print(product_obj.__dict__)
             product_obj.save()
 
     def get_or_create_invoice_obj(self):
