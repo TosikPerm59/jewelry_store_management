@@ -165,6 +165,8 @@ class SaveIncomingInvoiceGet(Request):
                 value = value.replace('.', ',') if value is str and '.' in value else value
                 if key in sinonims_dict.keys():
                     key = sinonims_dict[key]
+                if key == 'recipient_id':
+                    continue
                 print('key = ', key, ',', 'value = ', value)
                 if key in product_obj.__dict__.keys() and value is not None:
                     if isfloat(value):
