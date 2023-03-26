@@ -1,4 +1,6 @@
 import os
+from decimal import Decimal
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.context_processors import media
 import tempfile
@@ -160,10 +162,13 @@ class SaveIncomingInvoiceGet(Request):
 
         def save_properties(product_obj, properties):
             for key, value in properties.items():
+                value = value.replace('.', ',') if value is str and '.' in value else value
                 if key in sinonims_dict.keys():
                     key = sinonims_dict[key]
                 print('key = ', key, ',', 'value = ', value)
                 if key in product_obj.__dict__.keys() and value is not None:
+                    if isfloat(value):
+                        value = float(value)
                     product_obj.__setattr__(key, value)
             return product_obj
 
