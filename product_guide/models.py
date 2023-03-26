@@ -48,8 +48,12 @@ class ExtendedModelsModel(models.Model):
                     obj = cls.objects.get(vendor_code=value)
                 if attr == 'inn':
                     obj = cls.objects.get(inn=value)
+                if attr == 'provider_id':
+                    obj = cls.objects.filter(provider_id=value)
                 if attr == 'counterparties_id':
                     obj = cls.objects.get(counterparties_id=value)
+                if attr == 'invoice_number':
+                    obj = cls.objects.filter(invoice_number=value)
             return obj
         except ObjectDoesNotExist:
             pass
@@ -120,6 +124,7 @@ class Jewelry(ExtendedModelsModel):
     coating = models.CharField(max_length=20, verbose_name='Покрытие', blank=True, null=True, choices=coatings)
     inserts = models.CharField(max_length=50, verbose_name='Вставки', blank=True, null=True)
     purchase_price = models.FloatField(null=True, blank=True, verbose_name='Закупочная цена')
+    purchase_price_per_gram = models.FloatField(null=True, blank=True, verbose_name='Закуп за грамм')
     arrival_date = models.CharField(max_length=20, null=True, blank=True, verbose_name='Дата прихода')
     provider = models.ForeignKey('Provider', null=True, blank=True, verbose_name='Поставщик', on_delete=models.PROTECT)
     input_invoice = models.ForeignKey('IncomingInvoice', null=True, blank=True, on_delete=models.PROTECT,
