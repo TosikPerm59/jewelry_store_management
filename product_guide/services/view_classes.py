@@ -182,6 +182,20 @@ class SaveIncomingInvoiceGet(Request):
             elif product['barcode'] and isinteger(product['barcode']) and len(self.all_products_from_db.filter(barcode=product['barcode'])) > 0:
                 product_obj = Jewelry.get_object('barcode', int(product['barcode']))
                 print('PRODUCT_OBJ FINDED ON BARCODE')
+            elif len(self.all_products_from_db.filter(name=product['name'],
+                                                      metal=product['metal'],
+                                                      weight=product['weight'],
+                                                      vendor_code=product['vendor_code'])):
+                product_objs_queryset = (self.all_products_from_db.filter(name=product['name'],
+                                                      metal=product['metal'],
+                                                      weight=product['weight'],
+                                                      vendor_code=product['vendor_code']))
+
+                for prod_obj in product_objs_queryset:
+                    if not prod_obj.input_invoice:
+                        product_obj = prod_obj
+                else:
+                    product_obj = Jewelry()
             else:
                 product_obj = Jewelry()
                 print('CREATE NEW PRODUCT_OBJ')
