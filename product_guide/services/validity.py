@@ -58,8 +58,10 @@ def isfloat(value):
         Возвращает boolean """
 
     try:
-        float(value)
-        return True
+        if not isinteger(value):
+            float(value)
+            return True
+        return False
     except ValueError:
         return False
     except TypeError:
